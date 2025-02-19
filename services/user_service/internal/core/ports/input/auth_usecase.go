@@ -1,0 +1,33 @@
+package input
+
+import (
+	"context"
+	"time"
+
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/domain/entities"
+	"github.com/google/uuid"
+)
+
+type TokenDetails struct {
+	AccessToken  string
+	RefreshToken string
+	ExpiresAt    time.Time
+	SessionID    uuid.UUID
+}
+
+type AuthUseCase interface {
+	Register(ctx context.Context, singupDto dto.SignupDTO) (*entities.User, error)
+	Login(ctx context.Context, loginDTO dto.LoginDTO) (*TokenDetails, error)
+	//RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*TokenDetails, error)
+	//Logout(ctx context.Context, refreshToken string) error
+	//LogoutAll(ctx context.Context, userID uuid.UUID) error
+	//SendVerificationEmail(ctx context.Context, userID uuid.UUID) error
+	//VerifyEmail(ctx context.Context, token string) error
+	//SendPasswordResetEmail(ctx context.Context, email string) error
+	//ResetPassword(ctx context.Context, token, newPassword string) error
+	//SetupMFA(ctx context.Context, userID uuid.UUID) (string, string, error)
+	//VerifyAndEnableMFA(ctx context.Context, userID uuid.UUID, code string) ([]string, error)
+	//DisableMFA(ctx context.Context, userID uuid.UUID, code string) error
+	//VerifyMFA(ctx context.Context, userID uuid.UUID, code string) error
+}
