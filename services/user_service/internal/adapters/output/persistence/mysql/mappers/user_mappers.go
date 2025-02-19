@@ -1,4 +1,4 @@
-package mysql
+package mappers
 
 import (
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
@@ -23,7 +23,6 @@ func ToUserDTO(user *entities.User) *dto.UserDTO {
 	}
 }
 
-// Mapea UserDTO a entities.User
 func FromUserDTO(dto *dto.UserDTO) *entities.User {
 	return &entities.User{
 		ID:        dto.ID,
@@ -40,7 +39,6 @@ func FromUserDTO(dto *dto.UserDTO) *entities.User {
 	}
 }
 
-// Mapea entities.User a UserModel
 func FromEntity(user *entities.User) *models.UserModel {
 	return &models.UserModel{
 		ID:           user.ID,
@@ -57,5 +55,18 @@ func FromEntity(user *entities.User) *models.UserModel {
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 		DeletedAt:    user.DeletedAt,
+	}
+}
+
+type UserMappers struct{}
+
+func (m UserMappers) SignupDTOToDomain(dto dto.SignupDTO) *entities.User {
+	return &entities.User{
+		FirstName:    dto.FirstName,
+		LastName:     dto.LastName,
+		Email:        dto.Email,
+		PasswordHash: dto.Password,
+		Username:     dto.Username,
+		Phone:        dto.Phone,
 	}
 }

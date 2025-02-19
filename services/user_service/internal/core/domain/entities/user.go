@@ -54,11 +54,12 @@ func (u *User) ComparePassword(password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
 }
 
-func hashPassword(password string) (string, error) {
+func (u *User) HashPassword(password string) (string, error) {
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
+
 	return string(hashedBytes), nil
 }
 
@@ -80,6 +81,10 @@ func (u *User) Validate() error {
 			return err
 		}
 	}
+	if err := ValidatePasswordStrength(u.PasswordHash); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -186,7 +191,6 @@ func (u *User) Ban(reason string) error {
 	return nil
 }
 
-// Métodos de actualización segura
 func (u *User) UpdateEmail(newEmail string) error {
 	if u.Email == newEmail {
 		return nil
@@ -233,44 +237,6 @@ func (pr *PasswordReset) MarkAsUsed() error {
 	return nil
 }
 
-func CreateUser(email, username, password string, roleID uint) (*User, error) {
-	if roleID == 0 {
-		return nil, errors.New("role ID is required")
-	}
-
-	tempUser := &User{
-		Email:    email,
-		Username: username,
-		RoleID:   roleID,
-	}
-
-	if err := tempUser.ValidateEmail(); err != nil {
-		return nil, err
-	}
-	if err := tempUser.ValidateUsername(); err != nil {
-		return nil, err
-	}
-	if err := ValidatePasswordStrength(password); err != nil {
-		return nil, err
-	}
-
-	hashedPassword, err := hashPassword(password)
-	if err != nil {
-		return nil, fmt.Errorf("error hashing password: %w", err)
-	}
-
-	return &User{
-		ID:           uuid.New().String(),
-		Email:        email,
-		Username:     username,
-		PasswordHash: hashedPassword,
-		RoleID:       roleID,
-		Status:       UserStatusPending,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}, nil
-}
-
 func (u *User) UpdatePassword(oldPassword, newPassword string) error {
 	if err := u.ComparePassword(oldPassword); err != nil {
 		return errors.New("invalid current password")
@@ -280,7 +246,7 @@ func (u *User) UpdatePassword(oldPassword, newPassword string) error {
 		return err
 	}
 
-	hashedPassword, err := hashPassword(newPassword)
+	hashedPassword, err := u.HashPassword(newPassword)
 	if err != nil {
 		return fmt.Errorf("error hashing password: %w", err)
 	}
