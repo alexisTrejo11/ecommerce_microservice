@@ -40,6 +40,12 @@ func (uc *AddressUseCasesImpl) AddAddress(ctx context.Context, addressDTO *dto.A
 	address := uc.addressMappers.InsertDtoToEntity(*addressDTO)
 	address.UserID = addressDTO.UserID
 
+	err := address.Validate()
+	if err != nil {
+		return err
+	}
+
+	address.PrepareForCreate()
 	if err := uc.addressRepository.Create(ctx, address); err != nil {
 		return fmt.Errorf("error saving address: %w", err)
 	}
@@ -57,8 +63,13 @@ func (uc *AddressUseCasesImpl) UpdateAddress(ctx context.Context, id uint, addre
 	address.ID = id
 	address.UserID = addressDTO.UserID
 	address.CreatedAt = existingAddress.CreatedAt
-	address.PrepareForUpdate()
 
+	err = address.Validate()
+	if err != nil {
+		return err
+	}
+
+	address.PrepareForUpdate()
 	if err := uc.addressRepository.Update(ctx, address); err != nil {
 		return fmt.Errorf("error updating address: %w", err)
 	}
