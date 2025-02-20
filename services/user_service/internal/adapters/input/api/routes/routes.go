@@ -12,7 +12,15 @@ func AuthRoutes(r fiber.Router, authHandler *handlers.AuthHandler) {
 		})
 	})
 
-	r.Post("/register", authHandler.Register)
-	r.Post("/login", authHandler.Login)
+	path := r.Group("v1/api")
+	path.Post("/register", authHandler.Register)
+	path.Post("/login", authHandler.Login)
+}
 
+func UserRoutes(r fiber.Router, addresHandler *handlers.UserAddressHandler) {
+	path := r.Group("v1/api/users/address")
+	path.Get("", addresHandler.MyAddresses)
+	path.Post("", addresHandler.AddAddress)
+	path.Put("/:id", addresHandler.UpdateMyAddress)
+	path.Delete("/:id", addresHandler.DeleteAddress)
 }

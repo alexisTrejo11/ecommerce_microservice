@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type IUserRepository interface {
+type UserRepository interface {
 	Create(ctx context.Context, user *entities.User) error
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.User, error)
 	FindByEmail(ctx context.Context, email string) (*entities.User, error)
@@ -36,14 +36,4 @@ type PasswordResetRepository interface {
 	FindByUserID(ctx context.Context, userID uuid.UUID) (*entities.PasswordReset, error)
 	MarkAsUsed(ctx context.Context, id uuid.UUID) error
 	DeleteExpired(ctx context.Context) error
-}
-
-type AddressRepository interface {
-	Create(ctx context.Context, address *entities.Address) error
-	FindByID(ctx context.Context, id uint) (*entities.Address, error)
-	FindAllByUserID(ctx context.Context, userID uuid.UUID) ([]*entities.Address, error)
-	FindDefaultByUserID(ctx context.Context, userID uuid.UUID) (*entities.Address, error)
-	Update(ctx context.Context, address *entities.Address) error
-	SetDefault(ctx context.Context, id uint, userID uuid.UUID) error
-	Delete(ctx context.Context, id uint) error
 }

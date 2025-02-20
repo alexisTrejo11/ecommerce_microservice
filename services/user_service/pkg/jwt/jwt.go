@@ -2,9 +2,12 @@ package jwt
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -75,6 +78,27 @@ func (j *JWTManager) VerifyToken(tokenString string) (*Claims, error) {
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
 		return nil, jwt.ErrSignatureInvalid
+	}
+
+	return claims, nil
+}
+
+func (j *JWTManager) ExtractAndValidateToken(c *fiber.Ctx) (*Claims, error) {
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return nil, errors.New("authorization header is required")
+	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return nil, errors.New("invalid authorization header format")
+	}
+
+	tokenString := parts[1]
+
+	claims, err := j.VerifyToken(tokenString)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token: %w", err)
 	}
 
 	return claims, nil

@@ -20,7 +20,6 @@ func (s *TokenService) GenerateTokens(userID, email, role string) (string, strin
 		return "", "", err
 	}
 
-	// Generamos un refresh token sin incluir email ni role
 	refreshToken, err := s.jwtManager.GenerateToken(userID, "", "")
 	if err != nil {
 		return "", "", err

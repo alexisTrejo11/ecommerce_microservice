@@ -17,8 +17,8 @@ import (
 )
 
 type AuthUseCase struct {
-	userRepo     output.IUserRepository
-	tokenService output.ITokenService
+	userRepo     output.UserRepository
+	tokenService output.TokenService
 	userMappers  mappers.UserMappers
 	//sessionRepo       output.SessionRepository
 	//mfaRepo           output.MFARepository
@@ -35,8 +35,8 @@ type Config struct {
 }
 
 func NewAuthUseCase(
-	userRepo output.IUserRepository,
-	tokenService output.ITokenService,
+	userRepo output.UserRepository,
+	tokenService output.TokenService,
 	//sessionRepo output.SessionRepository,
 	//mfaRepo output.MFARepository,
 	//passwordResetRepo output.PasswordResetRepository,

@@ -23,11 +23,15 @@ func main() {
 	}
 
 	userRepository := repository.NewUserRepository(db)
+	addresRepository := repository.NewAddressRepository(db)
 	token_service := repository.NewTokenService(jwtManager)
 	authUseCase := usecases.NewAuthUseCase(userRepository, token_service)
+	addresUseCase := usecases.NewAddressUseCase(addresRepository)
 	authHandler := handlers.NewAuthHandler(authUseCase)
+	userAddresHandler := handlers.NewUserAddressHandler(addresUseCase, *jwtManager)
 
 	routes.AuthRoutes(app, authHandler)
+	routes.UserRoutes(app, userAddresHandler)
 
 	log.Fatal(app.Listen(":3000"))
 }
