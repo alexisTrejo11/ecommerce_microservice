@@ -1,13 +1,17 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
 	jwt "github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
+	"github.com/go-redis/redis/v8"
 )
+
+var RedisClient *redis.Client
 
 type TokenService struct {
 	jwtManager *jwt.JWTManager
@@ -59,7 +63,7 @@ func (s *TokenService) GetTokenExpirationDate(tokenString string) (time.Time, er
 	return expirationDate, nil
 }
 
-func GenerateActivationToken() string {
+func (s *TokenService) GenerateActivationToken() string {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	min := 100000000
 	max := 999999999
@@ -107,4 +111,22 @@ func (ts *ActivationTokenStore) ValidarToken(token string) (string, bool) {
 	}
 
 	return data.email, true
+}
+
+func (s *TokenService) BlacklistToken(token string, expiresIn time.Duration) error {
+	ctx := context.Background()
+	err := RedisClient.Set(ctx, "blacklist:"+token, true, expiresIn).Err()
+	if err != nil {
+		return fmt.Errorf("error al agregar el token a la lista negra: %v", err)
+	}
+	return nil
+}
+
+func (s *TokenService) IsTokenBlacklisted(token string) bool {
+	ctx := context.Background()
+	exists, err := RedisClient.Exists(ctx, "blacklist:"+token).Result()
+	if err != nil {
+		panic("error al verificar la lista negra: " + err.Error())
+	}
+	return exists == 1
 }

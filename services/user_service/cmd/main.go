@@ -16,6 +16,7 @@ import (
 func main() {
 	app := fiber.New()
 	db := config.GORMConfig()
+	config.InitRedis()
 
 	jwtManager, err := jwt.NewJWTManager()
 	if err != nil {

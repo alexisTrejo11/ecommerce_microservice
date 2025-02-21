@@ -1,21 +1,21 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/go-redis/redis/v8"
+
 	models "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output/persistence/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-// GORMConfig initializes and returns a GORM database connection.
-// It reads database configuration from environment variables and retries the connection if necessary.
 func GORMConfig() *gorm.DB {
-	// Read database configuration from environment variables
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
@@ -84,4 +84,24 @@ func seedRoles(db *gorm.DB) error {
 	}
 
 	return nil
+}
+
+var RedisClient *redis.Client
+
+func InitRedis() {
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
+
+	RedisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
+		Password: "",
+		DB:       0,
+	})
+
+	_, err := RedisClient.Ping(context.Background()).Result()
+	if err != nil {
+		panic("Can not connect to Redis: " + err.Error())
+	}
+
+	fmt.Println("Succesfully connected to Redis")
 }
