@@ -92,7 +92,7 @@ func InitRedis() {
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")
 
-	RedisClient := redis.NewClient(&redis.Options{
+	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
 		Password: "",
 		DB:       0,

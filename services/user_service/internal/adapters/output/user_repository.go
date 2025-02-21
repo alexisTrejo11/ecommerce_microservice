@@ -24,6 +24,20 @@ func (r *UserRepository) Create(ctx context.Context, user *entities.User) error 
 	if err := r.db.Create(&userModel).Error; err != nil {
 		return err
 	}
+
+	if err := r.db.Preload("Role").First(&userModel, "id = ?", userModel.ID).Error; err != nil {
+		return err
+	}
+
+	user.Role = &entities.Role{
+		ID:          userModel.Role.ID,
+		Name:        userModel.Role.Name,
+		Description: userModel.Role.Description,
+		CreatedAt:   userModel.Role.CreatedAt,
+		UpdatedAt:   userModel.Role.UpdatedAt,
+		DeletedAt:   userModel.Role.DeletedAt,
+	}
+
 	return nil
 }
 

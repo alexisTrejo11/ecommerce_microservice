@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
@@ -41,13 +42,16 @@ func (ah *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	user, err := ah.authUserCase.Register(context.TODO(), signupDTO)
+	user, verifaction_token, err := ah.authUserCase.Register(context.TODO(), signupDTO)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"messsage": "can't create user",
 			"errors":   err.Error(),
 		})
 	}
+
+	// TODO: Send Email Async
+	fmt.Print(verifaction_token)
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"created": "user_created",

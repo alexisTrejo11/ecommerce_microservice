@@ -7,7 +7,7 @@ import (
 )
 
 type EmailUseCase interface {
-	SendVerificationEmail(ctx context.Context, userID uuid.UUID) error
+	SendVerificationEmail(ctx context.Context, userID uuid.UUID, token string) error
 	VerifyEmail(ctx context.Context, token string) error
 	SendPasswordResetEmail(ctx context.Context, email string) error
 }

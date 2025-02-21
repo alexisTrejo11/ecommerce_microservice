@@ -2,28 +2,28 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/config"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
 	jwt "github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
 	"github.com/go-redis/redis/v8"
 )
 
-var RedisClient *redis.Client
-
-type TokenService struct {
+type TokenServiceImpl struct {
 	jwtManager *jwt.JWTManager
 }
 
-func NewTokenService(jwtManager *jwt.JWTManager) *TokenService {
-	return &TokenService{
+func NewTokenService(jwtManager *jwt.JWTManager) output.TokenService {
+	return &TokenServiceImpl{
 		jwtManager: jwtManager,
 	}
 }
 
-func (s *TokenService) GenerateTokens(userID, email, role string) (string, string, error) {
+func (s *TokenServiceImpl) GenerateTokens(userID, email, role string) (string, string, error) {
 	accessToken, err := s.jwtManager.GenerateToken(userID, email, role)
 	if err != nil {
 		return "", "", err
@@ -37,11 +37,11 @@ func (s *TokenService) GenerateTokens(userID, email, role string) (string, strin
 	return accessToken, refreshToken, nil
 }
 
-func (s *TokenService) VerifyToken(tokenString string) (*jwt.Claims, error) {
+func (s *TokenServiceImpl) VerifyToken(tokenString string) (*jwt.Claims, error) {
 	return s.jwtManager.VerifyToken(tokenString)
 }
 
-func (s *TokenService) RefreshToken(refreshToken string) (string, error) {
+func (s *TokenServiceImpl) RefreshToken(refreshToken string) (string, error) {
 	claims, err := s.VerifyToken(refreshToken)
 	if err != nil {
 		return "", err
@@ -55,7 +55,7 @@ func (s *TokenService) RefreshToken(refreshToken string) (string, error) {
 	return accessToken, nil
 }
 
-func (s *TokenService) GetTokenExpirationDate(tokenString string) (time.Time, error) {
+func (s *TokenServiceImpl) GetTokenExpirationDate(tokenString string) (time.Time, error) {
 	expirationDate, err := s.jwtManager.GetTokenExpirationDate(tokenString)
 	if err != nil {
 		return time.Time{}, err
@@ -63,7 +63,7 @@ func (s *TokenService) GetTokenExpirationDate(tokenString string) (time.Time, er
 	return expirationDate, nil
 }
 
-func (s *TokenService) GenerateActivationToken() string {
+func (s *TokenServiceImpl) generatectivationToken() string {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	min := 100000000
 	max := 999999999
@@ -71,60 +71,94 @@ func (s *TokenService) GenerateActivationToken() string {
 	return fmt.Sprintf("%09d", token)
 }
 
-type ActivationTokenStore struct {
-	tokens map[string]TokenData
-	mu     sync.Mutex
-}
-
 type TokenData struct {
-	email     string
-	ExpiresAt time.Time
+	Email     string    `json:"email"`
+	UserID    string    `json:"user_id"`
+	Role      string    `json:"role"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
-func NewTokenStore() *ActivationTokenStore {
-	return &ActivationTokenStore{
-		tokens: make(map[string]TokenData),
-	}
-}
+func (s *TokenServiceImpl) SaveActivationToken(token, email string, expiresAt time.Time) error {
+	fmt.Println("Hola1")
+	ctx := context.Background()
 
-func (ts *ActivationTokenStore) SaveActivationToken(token string, email string, expiresAt time.Time) {
-	ts.mu.Lock()
-	defer ts.mu.Unlock()
-	ts.tokens[token] = TokenData{
-		email:     email,
+	tokenData := TokenData{
+		Email:     email,
 		ExpiresAt: expiresAt,
 	}
-}
 
-func (ts *ActivationTokenStore) ValidarToken(token string) (string, bool) {
-	ts.mu.Lock()
-	defer ts.mu.Unlock()
+	fmt.Println("Hola2")
 
-	data, exists := ts.tokens[token]
-	if !exists {
-		return "", false
+	jsonData, err := json.Marshal(tokenData)
+	if err != nil {
+		return fmt.Errorf("error marshaling token data: %v", err)
 	}
 
-	if time.Now().After(data.ExpiresAt) {
-		delete(ts.tokens, token)
-		return "", false
-	}
+	fmt.Println("Hola3")
+	key := fmt.Sprintf("activation_token:%s", token)
 
-	return data.email, true
+	err = config.RedisClient.Set(ctx, key, jsonData, time.Until(expiresAt)).Err()
+	if err != nil {
+		return fmt.Errorf("error storing activation token: %v", err)
+	}
+	fmt.Print("Hola4")
+
+	return nil
 }
 
-func (s *TokenService) BlacklistToken(token string, expiresIn time.Duration) error {
+func (s *TokenServiceImpl) ValidateActivationToken(token string) (string, bool) {
 	ctx := context.Background()
-	err := RedisClient.Set(ctx, "blacklist:"+token, true, expiresIn).Err()
+
+	key := fmt.Sprintf("activation_token:%s", token)
+	jsonData, err := config.RedisClient.Get(ctx, key).Result()
+
+	if err == redis.Nil {
+		return "", false
+	}
+
+	if err != nil {
+		return "", false
+	}
+
+	var tokenData TokenData
+	err = json.Unmarshal([]byte(jsonData), &tokenData)
+	if err != nil {
+		return "", false
+	}
+
+	if time.Now().After(tokenData.ExpiresAt) {
+		config.RedisClient.Del(ctx, key)
+		return "", false
+	}
+
+	config.RedisClient.Del(ctx, key)
+
+	return tokenData.Email, true
+}
+
+func (s *TokenServiceImpl) GetActivationToken(userID, email, role string) string {
+	activationToken := s.generatectivationToken()
+
+	err := s.SaveActivationToken(activationToken, email, time.Now().Add(time.Hour*24))
+	if err != nil {
+		fmt.Printf("Error saving token: %v\n", err)
+		return ""
+	}
+	return activationToken
+}
+
+func (s *TokenServiceImpl) BlacklistToken(token string, expiresIn time.Duration) error {
+	ctx := context.Background()
+	err := config.RedisClient.Set(ctx, "blacklist:"+token, true, expiresIn).Err()
 	if err != nil {
 		return fmt.Errorf("error al agregar el token a la lista negra: %v", err)
 	}
 	return nil
 }
 
-func (s *TokenService) IsTokenBlacklisted(token string) bool {
+func (s *TokenServiceImpl) IsTokenBlacklisted(token string) bool {
 	ctx := context.Background()
-	exists, err := RedisClient.Exists(ctx, "blacklist:"+token).Result()
+	exists, err := config.RedisClient.Exists(ctx, "blacklist:"+token).Result()
 	if err != nil {
 		panic("error al verificar la lista negra: " + err.Error())
 	}

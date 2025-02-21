@@ -29,8 +29,8 @@ func main() {
 	sessionRepository := repository.NewSessionRepository(db)
 
 	// UseCase
-	token_service := repository.NewTokenService(jwtManager)
-	authUseCase := usecases.NewAuthUseCase(userRepository, token_service, sessionRepository)
+	tokenService := repository.NewTokenService(jwtManager)
+	authUseCase := usecases.NewAuthUseCase(userRepository, tokenService, sessionRepository)
 	addresUseCase := usecases.NewAddressUseCase(addresRepository)
 	sessionUseCase := usecases.NewSessionUserCase(sessionRepository)
 

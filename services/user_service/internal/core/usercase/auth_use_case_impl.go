@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
@@ -24,7 +25,6 @@ type AuthUseCase struct {
 	sessionRepo  output.SessionRepository
 	//mfaRepo           output.MFARepository
 	//passwordResetRepo output.PasswordResetRepository
-	//emailService      output.EmailService
 	//config *Config
 }
 
@@ -41,47 +41,55 @@ func NewAuthUseCase(
 	sessionRepo output.SessionRepository,
 	//mfaRepo output.MFARepository,
 	//passwordResetRepo output.PasswordResetRepository,
-	//emailService output.EmailService,
 	//config *Config,
 ) input.AuthUseCase {
+	if userRepo == nil || tokenService == nil || sessionRepo == nil {
+		panic("AuthUseCase dependencies cannot be nil")
+	}
+	log.Println("AuthUseCase initialized successfully!")
+
 	return &AuthUseCase{
 		userRepo:     userRepo,
 		tokenService: tokenService,
 		sessionRepo:  sessionRepo,
 		//mfaRepo:           mfaRepo,
 		//passwordResetRepo: passwordResetRepo,
-		//emailService:      emailService,
 		//config: config,
 	}
 }
 
-func (uc *AuthUseCase) Register(ctx context.Context, signupDto dto.SignupDTO) (*entities.User, error) {
+func (uc *AuthUseCase) Register(ctx context.Context, signupDto dto.SignupDTO) (*entities.User, string, error) {
 	if err := validateSignupDTO(signupDto); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if err := uc.isEmailAvailable(ctx, signupDto.Email); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if err := uc.isUsernameAvailable(ctx, signupDto.Username); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if err := validatePasswordStrength(signupDto.Password); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	newUser, err := uc.createUserEntity(signupDto, 2)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if err := uc.saveUser(ctx, newUser); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return newUser, nil
+	activationToken := uc.tokenService.GetActivationToken(newUser.ID, newUser.Email, newUser.Role.Name)
+	if activationToken == "" {
+		return nil, "", errors.New("error generating activation token")
+	}
+
+	return newUser, activationToken, nil
 }
 
 func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input.TokenDetails, error) {
@@ -204,6 +212,7 @@ func (uc *AuthUseCase) createUserEntity(signupDTO dto.SignupDTO, roleID int) (*e
 	newUser := uc.userMappers.SignupDTOToDomain(signupDTO)
 	newUser.RoleID = uint(roleID)
 	newUser.ID = uuid.NewString()
+	newUser.Status = entities.UserStatusPending
 
 	if err := newUser.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid user data: %w", err)

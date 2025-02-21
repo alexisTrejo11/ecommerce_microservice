@@ -35,13 +35,12 @@ func NewEmailUseCase(mailClient *email.MailClient, userRepo output.UserRepositor
 	}
 }
 
-func (uc *emailUseCase) SendVerificationEmail(ctx context.Context, userID uuid.UUID) error {
+func (uc *emailUseCase) SendVerificationEmail(ctx context.Context, userID uuid.UUID, token string) error {
 	user, err := uc.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("error getting user: %w", err)
 	}
 
-	token := uuid.New().String()
 	verificationLink := fmt.Sprintf("%s/verify-email?token=%s", uc.frontendURL, token)
 
 	tmpl, err := template.ParseFiles(filepath.Join(templatePath, "verification.html"))

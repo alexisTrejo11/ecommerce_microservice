@@ -17,7 +17,7 @@ type TokenDetails struct {
 }
 
 type AuthUseCase interface {
-	Register(ctx context.Context, singupDto dto.SignupDTO) (*entities.User, error)
+	Register(ctx context.Context, singupDto dto.SignupDTO) (*entities.User, string, error)
 	Login(ctx context.Context, loginDTO dto.LoginDTO) (*TokenDetails, error)
 	RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*TokenDetails, error)
 	Logout(ctx context.Context, refreshToken string, userID uuid.UUID) error
