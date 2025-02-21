@@ -41,7 +41,7 @@ func main() {
 
 	// Routes
 	routes.AuthRoutes(app, authHandler)
-	routes.UserRoutes(app, userAddresHandler)
+	routes.UserAddressRoutes(app, userAddresHandler)
 	routes.SessionRoutes(app, sessionHandler)
 
 	log.Fatal(app.Listen(":3000"))

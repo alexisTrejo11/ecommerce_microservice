@@ -25,8 +25,4 @@ type AuthUseCase interface {
 	LogoutAll(ctx context.Context, userID uuid.UUID) error
 	ResetPassword(ctx context.Context, token, newPassword string) error
 	ActivateAccount(ctx context.Context, token string) error
-	//SetupMFA(ctx context.Context, userID uuid.UUID) (string, string, error)
-	//VerifyAndEnableMFA(ctx context.Context, userID uuid.UUID, code string) ([]string, error)
-	//DisableMFA(ctx context.Context, userID uuid.UUID, code string) error
-	//VerifyMFA(ctx context.Context, userID uuid.UUID, code string) error
 }

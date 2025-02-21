@@ -23,13 +23,6 @@ type UserRepository interface {
 	//ListRoles(ctx context.Context) ([]*entities.Role, error)
 }
 
-type MFARepository interface {
-	Create(ctx context.Context, mfa *entities.MFA) error
-	FindByUserID(ctx context.Context, userID uuid.UUID) (*entities.MFA, error)
-	Update(ctx context.Context, mfa *entities.MFA) error
-	Delete(ctx context.Context, userID uuid.UUID) error
-}
-
 type PasswordResetRepository interface {
 	Create(ctx context.Context, reset *entities.PasswordReset) error
 	FindByToken(ctx context.Context, token string) (*entities.PasswordReset, error)

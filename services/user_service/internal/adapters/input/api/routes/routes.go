@@ -12,20 +12,28 @@ func AuthRoutes(r fiber.Router, authHandler *handlers.AuthHandler) {
 		})
 	})
 
-	path := r.Group("v1/api")
-	path.Post("/register", authHandler.Register)
-	path.Post("/login", authHandler.Login)
-	path.Post("/logout/:refresh_token", authHandler.Logout)
-	path.Post("/logout-all", authHandler.LogoutAll)
-	path.Get("/refresh_acces_token/:refresh_token", authHandler.RefreshAccesToken)
+	authPath := r.Group("v1/api")
+	authPath.Post("/register", authHandler.Register)
+	authPath.Post("/login", authHandler.Login)
+	authPath.Post("/logout/:refresh_token", authHandler.Logout)
+	authPath.Post("/logout-all", authHandler.LogoutAll)
+	authPath.Get("/refresh_acces_token/:refresh_token", authHandler.RefreshAccesToken)
 }
 
-func UserRoutes(r fiber.Router, addresHandler *handlers.UserAddressHandler) {
-	path := r.Group("v1/api/users/address")
-	path.Get("", addresHandler.MyAddresses)
-	path.Post("", addresHandler.AddAddress)
-	path.Put("/:id", addresHandler.UpdateMyAddress)
-	path.Delete("/:id", addresHandler.DeleteAddress)
+func UserAddressRoutes(r fiber.Router, addresHandler *handlers.UserAddressHandler) {
+	addressPath := r.Group("v1/api/users/address")
+	addressPath.Get("", addresHandler.MyAddresses)
+	addressPath.Post("", addresHandler.AddAddress)
+	addressPath.Put("/:id", addresHandler.UpdateMyAddress)
+	addressPath.Delete("/:id", addresHandler.DeleteAddress)
+}
+
+func UserMFARoutes(r fiber.Router, mfaHandler *handlers.UserMfaHandler) {
+	addressPath := r.Group("v1/api/users/mfa")
+	addressPath.Post("", mfaHandler.EnableMfa)
+	addressPath.Delete("", mfaHandler.DisableMfa)
+	addressPath.Get("", mfaHandler.GetMfa)
+	addressPath.Put("", mfaHandler.VerifyMfa)
 }
 
 func SessionRoutes(r fiber.Router, sessionHandler *handlers.SessionHandler) {
