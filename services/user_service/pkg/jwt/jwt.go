@@ -103,3 +103,19 @@ func (j *JWTManager) ExtractAndValidateToken(c *fiber.Ctx) (*Claims, error) {
 
 	return claims, nil
 }
+
+func (j *JWTManager) GetTokenExpirationDate(tokenString string) (time.Time, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return j.config.JWTSecret, nil
+	})
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return time.Time{}, jwt.ErrSignatureInvalid
+	}
+
+	return claims.ExpiresAt.Time, nil
+}

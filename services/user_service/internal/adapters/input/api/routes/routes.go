@@ -24,3 +24,9 @@ func UserRoutes(r fiber.Router, addresHandler *handlers.UserAddressHandler) {
 	path.Put("/:id", addresHandler.UpdateMyAddress)
 	path.Delete("/:id", addresHandler.DeleteAddress)
 }
+
+func SessionRoutes(r fiber.Router, sessionHandler *handlers.SessionHandler) {
+	path := r.Group("v1/api/sessions")
+	path.Get("/:id", sessionHandler.GetSessionByUserId)
+	path.Delete("/:id/user/:user_id", sessionHandler.DeleteSessionById)
+}

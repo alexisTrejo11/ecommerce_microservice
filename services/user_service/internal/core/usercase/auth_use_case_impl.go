@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
 	repository "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output"
@@ -20,7 +21,7 @@ type AuthUseCase struct {
 	userRepo     output.UserRepository
 	tokenService output.TokenService
 	userMappers  mappers.UserMappers
-	//sessionRepo       output.SessionRepository
+	sessionRepo  output.SessionRepository
 	//mfaRepo           output.MFARepository
 	//passwordResetRepo output.PasswordResetRepository
 	//emailService      output.EmailService
@@ -37,7 +38,7 @@ type Config struct {
 func NewAuthUseCase(
 	userRepo output.UserRepository,
 	tokenService output.TokenService,
-	//sessionRepo output.SessionRepository,
+	sessionRepo output.SessionRepository,
 	//mfaRepo output.MFARepository,
 	//passwordResetRepo output.PasswordResetRepository,
 	//emailService output.EmailService,
@@ -46,7 +47,7 @@ func NewAuthUseCase(
 	return &AuthUseCase{
 		userRepo:     userRepo,
 		tokenService: tokenService,
-		//sessionRepo:       sessionRepo,
+		sessionRepo:  sessionRepo,
 		//mfaRepo:           mfaRepo,
 		//passwordResetRepo: passwordResetRepo,
 		//emailService:      emailService,
@@ -94,6 +95,12 @@ func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input
 		return nil, err
 	}
 
+	session, err := uc.createSession(ctx, *tokenDetails, *user)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenDetails.SessionID = session.ID
 	return tokenDetails, nil
 }
 
@@ -178,8 +185,37 @@ func (uc *AuthUseCase) generateTokens(userID, email, username string) (*input.To
 		return nil, err
 	}
 
+	expirationDate, err := uc.tokenService.GetTokenExpirationDate(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
 	return &input.TokenDetails{
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
+		ExpiresAt:    expirationDate,
 	}, nil
+}
+
+func (uc *AuthUseCase) createSession(
+	ctx context.Context,
+	tokens input.TokenDetails,
+	user entities.User) (*entities.Session, error) {
+
+	userId, _ := uuid.Parse(user.ID)
+	session := entities.Session{
+		ID:           uuid.New(),
+		UserID:       userId,
+		RefreshToken: tokens.RefreshToken,
+		ExpiresAt:    tokens.ExpiresAt,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	err := uc.sessionRepo.Create(ctx, &session)
+	if err != nil {
+		return nil, err
+	}
+
+	return &session, nil
 }

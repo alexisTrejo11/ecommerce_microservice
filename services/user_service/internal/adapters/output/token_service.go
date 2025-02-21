@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	jwt "github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
 )
 
@@ -44,4 +46,12 @@ func (s *TokenService) RefreshToken(refreshToken string) (string, error) {
 	}
 
 	return accessToken, nil
+}
+
+func (s *TokenService) GetTokenExpirationDate(tokenString string) (time.Time, error) {
+	expirationDate, err := s.jwtManager.GetTokenExpirationDate(tokenString)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return expirationDate, nil
 }

@@ -8,4 +8,5 @@ var (
 	ErrInvalidCountry    = errors.New("invalid country code")
 	ErrRequiredField     = errors.New("field is required")
 	ErrMultipleDefaults  = errors.New("only one default address allowed")
+	ErrForbbiden         = errors.New("not allowed to get this data")
 )

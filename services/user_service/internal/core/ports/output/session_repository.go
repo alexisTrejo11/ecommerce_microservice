@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type ISessionRepository interface {
+type SessionRepository interface {
 	Create(ctx context.Context, session *entities.Session) error
 	FindByID(ctx context.Context, id uuid.UUID) (*entities.Session, error)
 	FindByRefreshToken(ctx context.Context, token string) (*entities.Session, error)

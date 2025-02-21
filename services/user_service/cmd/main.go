@@ -22,16 +22,26 @@ func main() {
 		log.Fatalf("Error initing JWTManager: %v", err)
 	}
 
+	// Repository
 	userRepository := repository.NewUserRepository(db)
 	addresRepository := repository.NewAddressRepository(db)
+	sessionRepository := repository.NewSessionRepository(db)
+
+	// UseCase
 	token_service := repository.NewTokenService(jwtManager)
-	authUseCase := usecases.NewAuthUseCase(userRepository, token_service)
+	authUseCase := usecases.NewAuthUseCase(userRepository, token_service, sessionRepository)
 	addresUseCase := usecases.NewAddressUseCase(addresRepository)
+	sessionUseCase := usecases.NewSessionUserCase(sessionRepository)
+
+	// Handler
 	authHandler := handlers.NewAuthHandler(authUseCase)
 	userAddresHandler := handlers.NewUserAddressHandler(addresUseCase, *jwtManager)
+	sessionHandler := handlers.NewSessionHandler(sessionUseCase, *jwtManager)
 
+	// Routes
 	routes.AuthRoutes(app, authHandler)
 	routes.UserRoutes(app, userAddresHandler)
+	routes.SessionRoutes(app, sessionHandler)
 
 	log.Fatal(app.Listen(":3000"))
 }

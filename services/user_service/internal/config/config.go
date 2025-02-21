@@ -49,6 +49,7 @@ func GORMConfig() *gorm.DB {
 		&models.PasswordResetModel{},
 		&models.AddressModel{},
 		&models.MFAModel{},
+		&models.SessionModel{},
 	); err != nil {
 		log.Fatal("Failed to migrate database schema:", err)
 	}
