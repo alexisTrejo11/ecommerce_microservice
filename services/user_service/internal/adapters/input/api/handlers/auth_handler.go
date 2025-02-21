@@ -162,3 +162,86 @@ func (ah *AuthHandler) RefreshAccesToken(c *fiber.Ctx) error {
 		"success": tokenDetails,
 	})
 }
+
+func (ah *AuthHandler) ActivateAccount(c *fiber.Ctx) error {
+	token := c.Params("token")
+	if token == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "token is empty",
+		})
+	}
+
+	err := ah.authUserCase.ActivateAccount(context.TODO(), token)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"messsage": "can't activate account",
+			"errors":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Account successfully activated",
+	})
+}
+
+func (ah *AuthHandler) ResendCode(c *fiber.Ctx) error {
+	code_type := c.Params("code_type")
+	if code_type == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "code_type is empty",
+		})
+	}
+
+	userIdSTR := c.Params("user_id")
+	if userIdSTR == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "token is empty",
+		})
+	}
+	userId, err := uuid.Parse(userIdSTR)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "user_id is invalid",
+		})
+	}
+
+	err = ah.authUserCase.ResendCode(context.TODO(), code_type, userId)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"messsage": "can't resend code",
+			"errors":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Code successfully resended",
+	})
+}
+
+func (ah *AuthHandler) ResetPassword(c *fiber.Ctx) error {
+	token := c.Params("token")
+	if token == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "token is empty",
+		})
+	}
+
+	newPassword := c.Params("new_password")
+	if newPassword == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "new Password is empty",
+		})
+	}
+
+	err := ah.authUserCase.ResetPassword(context.TODO(), token, newPassword)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"messsage": "can't reset password",
+			"errors":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Code successfully resended",
+	})
+}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
@@ -43,11 +42,6 @@ func NewAuthUseCase(
 	//passwordResetRepo output.PasswordResetRepository,
 	//config *Config,
 ) input.AuthUseCase {
-	if userRepo == nil || tokenService == nil || sessionRepo == nil {
-		panic("AuthUseCase dependencies cannot be nil")
-	}
-	log.Println("AuthUseCase initialized successfully!")
-
 	return &AuthUseCase{
 		userRepo:     userRepo,
 		tokenService: tokenService,
@@ -170,6 +164,71 @@ func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgen
 	}
 
 	return tokenDetails, nil
+}
+
+// Todo: Verify Need To Return Email form user activation token
+func (uc *AuthUseCase) ResetPassword(ctx context.Context, token, newPassword string) error {
+	claims, err := uc.tokenService.VerifyToken(token)
+	if err != nil {
+		return err
+	}
+
+	if err := validatePasswordStrength(newPassword); err != nil {
+		return err
+	}
+
+	user, err := uc.userRepo.FindByEmail(ctx, claims.Email)
+	if err != nil {
+		return err
+	}
+
+	newHashedPassword, err := user.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	user.PasswordHash = newHashedPassword
+	if err := uc.userRepo.Update(ctx, user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *AuthUseCase) ActivateAccount(ctx context.Context, token string) error {
+	claims, err := uc.tokenService.VerifyToken(token)
+	if err != nil {
+		return err
+	}
+
+	user, err := uc.userRepo.FindByEmail(ctx, claims.Email)
+	if err != nil {
+		return err
+	}
+
+	user.Status = entities.UserStatusActive
+	if err := uc.userRepo.Update(ctx, user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *AuthUseCase) ResendCode(ctx context.Context, codeType string, userID uuid.UUID) error {
+	user, err := uc.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	// TODO: Implement Methods
+	switch codeType {
+	case "activation":
+		uc.tokenService.GenerateTokens(user.ID, user.Email, user.Role.Name)
+	case "password_reset":
+		uc.tokenService.GenerateTokens(user.ID, user.Email, user.Role.Name)
+	default:
+		return errors.New("invalid code type")
+	}
+	return nil
 }
 
 func validateSignupDTO(signupDto dto.SignupDTO) error {
