@@ -255,3 +255,15 @@ func (u *User) UpdatePassword(oldPassword, newPassword string) error {
 	u.UpdatedAt = time.Now()
 	return nil
 }
+
+func (u *User) ActivateAccount() {
+	u.Status = UserStatusActive
+}
+
+func (u *User) BanAccount() {
+	u.Status = UserStatusBanned
+}
+
+func (u *User) SetAsInactive() {
+	u.Status = UserStatusInactive
+}

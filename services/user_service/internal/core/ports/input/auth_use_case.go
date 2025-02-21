@@ -22,9 +22,7 @@ type AuthUseCase interface {
 	//RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*TokenDetails, error)
 	//Logout(ctx context.Context, refreshToken string) error
 	//LogoutAll(ctx context.Context, userID uuid.UUID) error
-	//SendVerificationEmail(ctx context.Context, userID uuid.UUID) error
-	//VerifyEmail(ctx context.Context, token string) error
-	//SendPasswordResetEmail(ctx context.Context, email string) error
+
 	//ResetPassword(ctx context.Context, token, newPassword string) error
 	//SetupMFA(ctx context.Context, userID uuid.UUID) (string, string, error)
 	//VerifyAndEnableMFA(ctx context.Context, userID uuid.UUID, code string) ([]string, error)
