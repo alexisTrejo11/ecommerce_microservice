@@ -104,6 +104,66 @@ func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input
 	return tokenDetails, nil
 }
 
+func (uc *AuthUseCase) Logout(ctx context.Context, refreshToken string, userID uuid.UUID) error {
+	session, err := uc.sessionRepo.FindByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Import Error
+	if session.UserID != userID {
+		return errors.New("not allowed to get this data")
+	}
+
+	_, err = uc.tokenService.VerifyToken(refreshToken)
+	if err != nil {
+		return err
+	}
+
+	err = uc.sessionRepo.Delete(ctx, session.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *AuthUseCase) LogoutAll(ctx context.Context, userID uuid.UUID) error {
+	err := uc.sessionRepo.DeleteAllByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO: Refactor
+func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*input.TokenDetails, error) {
+	session, err := uc.sessionRepo.FindByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, err := uc.tokenService.VerifyToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := uc.tokenService.RefreshToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenDetails := &input.TokenDetails{
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
+		ExpiresAt:    claims.ExpiresAt.Time,
+		SessionID:    session.ID,
+	}
+
+	return tokenDetails, nil
+}
+
 func validateSignupDTO(signupDto dto.SignupDTO) error {
 	if signupDto.Email == "" || signupDto.Username == "" || signupDto.Password == "" {
 		return errors.New("email, username, and password are required")

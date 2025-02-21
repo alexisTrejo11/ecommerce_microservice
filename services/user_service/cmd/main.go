@@ -35,7 +35,7 @@ func main() {
 	sessionUseCase := usecases.NewSessionUserCase(sessionRepository)
 
 	// Handler
-	authHandler := handlers.NewAuthHandler(authUseCase)
+	authHandler := handlers.NewAuthHandler(authUseCase, *jwtManager)
 	userAddresHandler := handlers.NewUserAddressHandler(addresUseCase, *jwtManager)
 	sessionHandler := handlers.NewSessionHandler(sessionUseCase, *jwtManager)
 

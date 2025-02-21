@@ -19,11 +19,11 @@ type TokenDetails struct {
 type AuthUseCase interface {
 	Register(ctx context.Context, singupDto dto.SignupDTO) (*entities.User, error)
 	Login(ctx context.Context, loginDTO dto.LoginDTO) (*TokenDetails, error)
-	//RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*TokenDetails, error)
-	//Logout(ctx context.Context, refreshToken string) error
-	//LogoutAll(ctx context.Context, userID uuid.UUID) error
-
+	RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*TokenDetails, error)
+	Logout(ctx context.Context, refreshToken string, userID uuid.UUID) error
+	LogoutAll(ctx context.Context, userID uuid.UUID) error
 	//ResetPassword(ctx context.Context, token, newPassword string) error
+
 	//SetupMFA(ctx context.Context, userID uuid.UUID) (string, string, error)
 	//VerifyAndEnableMFA(ctx context.Context, userID uuid.UUID, code string) ([]string, error)
 	//DisableMFA(ctx context.Context, userID uuid.UUID, code string) error
