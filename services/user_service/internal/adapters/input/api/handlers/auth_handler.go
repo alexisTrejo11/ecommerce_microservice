@@ -94,10 +94,10 @@ func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
 		})
 	}
 
-	refresh_token := c.Get("refresh_token")
+	refresh_token := c.Params("refresh_token")
 	if refresh_token == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "acces_token is empty",
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "refresh_token is empty",
 		})
 	}
 
@@ -139,7 +139,7 @@ func (ah *AuthHandler) LogoutAll(c *fiber.Ctx) error {
 }
 
 func (ah *AuthHandler) RefreshAccesToken(c *fiber.Ctx) error {
-	refresh_token := c.Get("refresh_token")
+	refresh_token := c.Params("refresh_token")
 	if refresh_token == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "acces_token is empty",
