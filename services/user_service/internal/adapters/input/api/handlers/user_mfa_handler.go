@@ -47,8 +47,26 @@ func (u *UserMfaHandler) EnableMfa(c *fiber.Ctx) error {
 }
 
 func (u *UserMfaHandler) DisableMfa(c *fiber.Ctx) error {
+	claims, err := u.jwtManager.ExtractAndValidateToken(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "unauthorized",
+			"message": err.Error(),
+		})
+	}
 
-	return nil
+	userId, _ := uuid.Parse(claims.UserID)
+	err = u.MFAUseCase.DisableMFA(context.Background(), userId, "")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal server error",
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": "MFA disabled",
+	})
 }
 
 func (u *UserMfaHandler) VerifyMfa(c *fiber.Ctx) error {
@@ -95,7 +113,7 @@ func (u *UserMfaHandler) GetMfa(c *fiber.Ctx) error {
 	userId, _ := uuid.Parse(claims.UserID)
 	mfa, err := u.MFAUseCase.GetMFA(context.Background(), userId)
 	if err != nil {
-		c.Status(fiber.StatusNotFound).JSON(err.Error())
+		return c.Status(fiber.StatusNotFound).JSON(err.Error())
 	}
 
 	return c.Status(fiber.StatusOK).JSON(mfa)

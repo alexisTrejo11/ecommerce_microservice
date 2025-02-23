@@ -7,25 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
-	jwt.RegisteredClaims
-}
-
-type Config struct {
-	AccessTokenExpiry  time.Duration
-	RefreshTokenExpiry time.Duration
-	JWTSecret          []byte
-}
-
 type JWTManager struct {
-	config Config
+	config tokens.Config
 }
 
 func NewJWTManager() (*JWTManager, error) {
@@ -44,7 +32,7 @@ func NewJWTManager() (*JWTManager, error) {
 		refreshTokenExpiry = time.Hour * 24 * 7
 	}
 
-	config := Config{
+	config := tokens.Config{
 		AccessTokenExpiry:  accessTokenExpiry,
 		RefreshTokenExpiry: refreshTokenExpiry,
 		JWTSecret:          []byte(secret),
@@ -54,7 +42,7 @@ func NewJWTManager() (*JWTManager, error) {
 }
 
 func (j *JWTManager) GenerateToken(userID, email, role string) (string, error) {
-	claims := Claims{
+	claims := tokens.Claims{
 		UserID: userID,
 		Email:  email,
 		Role:   role,
@@ -67,15 +55,15 @@ func (j *JWTManager) GenerateToken(userID, email, role string) (string, error) {
 	return token.SignedString(j.config.JWTSecret)
 }
 
-func (j *JWTManager) VerifyToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+func (j *JWTManager) VerifyToken(tokenString string) (*tokens.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &tokens.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.config.JWTSecret, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*Claims)
+	claims, ok := token.Claims.(*tokens.Claims)
 	if !ok || !token.Valid {
 		return nil, jwt.ErrSignatureInvalid
 	}
@@ -83,7 +71,7 @@ func (j *JWTManager) VerifyToken(tokenString string) (*Claims, error) {
 	return claims, nil
 }
 
-func (j *JWTManager) ExtractAndValidateToken(c *fiber.Ctx) (*Claims, error) {
+func (j *JWTManager) ExtractAndValidateToken(c *fiber.Ctx) (*tokens.Claims, error) {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		return nil, errors.New("authorization header is required")
@@ -105,17 +93,17 @@ func (j *JWTManager) ExtractAndValidateToken(c *fiber.Ctx) (*Claims, error) {
 }
 
 func (j *JWTManager) GetTokenExpirationDate(tokenString string) (time.Time, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &tokens.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.config.JWTSecret, nil
 	})
 	if err != nil {
 		return time.Time{}, err
 	}
 
-	claims, ok := token.Claims.(*Claims)
+	claims, ok := token.Claims.(*tokens.Claims)
 	if !ok || !token.Valid {
 		return time.Time{}, jwt.ErrSignatureInvalid
 	}
 
-	return claims.ExpiresAt.Time, nil
+	return claims.ExpiresAt, nil
 }

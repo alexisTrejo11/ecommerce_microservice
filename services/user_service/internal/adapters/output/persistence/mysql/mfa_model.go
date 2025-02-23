@@ -10,7 +10,7 @@ type MFAModel struct {
 	User        *UserModel `json:"-" gorm:"foreignKey:UserID"`
 	Enabled     bool       `json:"enabled" gorm:"default:false"`
 	Secret      string     `json:"-"`
-	BackupCodes string     `gorm:"type:json"`
+	BackupCodes string     `json:"backup_codes"`
 	CreatedAt   time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   *time.Time `json:"-" gorm:"index"`

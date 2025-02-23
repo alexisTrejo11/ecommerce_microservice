@@ -27,22 +27,26 @@ func main() {
 	userRepository := repository.NewUserRepository(db)
 	addresRepository := repository.NewAddressRepository(db)
 	sessionRepository := repository.NewSessionRepository(db)
+	mfaRepository := repository.NewMFARepository(db)
 
 	// UseCase
 	tokenService := repository.NewTokenService(jwtManager)
 	authUseCase := usecases.NewAuthUseCase(userRepository, tokenService, sessionRepository)
 	addresUseCase := usecases.NewAddressUseCase(addresRepository)
 	sessionUseCase := usecases.NewSessionUserCase(sessionRepository)
+	mfaUseCase := usecases.NewMFAUseCase(mfaRepository, tokenService)
 
 	// Handler
 	authHandler := handlers.NewAuthHandler(authUseCase, *jwtManager)
 	userAddresHandler := handlers.NewUserAddressHandler(addresUseCase, *jwtManager)
 	sessionHandler := handlers.NewSessionHandler(sessionUseCase, *jwtManager)
+	mfaHandler := handlers.NewUserMfaHandler(mfaUseCase, *jwtManager)
 
 	// Routes
 	routes.AuthRoutes(app, authHandler)
 	routes.UserAddressRoutes(app, userAddresHandler)
 	routes.SessionRoutes(app, sessionHandler)
+	routes.UserMFARoutes(app, mfaHandler)
 
 	log.Fatal(app.Listen(":3000"))
 }

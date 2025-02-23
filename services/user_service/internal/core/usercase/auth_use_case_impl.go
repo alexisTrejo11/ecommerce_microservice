@@ -12,6 +12,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/domain/entities"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
 	"github.com/google/uuid"
 
 	"golang.org/x/crypto/bcrypt"
@@ -22,6 +23,7 @@ type AuthUseCase struct {
 	tokenService output.TokenService
 	userMappers  mappers.UserMappers
 	sessionRepo  output.SessionRepository
+	tokenFactory tokens.TokenFactory
 	//mfaRepo           output.MFARepository
 	//passwordResetRepo output.PasswordResetRepository
 	//config *Config
@@ -46,6 +48,7 @@ func NewAuthUseCase(
 		userRepo:     userRepo,
 		tokenService: tokenService,
 		sessionRepo:  sessionRepo,
+		tokenFactory: *tokens.NewTokenFactory(),
 		//mfaRepo:           mfaRepo,
 		//passwordResetRepo: passwordResetRepo,
 		//config: config,
@@ -78,12 +81,7 @@ func (uc *AuthUseCase) Register(ctx context.Context, signupDto dto.SignupDTO) (*
 		return nil, "", err
 	}
 
-	activationToken := uc.tokenService.GetActivationToken(newUser.ID, newUser.Email, newUser.Role.Name)
-	if activationToken == "" {
-		return nil, "", errors.New("error generating activation token")
-	}
-
-	return newUser, activationToken, nil
+	return newUser, "activationToken", nil
 }
 
 func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input.TokenDetails, error) {
@@ -117,7 +115,7 @@ func (uc *AuthUseCase) Logout(ctx context.Context, refreshToken string, userID u
 		return errors.New("not allowed to get this data")
 	}
 
-	_, err = uc.tokenService.VerifyToken(refreshToken)
+	_, err = uc.tokenService.VerifyToken(refreshToken, tokens.RefreshTokenENUM)
 	if err != nil {
 		return err
 	}
@@ -146,7 +144,7 @@ func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgen
 		return nil, err
 	}
 
-	claims, err := uc.tokenService.VerifyToken(refreshToken)
+	claims, err := uc.tokenService.VerifyToken(refreshToken, tokens.RefreshTokenENUM)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +157,7 @@ func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgen
 	tokenDetails := &input.TokenDetails{
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
-		ExpiresAt:    claims.ExpiresAt.Time,
+		ExpiresAt:    claims.ExpiresAt,
 		SessionID:    session.ID,
 	}
 
@@ -168,7 +166,7 @@ func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgen
 
 // Todo: Verify Need To Return Email form user activation token
 func (uc *AuthUseCase) ResetPassword(ctx context.Context, token, newPassword string) error {
-	claims, err := uc.tokenService.VerifyToken(token)
+	claims, err := uc.tokenService.VerifyToken(token, tokens.VerifyTokenENUM)
 	if err != nil {
 		return err
 	}
@@ -196,7 +194,7 @@ func (uc *AuthUseCase) ResetPassword(ctx context.Context, token, newPassword str
 }
 
 func (uc *AuthUseCase) ActivateAccount(ctx context.Context, token string) error {
-	claims, err := uc.tokenService.VerifyToken(token)
+	claims, err := uc.tokenService.VerifyToken(token, tokens.VerifyTokenENUM)
 	if err != nil {
 		return err
 	}
@@ -313,7 +311,7 @@ func (uc *AuthUseCase) generateTokens(userID, email, username string) (*input.To
 		return nil, err
 	}
 
-	expirationDate, err := uc.tokenService.GetTokenExpirationDate(refreshToken)
+	expirationDate, err := uc.tokenService.GetTokenExpirationDate(refreshToken, tokens.RefreshTokenENUM)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/domain/entities"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
 	"github.com/google/uuid"
 )
 
@@ -29,8 +30,10 @@ func (m *MFAUseCase) SetupMFA(ctx context.Context, userID uuid.UUID) (string, st
 	}
 
 	newMfa := entities.NewMFA(userID)
+
 	newMfa.GenerateBackupCodes(8)
-	err := mfa.GenerateSecret()
+
+	err := newMfa.GenerateSecret()
 	if err != nil {
 		return "", "", err
 	}
@@ -45,15 +48,14 @@ func (m *MFAUseCase) SetupMFA(ctx context.Context, userID uuid.UUID) (string, st
 
 // TODO: Centralize Creation of Access and Refresh Token
 func (m *MFAUseCase) VerifyAndEnableMFA(ctx context.Context, userID uuid.UUID, code string) (*input.TokenDetails, error) {
-	// To Be Implemented
-	claims, _ := m.tokenService.VerifyToken(code)
+	claims, _ := m.tokenService.VerifyToken(code, tokens.VerifyTokenENUM)
 
 	refresh, access, err := m.tokenService.GenerateTokens(claims.UserID, claims.Email, claims.Role)
 	if err != nil {
 		return nil, err
 	}
 
-	expirationDate, err := m.tokenService.GetTokenExpirationDate(code)
+	expirationDate, err := m.tokenService.GetTokenExpirationDate(code, tokens.VerifyTokenENUM)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,6 @@ func (m *MFAUseCase) DisableMFA(ctx context.Context, userID uuid.UUID, code stri
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

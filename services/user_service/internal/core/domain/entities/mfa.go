@@ -25,9 +25,10 @@ type MFA struct {
 
 func NewMFA(userId uuid.UUID) *MFA {
 	return &MFA{
-		UserID:    userId,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		UserID:      userId,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		BackupCodes: []string{},
 	}
 }
 
