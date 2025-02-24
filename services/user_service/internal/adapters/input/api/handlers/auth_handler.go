@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
+	"github.com/alexisTrejo11/ecommerce_microservice/pkg/rabbitmq"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -14,15 +15,17 @@ import (
 
 type AuthHandler struct {
 	authUserCase input.AuthUseCase
+	emailUseCase input.EmailUseCase
 	validator    *validator.Validate
 	jwtManager   jwt.JWTManager
 }
 
-func NewAuthHandler(authUserCase input.AuthUseCase, jwtManager jwt.JWTManager) *AuthHandler {
+func NewAuthHandler(authUserCase input.AuthUseCase, jwtManager jwt.JWTManager, emailUseCase input.EmailUseCase) *AuthHandler {
 	return &AuthHandler{
 		authUserCase: authUserCase,
 		validator:    validator.New(validator.WithRequiredStructEnabled()),
 		jwtManager:   jwtManager,
+		emailUseCase: emailUseCase,
 	}
 }
 
@@ -42,7 +45,7 @@ func (ah *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	user, verifaction_token, err := ah.authUserCase.Register(context.TODO(), signupDTO)
+	user, verificationToken, err := ah.authUserCase.Register(context.TODO(), signupDTO)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"messsage": "can't create user",
@@ -50,12 +53,25 @@ func (ah *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Send Email Async
-	fmt.Print(verifaction_token)
+	conn, err := rabbitmq.ConnectRabbitMQ()
+	if err != nil {
+		log.Println("Error connecting to RabbitMQ:", err)
+	} else {
+		defer conn.Close()
+
+		message := rabbitmq.EmailMessage{
+			UserID:            user.ID,
+			VerificationToken: verificationToken,
+		}
+		err = rabbitmq.PublishMessage(context.Background(), conn, "email_queue", message)
+		if err != nil {
+			log.Println("Error publishing message:", err)
+		}
+	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"created": "user_created",
-		"data":    user,
+		"succes":  "singup succesfully proccesed",
+		"message": "An email will be sended to activate your account",
 	})
 }
 

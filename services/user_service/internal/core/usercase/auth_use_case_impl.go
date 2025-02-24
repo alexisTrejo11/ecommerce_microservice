@@ -24,9 +24,6 @@ type AuthUseCase struct {
 	userMappers  mappers.UserMappers
 	sessionRepo  output.SessionRepository
 	tokenFactory tokens.TokenFactory
-	//mfaRepo           output.MFARepository
-	//passwordResetRepo output.PasswordResetRepository
-	//config *Config
 }
 
 type Config struct {
@@ -40,18 +37,12 @@ func NewAuthUseCase(
 	userRepo output.UserRepository,
 	tokenService output.TokenService,
 	sessionRepo output.SessionRepository,
-	//mfaRepo output.MFARepository,
-	//passwordResetRepo output.PasswordResetRepository,
-	//config *Config,
 ) input.AuthUseCase {
 	return &AuthUseCase{
 		userRepo:     userRepo,
 		tokenService: tokenService,
 		sessionRepo:  sessionRepo,
 		tokenFactory: *tokens.NewTokenFactory(),
-		//mfaRepo:           mfaRepo,
-		//passwordResetRepo: passwordResetRepo,
-		//config: config,
 	}
 }
 
@@ -81,7 +72,17 @@ func (uc *AuthUseCase) Register(ctx context.Context, signupDto dto.SignupDTO) (*
 		return nil, "", err
 	}
 
-	return newUser, "activationToken", nil
+	factory, err := uc.tokenFactory.CreateToken(tokens.VerifyTokenENUM)
+	if err != nil {
+		return nil, "", err
+	}
+
+	activationToken, err := factory.Generate(newUser.Email, newUser.ID, newUser.Role.Name)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return newUser, activationToken, nil
 }
 
 func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input.TokenDetails, error) {
@@ -204,7 +205,7 @@ func (uc *AuthUseCase) ActivateAccount(ctx context.Context, token string) error 
 		return err
 	}
 
-	user.Status = entities.UserStatusActive
+	user.ActivateAccount()
 	if err := uc.userRepo.Update(ctx, user); err != nil {
 		return err
 	}

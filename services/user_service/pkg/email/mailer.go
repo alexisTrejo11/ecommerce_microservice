@@ -2,25 +2,22 @@ package email
 
 import (
 	"crypto/tls"
+	"embed"
 	"fmt"
 
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/config"
 	"github.com/go-gomail/gomail"
 )
+
+//go:embed templates/*.html
+var TemplateFS embed.FS
 
 type MailClient struct {
 	dialer *gomail.Dialer
 	from   string
 }
 
-type EmailConfig struct {
-	SMTPHost     string
-	SMTPPort     int
-	SMTPUser     string
-	SMTPPassword string
-	FromEmail    string
-}
-
-func NewMailClient(cfg EmailConfig) *MailClient {
+func NewMailClient(cfg config.EmailConfig) *MailClient {
 	d := gomail.NewDialer(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPassword)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 

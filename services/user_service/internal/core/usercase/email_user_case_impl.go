@@ -7,19 +7,21 @@ import (
 	"fmt"
 	"html/template"
 	"path/filepath"
+	"strings"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
 	"github.com/alexisTrejo11/ecommerce_microservice/pkg/email"
+	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 const (
-	templatePath = "internal/input/email/templates/"
+	templatePath = "services/user_service/pkg/email/templates"
 )
 
-type emailUseCase struct {
+type EmailUseCase struct {
 	mailClient   *email.MailClient
 	userRepo     output.UserRepository
 	tokenService output.TokenService
@@ -27,7 +29,7 @@ type emailUseCase struct {
 }
 
 func NewEmailUseCase(mailClient *email.MailClient, userRepo output.UserRepository, frontendURL string, tokenService output.TokenService) input.EmailUseCase {
-	return &emailUseCase{
+	return &EmailUseCase{
 		mailClient:   mailClient,
 		userRepo:     userRepo,
 		frontendURL:  frontendURL,
@@ -35,41 +37,33 @@ func NewEmailUseCase(mailClient *email.MailClient, userRepo output.UserRepositor
 	}
 }
 
-func (uc *emailUseCase) SendVerificationEmail(ctx context.Context, userID uuid.UUID, token string) error {
+func (uc *EmailUseCase) SendVerificationEmail(ctx context.Context, userID uuid.UUID, token string) error {
 	user, err := uc.userRepo.FindByID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("error getting user: %w", err)
 	}
 
-	verificationLink := fmt.Sprintf("%s/verify-email?token=%s", uc.frontendURL, token)
-
-	tmpl, err := template.ParseFiles(filepath.Join(templatePath, "verification.html"))
+	templateData, err := email.TemplateFS.ReadFile("templates/verification_email.html")
 	if err != nil {
-		return fmt.Errorf("error loading template: %w", err)
+		return fmt.Errorf("error reading email template: %w", err)
 	}
 
-	var bodyBuffer bytes.Buffer
-	data := struct {
-		VerificationLink string
-	}{
-		VerificationLink: verificationLink,
-	}
+	emailBody := strings.Replace(string(templateData), "{{TOKEN}}", token, 1)
 
-	if err := tmpl.ExecuteTemplate(&bodyBuffer, "verification.html", data); err != nil {
-		return fmt.Errorf("error rendering template: %w", err)
-	}
-
-	body := bodyBuffer.String()
-
-	if err := uc.mailClient.SendHTML(user.Email, "Verifica tu Email", body); err != nil {
+	if err := uc.mailClient.SendHTML(user.Email, "Verify Your Email", emailBody); err != nil {
 		return fmt.Errorf("error sending email: %w", err)
 	}
 
 	return nil
 }
 
-func (uc *emailUseCase) VerifyEmail(ctx context.Context, token string) error {
-	user, err := uc.userRepo.FindByEmail(ctx, token)
+func (uc *EmailUseCase) VerifyEmail(ctx context.Context, token string) error {
+	claims, err := uc.tokenService.VerifyToken(token, tokens.VerifyTokenENUM)
+	if err != nil {
+		return err
+	}
+
+	user, err := uc.userRepo.FindByEmail(ctx, claims.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("invalid or expired token")
@@ -77,16 +71,21 @@ func (uc *emailUseCase) VerifyEmail(ctx context.Context, token string) error {
 		return fmt.Errorf("error retrieving user by token: %w", err)
 	}
 
-	// Verify Token
+	// Centralize this error
+	if claims.UserID != user.ID {
+		return errors.New("not allowed to get this data")
+	}
 
 	user.ActivateAccount()
+
 	if err := uc.userRepo.Update(ctx, user); err != nil {
 		return fmt.Errorf("error updating user: %w", err)
 	}
 
 	return nil
 }
-func (uc *emailUseCase) SendPasswordResetEmail(ctx context.Context, email string) error {
+
+func (uc *EmailUseCase) SendPasswordResetEmail(ctx context.Context, email string) error {
 	user, err := uc.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
