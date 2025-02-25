@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	routes "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/handlers"
@@ -11,14 +12,26 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/email"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
 	"github.com/alexisTrejo11/ecommerce_microservice/pkg/rabbitmq"
+	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/pkg/rate_limiter"
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
+	// Fiber
 	app := fiber.New()
+
+	// GORM
 	db := config.GORMConfig()
+
+	// Email Config
 	emailConfig := config.GetEmailConfig()
+
+	// Redis
 	config.InitRedis()
+
+	// Rate Limiter (50 Request per minute)
+	rateLimiter := ratelimiter.NewRateLimiter(config.RedisClient, 50, 1*time.Minute)
+	app.Use(rateLimiter.Limit)
 
 	jwtManager, err := jwt.NewJWTManager()
 	if err != nil {
