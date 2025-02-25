@@ -1,11 +1,8 @@
 package repository
 
 import (
-	"context"
-	"fmt"
 	"time"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/config"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/tokens"
@@ -77,22 +74,4 @@ func (s *TokenServiceImpl) GetTokenExpirationDate(tokenString string, tokenType 
 		return time.Time{}, err
 	}
 	return expirationDate, nil
-}
-
-func (s *TokenServiceImpl) BlacklistToken(token string, expiresIn time.Duration) error {
-	ctx := context.Background()
-	err := config.RedisClient.Set(ctx, "blacklist:"+token, true, expiresIn).Err()
-	if err != nil {
-		return fmt.Errorf("error al agregar el token a la lista negra: %v", err)
-	}
-	return nil
-}
-
-func (s *TokenServiceImpl) IsTokenBlacklisted(token string) bool {
-	ctx := context.Background()
-	exists, err := config.RedisClient.Exists(ctx, "blacklist:"+token).Result()
-	if err != nil {
-		panic("error al verificar la lista negra: " + err.Error())
-	}
-	return exists == 1
 }

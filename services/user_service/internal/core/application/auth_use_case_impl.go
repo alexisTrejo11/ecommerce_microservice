@@ -75,12 +75,7 @@ func (uc *AuthUseCase) Register(ctx context.Context, signupDto dto.SignupDTO) (*
 		return nil, "", err
 	}
 
-	factory, err := uc.tokenFactory.CreateToken(tokens.VerifyTokenENUM)
-	if err != nil {
-		return nil, "", err
-	}
-
-	activationToken, err := factory.Generate(newUser.Email, newUser.ID, newUser.Role.Name)
+	activationToken, err := uc.generateActivationToken(newUser)
 	if err != nil {
 		return nil, "", err
 	}
@@ -94,16 +89,12 @@ func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input
 		return nil, err
 	}
 
-	err = user.VerifyValidAccount()
-	if err != nil {
+	if err := user.VerifyValidAccount(); err != nil {
 		return nil, err
 	}
 
-	// CHANGE TO DOMAINs
-	userId, _ := uuid.Parse(user.ID)
-	mfa, _ := uc.mfaRepository.FindByUserID(ctx, userId)
-	if mfa != nil {
-		return nil, errors.New("user has mfa activated")
+	if err := uc.checkMFA(ctx, user.ID); err != nil {
+		return nil, err
 	}
 
 	tokenDetails, err := uc.generateTokens(user.ID, user.Email, user.Username)
@@ -126,34 +117,21 @@ func (uc *AuthUseCase) Logout(ctx context.Context, refreshToken string, userID u
 		return err
 	}
 
-	// TODO: Import Error
 	if session.UserID != userID {
 		return errors.New("not allowed to get this data")
 	}
 
-	_, err = uc.tokenService.VerifyToken(refreshToken, tokens.RefreshTokenENUM)
-	if err != nil {
+	if _, err := uc.tokenService.VerifyToken(refreshToken, tokens.RefreshTokenENUM); err != nil {
 		return err
 	}
 
-	err = uc.sessionRepo.Delete(ctx, session.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return uc.sessionRepo.Delete(ctx, session.ID)
 }
 
 func (uc *AuthUseCase) LogoutAll(ctx context.Context, userID uuid.UUID) error {
-	err := uc.sessionRepo.DeleteAllByUserID(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return uc.sessionRepo.DeleteAllByUserID(ctx, userID)
 }
 
-// TODO: Refactor
 func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgent, clientIP string) (*input.TokenDetails, error) {
 	session, err := uc.sessionRepo.FindByRefreshToken(ctx, refreshToken)
 	if err != nil {
@@ -170,17 +148,14 @@ func (uc *AuthUseCase) RefreshTokens(ctx context.Context, refreshToken, userAgen
 		return nil, err
 	}
 
-	tokenDetails := &input.TokenDetails{
+	return &input.TokenDetails{
 		RefreshToken: refreshToken,
 		AccessToken:  accessToken,
 		ExpiresAt:    claims.ExpiresAt,
 		SessionID:    session.ID,
-	}
-
-	return tokenDetails, nil
+	}, nil
 }
 
-// Todo: Verify Need To Return Email form user activation token
 func (uc *AuthUseCase) ResetPassword(ctx context.Context, token, newPassword string) error {
 	claims, err := uc.tokenService.VerifyToken(token, tokens.VerifyTokenENUM)
 	if err != nil {
@@ -202,11 +177,7 @@ func (uc *AuthUseCase) ResetPassword(ctx context.Context, token, newPassword str
 	}
 
 	user.PasswordHash = newHashedPassword
-	if err := uc.userRepo.Update(ctx, user); err != nil {
-		return err
-	}
-
-	return nil
+	return uc.userRepo.Update(ctx, user)
 }
 
 func (uc *AuthUseCase) ActivateAccount(ctx context.Context, token string) error {
@@ -221,11 +192,7 @@ func (uc *AuthUseCase) ActivateAccount(ctx context.Context, token string) error 
 	}
 
 	user.ActivateAccount()
-	if err := uc.userRepo.Update(ctx, user); err != nil {
-		return err
-	}
-
-	return nil
+	return uc.userRepo.Update(ctx, user)
 }
 
 func (uc *AuthUseCase) ResendCode(ctx context.Context, codeType string, userID uuid.UUID) error {
@@ -233,16 +200,14 @@ func (uc *AuthUseCase) ResendCode(ctx context.Context, codeType string, userID u
 	if err != nil {
 		return err
 	}
-	// TODO: Implement Methods
+
 	switch codeType {
-	case "activation":
-		uc.tokenService.GenerateTokens(user.ID, user.Email, user.Role.Name)
-	case "password_reset":
-		uc.tokenService.GenerateTokens(user.ID, user.Email, user.Role.Name)
+	case "activation", "password_reset":
+		_, _, err := uc.tokenService.GenerateTokens(user.ID, user.Email, user.Role.Name)
+		return err
 	default:
 		return errors.New("invalid code type")
 	}
-	return nil
 }
 
 func validateSignupDTO(signupDto dto.SignupDTO) error {
@@ -291,21 +256,17 @@ func (uc *AuthUseCase) createUserEntity(signupDTO dto.SignupDTO, roleID int) (*e
 		return nil, fmt.Errorf("invalid user data: %w", err)
 	}
 
-	hashed_passwrod, err := newUser.HashPassword(signupDTO.Password)
+	hashedPassword, err := newUser.HashPassword(signupDTO.Password)
 	if err != nil {
 		return nil, fmt.Errorf("cant hash password: %w", err)
 	}
-	newUser.PasswordHash = hashed_passwrod
+	newUser.PasswordHash = hashedPassword
 
 	return newUser, nil
 }
 
 func (uc *AuthUseCase) saveUser(ctx context.Context, user *entities.User) error {
-	if err := uc.userRepo.Create(ctx, user); err != nil {
-		return fmt.Errorf("error saving user: %w", err)
-	}
-
-	return nil
+	return uc.userRepo.Create(ctx, user)
 }
 
 func (uc *AuthUseCase) verifyCredentials(ctx context.Context, email, password string) (*entities.User, error) {
@@ -314,8 +275,7 @@ func (uc *AuthUseCase) verifyCredentials(ctx context.Context, email, password st
 		return nil, errors.New("no user found with given credentials")
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(password))
-	if err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(existingUser.PasswordHash), []byte(password)); err != nil {
 		return nil, errors.New("no user found with given credentials")
 	}
 
@@ -340,11 +300,16 @@ func (uc *AuthUseCase) generateTokens(userID, email, username string) (*input.To
 	}, nil
 }
 
-func (uc *AuthUseCase) createSession(
-	ctx context.Context,
-	tokens input.TokenDetails,
-	user entities.User) (*entities.Session, error) {
+func (uc *AuthUseCase) generateActivationToken(user *entities.User) (string, error) {
+	factory, err := uc.tokenFactory.CreateToken(tokens.VerifyTokenENUM)
+	if err != nil {
+		return "", err
+	}
 
+	return factory.Generate(user.Email, user.ID, user.Role.Name)
+}
+
+func (uc *AuthUseCase) createSession(ctx context.Context, tokens input.TokenDetails, user entities.User) (*entities.Session, error) {
 	userId, _ := uuid.Parse(user.ID)
 	session := entities.Session{
 		ID:           uuid.New(),
@@ -361,4 +326,18 @@ func (uc *AuthUseCase) createSession(
 	}
 
 	return &session, nil
+}
+
+func (uc *AuthUseCase) checkMFA(ctx context.Context, userID string) error {
+	userId, _ := uuid.Parse(userID)
+	mfa, err := uc.mfaRepository.FindByUserID(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	if mfa != nil {
+		return errors.New("user has mfa activated")
+	}
+
+	return nil
 }

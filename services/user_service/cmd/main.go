@@ -40,7 +40,7 @@ func main() {
 	addresUseCase := usecases.NewAddressUseCase(addresRepository)
 	sessionUseCase := usecases.NewSessionUserCase(sessionRepository)
 	mfaUseCase := usecases.NewMFAUseCase(mfaRepository, tokenService)
-	emailUseCase := usecases.NewEmailUseCase(mailClient, userRepository, "", tokenService)
+	emailUseCase := usecases.NewEmailUseCase(mailClient, userRepository, tokenService)
 
 	// Handler
 	authHandler := handlers.NewAuthHandler(authUseCase, *jwtManager, emailUseCase)
