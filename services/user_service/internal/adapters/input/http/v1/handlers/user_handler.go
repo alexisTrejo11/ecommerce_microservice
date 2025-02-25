@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -18,22 +19,37 @@ func NewUserHandler(userUseCase input.UserUseCase) *UserHandler {
 
 func (uh *UserHandler) GetUserById(c *fiber.Ctx) error {
 	userUUID := c.Query("id")
-
-	user, err := uh.userUseCase.GetUser(context.Background(), uuid.MustParse(userUUID))
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(err)
-
+	if userUUID == "" {
+		return response.BadRequest(c, "user ID not provided", nil)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user)
+	userID, err := uuid.Parse(userUUID)
+	if err != nil {
+		return response.BadRequest(c, "invalid user ID", err.Error())
+	}
+
+	user, err := uh.userUseCase.GetUser(context.Background(), userID)
+	if err != nil {
+		return response.NotFound(c, "user not found", err.Error())
+	}
+
+	return response.OK(c, "User retrieved successfully", user)
 }
 
 func (uh *UserHandler) DeleteUserById(c *fiber.Ctx) error {
 	userUUID := c.Query("id")
-
-	if err := uh.userUseCase.DeleteUser(context.Background(), uuid.MustParse(userUUID)); err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(err)
+	if userUUID == "" {
+		return response.BadRequest(c, "user ID not provided", nil)
 	}
 
-	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{"success": "user delted"})
+	userID, err := uuid.Parse(userUUID)
+	if err != nil {
+		return response.BadRequest(c, "invalid user ID", err.Error())
+	}
+
+	if err := uh.userUseCase.DeleteUser(context.Background(), userID); err != nil {
+		return response.NotFound(c, "user not found", err.Error())
+	}
+
+	return response.OK(c, "User successfully deleted", nil)
 }

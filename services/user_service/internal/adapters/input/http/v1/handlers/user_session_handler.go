@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -25,34 +26,38 @@ func (ush *SessionHandler) GetSessionByUserId(c *fiber.Ctx) error {
 	userIdSTR := c.Params("id")
 	userId, err := uuid.Parse(userIdSTR)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(err.Error())
+		return response.BadRequest(c, "invalid user ID", err.Error())
 	}
 
 	sessions, err := ush.sessionUseCase.GetUserSessions(context.Background(), userId)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(err.Error())
+		return response.InternalServerError(c, "failed to retrieve user sessions", err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(sessions)
+	return response.OK(c, "User sessions retrieved successfully", sessions)
 }
 
 func (ush *SessionHandler) DeleteSessionById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "session id not provided"})
+		return response.BadRequest(c, "session ID not provided", nil)
 	}
-	sessonId, _ := uuid.Parse(idSTR)
+
+	sessionId, err := uuid.Parse(idSTR)
+	if err != nil {
+		return response.BadRequest(c, "invalid session ID", err.Error())
+	}
 
 	userIdSTR := c.Params("user_id")
 	userId, err := uuid.Parse(userIdSTR)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "user id not valid"})
+		return response.BadRequest(c, "invalid user ID", err.Error())
 	}
 
-	err = ush.sessionUseCase.DeleteSession(context.Background(), sessonId, userId)
+	err = ush.sessionUseCase.DeleteSession(context.Background(), sessionId, userId)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(err.Error())
+		return response.NotFound(c, "session not found", err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"succession": "session successfully deleted"})
+	return response.OK(c, "Session successfully deleted", nil)
 }
