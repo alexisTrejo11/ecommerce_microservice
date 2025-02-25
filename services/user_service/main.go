@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	_ "github.com/alexisTrejo11/ecommerce_microservice/docs"
 	routes "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/handlers"
 	repository "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output"
@@ -13,9 +14,23 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
 	"github.com/alexisTrejo11/ecommerce_microservice/pkg/rabbitmq"
 	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/pkg/rate_limiter"
+	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 )
 
+// @title E-commerce Microservice API
+// @version 1.0
+// @description API for an e-commerce microservice with authentication and user management.
+// @termsOfService http://example.com/terms/
+// @contact.name API Support
+// @contact.email support@example.com
+// @license.name MIT
+// @license.url http://www.mit.edu/license
+// @host localhost:3000
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	// Fiber
 	app := fiber.New()
@@ -70,6 +85,9 @@ func main() {
 	routes.UserAddressRoutes(app, userAddresHandler)
 	routes.SessionRoutes(app, sessionHandler)
 	routes.UserMFARoutes(app, mfaHandler)
+
+	// Swagger
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	log.Fatal(app.Listen(":3000"))
 }

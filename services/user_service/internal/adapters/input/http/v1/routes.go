@@ -18,7 +18,9 @@ func AuthRoutes(r fiber.Router, authHandler *handlers.AuthHandler) {
 	authPath.Post("/activate-account/:token", authHandler.ActivateAccount)
 	authPath.Post("/logout/:refresh_token", authHandler.Logout)
 	authPath.Post("/logout-all", authHandler.LogoutAll)
-	authPath.Get("/refresh_acces_token/:refresh_token", authHandler.RefreshAccesToken)
+	authPath.Post("/resend-code", authHandler.ResendCode)
+	authPath.Post("/reset-password", authHandler.ResendCode)
+	authPath.Get("/refresh-acces-token/:refresh_token", authHandler.RefreshAccessToken)
 }
 
 func UserAddressRoutes(r fiber.Router, addresHandler *handlers.UserAddressHandler) {

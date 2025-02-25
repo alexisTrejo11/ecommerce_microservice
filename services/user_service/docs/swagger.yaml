@@ -1,0 +1,360 @@
+basePath: /
+definitions:
+  dto.LoginDTO:
+    properties:
+      client_ip:
+        type: string
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      user_agent:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.SignupDTO:
+    properties:
+      email:
+        description: |-
+          The user's email address, which must be a valid email format.
+          Example: user@example.com
+          @Param email body string true "Email address" validate:"required,email"
+        type: string
+      first_name:
+        description: |-
+          The user's first name, which must be between 2 and 50 characters.
+          Example: John
+          @Param first_name body string true "First Name" validate:"required,min=2,max=50"
+        maxLength: 50
+        minLength: 2
+        type: string
+      last_name:
+        description: |-
+          The user's last name, which must be between 2 and 50 characters.
+          Example: Doe
+          @Param last_name body string true "Last Name" validate:"required,min=2,max=50"
+        maxLength: 50
+        minLength: 2
+        type: string
+      password:
+        description: |-
+          The user's password, which must be at least 8 characters long.
+          Example: password123
+          @Param password body string true "Password" validate:"required,min=8"
+        minLength: 8
+        type: string
+      phone:
+        description: |-
+          The user's phone number, which must be exactly 10 digits.
+          Example: 1234567890
+          @Param phone body string true "Phone Number" validate:"required,len=10"
+        type: string
+      username:
+        description: |-
+          The user's username, which must be between 3 and 30 characters.
+          Example: johndoe
+          @Param username body string true "Username" validate:"required,min=3,max=30"
+        maxLength: 30
+        minLength: 3
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - phone
+    - username
+    type: object
+  response.ApiResponse:
+    properties:
+      code:
+        description: |-
+          The HTTP status code of the response.
+          Example: 200
+          @Param code query int true "HTTP status code"
+        type: integer
+      data:
+        description: |-
+          Data contains the response data, if any.
+          Example: { "id": 123, "name": "John Doe" }
+          @Param data query object false "Response data"
+      errors:
+        description: |-
+          Errors contains error details, if any.
+          Example: "Invalid input data"
+          @Param errors query object false "Error details"
+      message:
+        description: |-
+          A message that gives more information about the response.
+          Example: "Request successful"
+          @Param message query string true "Response message"
+        type: string
+      success:
+        description: |-
+          Indicates whether the request was successful or not.
+          Example: true
+          @Param success query bool true "Success status"
+        type: boolean
+      timestamp:
+        description: |-
+          Timestamp represents the time when the response was generated.
+          Example: "2025-02-24T12:34:56Z"
+          @Param timestamp query string true "Timestamp of the response"
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: API for an e-commerce microservice with authentication and user management.
+  license:
+    name: MIT
+    url: http://www.mit.edu/license
+  termsOfService: http://example.com/terms/
+  title: E-commerce Microservice API
+  version: "1.0"
+paths:
+  /v1/api/activate-account/:
+    post:
+      consumes:
+      - application/json
+      description: Activates the user account using a valid verification token
+      parameters:
+      - description: Verification token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Account activated successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Activate user account
+      tags:
+      - Auth
+  /v1/api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns a JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: User login
+      tags:
+      - Auth
+  /v1/api/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logs the user out and invalidates the session
+      parameters:
+      - description: Refresh token
+        in: path
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Logout user
+      tags:
+      - Auth
+  /v1/api/logout-all:
+    post:
+      consumes:
+      - application/json
+      description: Logs out all active sessions for the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All sessions logged out
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Logout all sessions
+      tags:
+      - Auth
+  /v1/api/refresh-acces-token:
+    get:
+      consumes:
+      - application/json
+      description: Refreshes the access token using a valid refresh token
+      parameters:
+      - description: Refresh token
+        in: path
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: New access token details
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /v1/api/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user and sends an email with a verification token
+      parameters:
+      - description: User registration data
+        in: body
+        name: signup
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SignupDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Signup successful message
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Register a new user
+      tags:
+      - Auth
+  /v1/api/resend-code:
+    post:
+      consumes:
+      - application/json
+      description: Resends a verification or reset code to the user
+      parameters:
+      - description: Type of code to resend (e.g., verification, reset)
+        in: path
+        name: code_type
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Code resent successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Resend verification or reset code
+      tags:
+      - Auth
+  /v1/api/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Resets the user's password using a valid reset token
+      parameters:
+      - description: Password reset token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: New password
+        in: path
+        name: new_password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Reset user password
+      tags:
+      - Auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
