@@ -3,7 +3,7 @@ package input
 import (
 	"context"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/dto"
 	"github.com/google/uuid"
 )
 

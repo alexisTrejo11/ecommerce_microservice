@@ -11,8 +11,8 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/email"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/email"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/tokens"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

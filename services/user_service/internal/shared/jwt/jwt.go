@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/tokens"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )

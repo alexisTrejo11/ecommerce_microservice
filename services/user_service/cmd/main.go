@@ -3,15 +3,14 @@ package main
 import (
 	"log"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/handlers"
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/routes"
+	routes "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/handlers"
 	repository "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output"
-	usecases "github.com/alexisTrejo11/ecommerce_microservice/internal/core/usercase"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/email"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/rabbitmq"
-
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/config"
+	usecases "github.com/alexisTrejo11/ecommerce_microservice/internal/core/application"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/email"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
+	"github.com/alexisTrejo11/ecommerce_microservice/pkg/rabbitmq"
 	"github.com/gofiber/fiber/v2"
 )
 

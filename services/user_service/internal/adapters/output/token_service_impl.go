@@ -7,8 +7,8 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/config"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
-	jwt "github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/tokens"
 )
 
 type TokenServiceImpl struct {

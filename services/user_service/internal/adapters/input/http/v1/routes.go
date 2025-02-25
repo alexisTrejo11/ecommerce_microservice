@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/handlers"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/handlers"
 	"github.com/gofiber/fiber/v2"
 )
 

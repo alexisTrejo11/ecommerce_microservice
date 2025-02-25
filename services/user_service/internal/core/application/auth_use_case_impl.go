@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/dto"
 	repository "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output/persistence/mysql/mappers"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/domain/entities"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/tokens"
 	"github.com/google/uuid"
 
 	"golang.org/x/crypto/bcrypt"

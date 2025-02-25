@@ -7,7 +7,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/domain/entities"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/tokens"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/tokens"
 	"github.com/google/uuid"
 )
 

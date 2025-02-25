@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/dto"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/domain/entities"
 	"github.com/google/uuid"
 )

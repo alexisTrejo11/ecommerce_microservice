@@ -3,9 +3,9 @@ package handlers
 import (
 	"context"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/http/v1/dto"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
+	"github.com/alexisTrejo11/ecommerce_microservice/internal/shared/jwt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
