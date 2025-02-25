@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"context"
-	"log"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/input/api/dto"
 	"github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/pkg/jwt"
-	"github.com/alexisTrejo11/ecommerce_microservice/pkg/rabbitmq"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -45,28 +43,12 @@ func (ah *AuthHandler) Register(c *fiber.Ctx) error {
 		})
 	}
 
-	user, verificationToken, err := ah.authUserCase.Register(context.TODO(), signupDTO)
+	_, _, err := ah.authUserCase.Register(context.TODO(), signupDTO)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"messsage": "can't create user",
 			"errors":   err.Error(),
 		})
-	}
-
-	conn, err := rabbitmq.ConnectRabbitMQ()
-	if err != nil {
-		log.Println("Error connecting to RabbitMQ:", err)
-	} else {
-		defer conn.Close()
-
-		message := rabbitmq.EmailMessage{
-			UserID:            user.ID,
-			VerificationToken: verificationToken,
-		}
-		err = rabbitmq.PublishMessage(context.Background(), conn, "email_queue", message)
-		if err != nil {
-			log.Println("Error publishing message:", err)
-		}
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{

@@ -34,6 +34,7 @@ func (t *VerifyToken) Generate(email, userId, role string) (string, error) {
 	}
 
 	key := fmt.Sprintf("verification_token:%s", token)
+
 	if err := config.RedisClient.Set(ctx, key, jsonData, time.Until(claims.ExpiresAt)).Err(); err != nil {
 		return "", fmt.Errorf("error storing verification token: %w", err)
 	}

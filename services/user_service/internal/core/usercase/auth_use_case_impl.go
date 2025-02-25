@@ -19,11 +19,12 @@ import (
 )
 
 type AuthUseCase struct {
-	userRepo     output.UserRepository
-	tokenService output.TokenService
-	userMappers  mappers.UserMappers
-	sessionRepo  output.SessionRepository
-	tokenFactory tokens.TokenFactory
+	userRepo      output.UserRepository
+	tokenService  output.TokenService
+	userMappers   mappers.UserMappers
+	sessionRepo   output.SessionRepository
+	tokenFactory  tokens.TokenFactory
+	mfaRepository output.MFARepository
 }
 
 type Config struct {
@@ -37,12 +38,14 @@ func NewAuthUseCase(
 	userRepo output.UserRepository,
 	tokenService output.TokenService,
 	sessionRepo output.SessionRepository,
+	mfaRepository output.MFARepository,
 ) input.AuthUseCase {
 	return &AuthUseCase{
-		userRepo:     userRepo,
-		tokenService: tokenService,
-		sessionRepo:  sessionRepo,
-		tokenFactory: *tokens.NewTokenFactory(),
+		userRepo:      userRepo,
+		tokenService:  tokenService,
+		sessionRepo:   sessionRepo,
+		tokenFactory:  *tokens.NewTokenFactory(),
+		mfaRepository: mfaRepository,
 	}
 }
 
@@ -89,6 +92,18 @@ func (uc *AuthUseCase) Login(ctx context.Context, loginDTO dto.LoginDTO) (*input
 	user, err := uc.verifyCredentials(ctx, loginDTO.Email, loginDTO.Password)
 	if err != nil {
 		return nil, err
+	}
+
+	err = user.VerifyValidAccount()
+	if err != nil {
+		return nil, err
+	}
+
+	// CHANGE TO DOMAINs
+	userId, _ := uuid.Parse(user.ID)
+	mfa, _ := uc.mfaRepository.FindByUserID(ctx, userId)
+	if mfa != nil {
+		return nil, errors.New("user has mfa activated")
 	}
 
 	tokenDetails, err := uc.generateTokens(user.ID, user.Email, user.Username)
@@ -289,6 +304,7 @@ func (uc *AuthUseCase) saveUser(ctx context.Context, user *entities.User) error 
 	if err := uc.userRepo.Create(ctx, user); err != nil {
 		return fmt.Errorf("error saving user: %w", err)
 	}
+
 	return nil
 }
 

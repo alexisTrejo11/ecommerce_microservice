@@ -51,7 +51,7 @@ func FromEntity(user *entities.User) *models.UserModel {
 		RoleID:       user.RoleID,
 		Role:         nil, //FromRoleEntity(user.Role),
 		Addresses:    nil, //ToAddressModels(user.Addresses),
-		Status:       models.UserStatus(entities.UserStatusActive),
+		Status:       models.UserStatus(user.Status),
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 		DeletedAt:    user.DeletedAt,

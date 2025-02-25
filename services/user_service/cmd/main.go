@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-
 	app := fiber.New()
 	db := config.GORMConfig()
 	emailConfig := config.GetEmailConfig()
@@ -38,7 +37,7 @@ func main() {
 
 	// UseCase
 	tokenService := repository.NewTokenService(jwtManager)
-	authUseCase := usecases.NewAuthUseCase(userRepository, tokenService, sessionRepository)
+	authUseCase := usecases.NewAuthUseCase(userRepository, tokenService, sessionRepository, mfaRepository)
 	addresUseCase := usecases.NewAddressUseCase(addresRepository)
 	sessionUseCase := usecases.NewSessionUserCase(sessionRepository)
 	mfaUseCase := usecases.NewMFAUseCase(mfaRepository, tokenService)

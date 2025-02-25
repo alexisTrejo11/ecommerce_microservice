@@ -18,7 +18,7 @@ type UserModel struct {
 	RoleID       uint           `json:"role_id" gorm:"not null"`
 	Role         *RoleModel     `json:"role,omitempty" gorm:"foreignKey:RoleID"`
 	Addresses    []AddressModel `json:"addresses,omitempty" gorm:"foreignKey:UserID"`
-	Status       UserStatus     `json:"status" gorm:"type:int;default:1"`
+	Status       UserStatus     `json:"status" gorm:"type:int;default:0"`
 	CreatedAt    time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt    *time.Time     `json:"-" gorm:"index"`
@@ -34,9 +34,9 @@ func (m UserModel) ToEntity() *entities.User {
 		PasswordHash: m.PasswordHash,
 		Phone:        m.Phone,
 		RoleID:       m.RoleID,
-		Role:         nil,                                   //m.Role.ToEntity(),
-		Addresses:    nil,                                   //ToAddressEntities(m.Addresses),
-		Status:       entities.UserStatus(UserStatusActive), //m.Status,
+		Role:         nil,                           //m.Role.ToEntity(),
+		Addresses:    nil,                           //ToAddressEntities(m.Addresses),
+		Status:       entities.UserStatus(m.Status), //m.Status,
 		CreatedAt:    m.CreatedAt,
 		UpdatedAt:    m.UpdatedAt,
 		DeletedAt:    m.DeletedAt,

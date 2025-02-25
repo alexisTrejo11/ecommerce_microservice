@@ -260,6 +260,17 @@ func (u *User) ActivateAccount() {
 	u.Status = UserStatusActive
 }
 
+func (u *User) VerifyValidAccount() error {
+	switch u.Status {
+	case UserStatusBanned:
+		return errors.New("account has been banned")
+	case UserStatusPending:
+		return errors.New("account has not been activated")
+	}
+
+	return nil
+}
+
 func (u *User) BanAccount() {
 	u.Status = UserStatusBanned
 }

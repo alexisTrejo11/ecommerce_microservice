@@ -15,6 +15,7 @@ func AuthRoutes(r fiber.Router, authHandler *handlers.AuthHandler) {
 	authPath := r.Group("v1/api")
 	authPath.Post("/register", authHandler.Register)
 	authPath.Post("/login", authHandler.Login)
+	authPath.Post("/activate-account/:token", authHandler.ActivateAccount)
 	authPath.Post("/logout/:refresh_token", authHandler.Logout)
 	authPath.Post("/logout-all", authHandler.LogoutAll)
 	authPath.Get("/refresh_acces_token/:refresh_token", authHandler.RefreshAccesToken)
