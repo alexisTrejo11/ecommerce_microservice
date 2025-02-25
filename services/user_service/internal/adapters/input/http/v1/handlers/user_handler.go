@@ -17,6 +17,17 @@ func NewUserHandler(userUseCase input.UserUseCase) *UserHandler {
 	return &UserHandler{userUseCase: userUseCase}
 }
 
+// GetUserById retrieves a user by ID.
+// @Summary Get user by ID
+// @Description Retrieve a user based on the provided ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id query string true "User ID"
+// @Success 200 {object} response.ApiResponse "User retrieved successfully"
+// @Failure 400 {object} response.ApiResponse "Invalid user ID"
+// @Failure 404 {object} response.ApiResponse "User not found"
+// @Router /v1/api/users [get]
 func (uh *UserHandler) GetUserById(c *fiber.Ctx) error {
 	userUUID := c.Query("id")
 	if userUUID == "" {
@@ -36,6 +47,17 @@ func (uh *UserHandler) GetUserById(c *fiber.Ctx) error {
 	return response.OK(c, "User retrieved successfully", user)
 }
 
+// DeleteUserById deletes a user by ID.
+// @Summary Delete user by ID
+// @Description Delete a user based on the provided ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id query string true "User ID"
+// @Success 200 {object} response.ApiResponse "User successfully deleted"
+// @Failure 400 {object} response.ApiResponse "Invalid user ID"
+// @Failure 404 {object} response.ApiResponse "User not found"
+// @Router /v1/api/users [delete]
 func (uh *UserHandler) DeleteUserById(c *fiber.Ctx) error {
 	userUUID := c.Query("id")
 	if userUUID == "" {

@@ -1,15 +1,96 @@
 basePath: /
 definitions:
+  dto.AddressInsertDTO:
+    properties:
+      address_line_1:
+        description: |-
+          The first line of the address, required with a length between 5 and 100 characters.
+          Example: 123 Main Street
+          @Param address_line_1 body string true "Address Line 1" validate:"required,min=5,max=100"
+        maxLength: 100
+        minLength: 5
+        type: string
+      address_line_2:
+        description: |-
+          The second line of the address, optional with a length between 5 and 100 characters.
+          Example: Apt 4B
+          @Param address_line_2 body string false "Address Line 2 (Optional)" validate:"omitempty,min=5,max=100"
+        maxLength: 100
+        minLength: 5
+        type: string
+      city:
+        description: |-
+          The city of the address, required with a length between 2 and 50 characters.
+          Example: New York
+          @Param city body string true "City" validate:"required,min=2,max=50"
+        maxLength: 50
+        minLength: 2
+        type: string
+      country:
+        description: |-
+          The country code of the address, required in ISO 3166-1 alpha-2 format.
+          Example: US
+          @Param country body string true "Country (ISO 3166-1 alpha-2)" validate:"required,len=2"
+        type: string
+      is_default:
+        description: |-
+          Whether this address is the default for the user.
+          Example: true
+          @Param is_default body bool true "Is Default Address"
+        type: boolean
+      postal_code:
+        description: |-
+          The postal or ZIP code of the address, required.
+          Example: 10001
+          @Param postal_code body string true "Postal Code" validate:"required"
+        type: string
+      state:
+        description: |-
+          The state or province of the address, required with a length between 2 and 50 characters.
+          Example: NY
+          @Param state body string true "State/Province" validate:"required,min=2,max=50"
+        maxLength: 50
+        minLength: 2
+        type: string
+      user_id:
+        description: |-
+          The unique identifier of the user associated with this address.
+          Example: 550e8400-e29b-41d4-a716-446655440000
+          @Param user_id body string true "User ID (UUID)"
+        type: string
+    required:
+    - address_line_1
+    - city
+    - country
+    - postal_code
+    - state
+    type: object
   dto.LoginDTO:
     properties:
       client_ip:
+        description: |-
+          The IP address of the client making the request.
+          Example: 192.168.1.1
+          @Param client_ip body string false "Client IP"
         type: string
       email:
+        description: |-
+          The user's email address, which must be a valid email format.
+          Example: user@example.com
+          @Param email body string true "Email address" validate:"required,email"
         type: string
       password:
+        description: |-
+          The user's password, which must be at least 8 characters long.
+          Example: password123
+          @Param password body string true "Password" validate:"required,min=8"
         minLength: 8
         type: string
       user_agent:
+        description: |-
+          The user agent string of the client making the request.
+          Example: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+          @Param user_agent body string false "User Agent"
         type: string
     required:
     - email
@@ -118,7 +199,7 @@ info:
   title: E-commerce Microservice API
   version: "1.0"
 paths:
-  /v1/api/activate-account/:
+  /v1/api/activate-account/{token}:
     post:
       consumes:
       - application/json
@@ -177,7 +258,30 @@ paths:
       summary: User login
       tags:
       - Auth
-  /v1/api/logout:
+  /v1/api/logout-all:
+    post:
+      consumes:
+      - application/json
+      description: Logs out all active sessions for the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All sessions logged out
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Logout all sessions
+      tags:
+      - Auth
+  /v1/api/logout/{refresh_token}:
     post:
       consumes:
       - application/json
@@ -206,30 +310,7 @@ paths:
       summary: Logout user
       tags:
       - Auth
-  /v1/api/logout-all:
-    post:
-      consumes:
-      - application/json
-      description: Logs out all active sessions for the user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: All sessions logged out
-          schema:
-            $ref: '#/definitions/response.ApiResponse'
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/response.ApiResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ApiResponse'
-      summary: Logout all sessions
-      tags:
-      - Auth
-  /v1/api/refresh-acces-token:
+  /v1/api/refresh-acces-token/{refresh_token}:
     get:
       consumes:
       - application/json
@@ -284,7 +365,7 @@ paths:
       summary: Register a new user
       tags:
       - Auth
-  /v1/api/resend-code:
+  /v1/api/resend-code/{code_type}:
     post:
       consumes:
       - application/json
@@ -318,7 +399,7 @@ paths:
       summary: Resend verification or reset code
       tags:
       - Auth
-  /v1/api/reset-password:
+  /v1/api/reset-password/{token}:
     post:
       consumes:
       - application/json
@@ -352,6 +433,320 @@ paths:
       summary: Reset user password
       tags:
       - Auth
+  /v1/api/sessions/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all active sessions for a given user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User sessions retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Failed to retrieve user sessions
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get user sessions
+      tags:
+      - sessions
+  /v1/api/sessions/{id}/user/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a session based on session ID and user ID
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid session ID or user ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Session not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete user session
+      tags:
+      - sessions
+  /v1/api/users:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user based on the provided ID
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete user by ID
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user based on the provided ID
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get user by ID
+      tags:
+      - users
+  /v1/api/users/addresses:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of addresses associated with the authenticated
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Addresses retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get user addresses
+      tags:
+      - Addresses
+    post:
+      consumes:
+      - application/json
+      description: Adds a new address for the authenticated user
+      parameters:
+      - description: Address details
+        in: body
+        name: address
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddressInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Address successfully created
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Add user address
+      tags:
+      - Addresses
+  /v1/api/users/addresses/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an existing address for the authenticated user
+      parameters:
+      - description: Address ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Address successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete user address
+      tags:
+      - Addresses
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing address for the authenticated user
+      parameters:
+      - description: Address ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated address details
+        in: body
+        name: address
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddressInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Address successfully updated
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Update user address
+      tags:
+      - Addresses
+  /v1/api/users/mfa:
+    delete:
+      consumes:
+      - application/json
+      description: Disables multi-factor authentication for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Disable MFA
+      tags:
+      - MFA
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the multi-factor authentication configuration for the
+        authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get MFA
+      tags:
+      - MFA
+    put:
+      consumes:
+      - application/json
+      description: Verifies the provided multi-factor authentication code
+      parameters:
+      - description: MFA Code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Verify MFA
+      tags:
+      - MFA
 securityDefinitions:
   BearerAuth:
     in: header

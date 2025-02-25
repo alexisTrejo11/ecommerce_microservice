@@ -119,7 +119,7 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 // @Success 200 {object} response.ApiResponse "Logout successful"
 // @Failure 400 {object} response.ApiResponse "Bad request"
 // @Failure 401 {object} response.ApiResponse "Unauthorized"
-// @Router /v1/api/logout [post]
+// @Router /v1/api/logout/{refresh_token} [post]
 func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
 	claims, err := ah.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -177,7 +177,7 @@ func (ah *AuthHandler) LogoutAll(c *fiber.Ctx) error {
 // @Success 201 {object} response.ApiResponse "New access token details"
 // @Failure 400 {object} response.ApiResponse "Bad request"
 // @Failure 401 {object} response.ApiResponse "Unauthorized"
-// @Router /v1/api/refresh-acces-token [get]
+// @Router /v1/api/refresh-acces-token/{refresh_token} [get]
 func (ah *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 	refreshToken := c.Params("refresh_token")
 	if refreshToken == "" {
@@ -202,7 +202,7 @@ func (ah *AuthHandler) RefreshAccessToken(c *fiber.Ctx) error {
 // @Success 200 {object} response.ApiResponse "Account activated successfully"
 // @Failure 400 {object} response.ApiResponse "Bad request"
 // @Failure 401 {object} response.ApiResponse "Unauthorized"
-// @Router /v1/api/activate-account/ [post]
+// @Router /v1/api/activate-account/{token} [post]
 func (ah *AuthHandler) ActivateAccount(c *fiber.Ctx) error {
 	token := c.Params("token")
 	if token == "" {
@@ -228,7 +228,7 @@ func (ah *AuthHandler) ActivateAccount(c *fiber.Ctx) error {
 // @Success 200 {object} response.ApiResponse "Code resent successfully"
 // @Failure 400 {object} response.ApiResponse "Bad request"
 // @Failure 401 {object} response.ApiResponse "Unauthorized"
-// @Router /v1/api/resend-code [post]
+// @Router /v1/api/resend-code/{code_type} [post]
 func (ah *AuthHandler) ResendCode(c *fiber.Ctx) error {
 	codeType := c.Params("code_type")
 	if codeType == "" {
@@ -264,7 +264,7 @@ func (ah *AuthHandler) ResendCode(c *fiber.Ctx) error {
 // @Success 200 {object} response.ApiResponse "Password reset successfully"
 // @Failure 400 {object} response.ApiResponse "Bad request"
 // @Failure 401 {object} response.ApiResponse "Unauthorized"
-// @Router /v1/api/reset-password [post]
+// @Router /v1/api/reset-password/{token} [post]
 func (ah *AuthHandler) ResetPassword(c *fiber.Ctx) error {
 	token := c.Params("token")
 	if token == "" {

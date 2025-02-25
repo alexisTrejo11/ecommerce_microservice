@@ -27,6 +27,15 @@ func NewUserAddressHandler(addressUseCase input.AddressUseCase, jwtManager jwt.J
 	}
 }
 
+// MyAddresses retrieves the addresses of the authenticated user.
+// @Summary Get user addresses
+// @Description Retrieves a list of addresses associated with the authenticated user
+// @Tags Addresses
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.ApiResponse "Addresses retrieved successfully"
+// @Failure 401 {object} response.ApiResponse "Unauthorized"
+// @Router /v1/api/users/addresses [get]
 func (uah *UserAddressHandler) MyAddresses(c *fiber.Ctx) error {
 	claims, err := uah.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -43,6 +52,17 @@ func (uah *UserAddressHandler) MyAddresses(c *fiber.Ctx) error {
 	return response.OK(c, "Addresses retrieved successfully", addresses)
 }
 
+// AddAddress adds a new address for the authenticated user.
+// @Summary Add user address
+// @Description Adds a new address for the authenticated user
+// @Tags Addresses
+// @Accept json
+// @Produce json
+// @Param address body dto.AddressInsertDTO true "Address details"
+// @Success 201 {object} response.ApiResponse "Address successfully created"
+// @Failure 400 {object} response.ApiResponse "Bad request"
+// @Failure 401 {object} response.ApiResponse "Unauthorized"
+// @Router /v1/api/users/addresses [post]
 func (uah *UserAddressHandler) AddAddress(c *fiber.Ctx) error {
 	claims, err := uah.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -69,6 +89,18 @@ func (uah *UserAddressHandler) AddAddress(c *fiber.Ctx) error {
 	return response.Created(c, "Address successfully created", nil)
 }
 
+// UpdateMyAddress updates an existing address of the authenticated user.
+// @Summary Update user address
+// @Description Updates an existing address for the authenticated user
+// @Tags Addresses
+// @Accept json
+// @Produce json
+// @Param id path int true "Address ID"
+// @Param address body dto.AddressInsertDTO true "Updated address details"
+// @Success 200 {object} response.ApiResponse "Address successfully updated"
+// @Failure 400 {object} response.ApiResponse "Bad request"
+// @Failure 401 {object} response.ApiResponse "Unauthorized"
+// @Router /v1/api/users/addresses/{id} [put]
 func (uah *UserAddressHandler) UpdateMyAddress(c *fiber.Ctx) error {
 	claims, err := uah.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -104,6 +136,17 @@ func (uah *UserAddressHandler) UpdateMyAddress(c *fiber.Ctx) error {
 	return response.OK(c, "Address successfully updated", nil)
 }
 
+// DeleteAddress deletes an existing address of the authenticated user.
+// @Summary Delete user address
+// @Description Deletes an existing address for the authenticated user
+// @Tags Addresses
+// @Accept json
+// @Produce json
+// @Param id path int true "Address ID"
+// @Success 200 {object} response.ApiResponse "Address successfully deleted"
+// @Failure 400 {object} response.ApiResponse "Bad request"
+// @Failure 401 {object} response.ApiResponse "Unauthorized"
+// @Router /v1/api/users/addresses/{id} [delete]
 func (uah *UserAddressHandler) DeleteAddress(c *fiber.Ctx) error {
 	claims, err := uah.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {

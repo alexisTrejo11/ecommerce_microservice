@@ -17,7 +17,7 @@
     "host": "localhost:3000",
     "basePath": "/",
     "paths": {
-        "/v1/api/activate-account/": {
+        "/v1/api/activate-account/{token}": {
             "post": {
                 "description": "Activates the user account using a valid verification token",
                 "consumes": [
@@ -107,7 +107,42 @@
                 }
             }
         },
-        "/v1/api/logout": {
+        "/v1/api/logout-all": {
+            "post": {
+                "description": "Logs out all active sessions for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout all sessions",
+                "responses": {
+                    "200": {
+                        "description": "All sessions logged out",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/api/logout/{refresh_token}": {
             "post": {
                 "description": "Logs the user out and invalidates the session",
                 "consumes": [
@@ -151,42 +186,7 @@
                 }
             }
         },
-        "/v1/api/logout-all": {
-            "post": {
-                "description": "Logs out all active sessions for the user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Logout all sessions",
-                "responses": {
-                    "200": {
-                        "description": "All sessions logged out",
-                        "schema": {
-                            "$ref": "#/definitions/response.ApiResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ApiResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ApiResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/api/refresh-acces-token": {
+        "/v1/api/refresh-acces-token/{refresh_token}": {
             "get": {
                 "description": "Refreshes the access token using a valid refresh token",
                 "consumes": [
@@ -270,7 +270,7 @@
                 }
             }
         },
-        "/v1/api/resend-code": {
+        "/v1/api/resend-code/{code_type}": {
             "post": {
                 "description": "Resends a verification or reset code to the user",
                 "consumes": [
@@ -321,7 +321,7 @@
                 }
             }
         },
-        "/v1/api/reset-password": {
+        "/v1/api/reset-password/{token}": {
             "post": {
                 "description": "Resets the user's password using a valid reset token",
                 "consumes": [
@@ -371,9 +371,532 @@
                     }
                 }
             }
+        },
+        "/v1/api/sessions/{id}": {
+            "get": {
+                "description": "Retrieve all active sessions for a given user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sessions"
+                ],
+                "summary": "Get user sessions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User sessions retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve user sessions",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/api/sessions/{id}/user/{user_id}": {
+            "delete": {
+                "description": "Delete a session based on session ID and user ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sessions"
+                ],
+                "summary": "Delete user session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session successfully deleted",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid session ID or user ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Session not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/api/users": {
+            "get": {
+                "description": "Retrieve a user based on the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a user based on the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User successfully deleted",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/api/users/addresses": {
+            "get": {
+                "description": "Retrieves a list of addresses associated with the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Get user addresses",
+                "responses": {
+                    "200": {
+                        "description": "Addresses retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Adds a new address for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Add user address",
+                "parameters": [
+                    {
+                        "description": "Address details",
+                        "name": "address",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddressInsertDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Address successfully created",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/api/users/addresses/{id}": {
+            "put": {
+                "description": "Updates an existing address for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Update user address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Address ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated address details",
+                        "name": "address",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddressInsertDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Address successfully updated",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes an existing address for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Addresses"
+                ],
+                "summary": "Delete user address",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Address ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Address successfully deleted",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/api/users/mfa": {
+            "get": {
+                "description": "Retrieves the multi-factor authentication configuration for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Get MFA",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Verifies the provided multi-factor authentication code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Verify MFA",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MFA Code",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Disables multi-factor authentication for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Disable MFA",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.AddressInsertDTO": {
+            "type": "object",
+            "required": [
+                "address_line_1",
+                "city",
+                "country",
+                "postal_code",
+                "state"
+            ],
+            "properties": {
+                "address_line_1": {
+                    "description": "The first line of the address, required with a length between 5 and 100 characters.\nExample: 123 Main Street\n@Param address_line_1 body string true \"Address Line 1\" validate:\"required,min=5,max=100\"",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 5
+                },
+                "address_line_2": {
+                    "description": "The second line of the address, optional with a length between 5 and 100 characters.\nExample: Apt 4B\n@Param address_line_2 body string false \"Address Line 2 (Optional)\" validate:\"omitempty,min=5,max=100\"",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 5
+                },
+                "city": {
+                    "description": "The city of the address, required with a length between 2 and 50 characters.\nExample: New York\n@Param city body string true \"City\" validate:\"required,min=2,max=50\"",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "country": {
+                    "description": "The country code of the address, required in ISO 3166-1 alpha-2 format.\nExample: US\n@Param country body string true \"Country (ISO 3166-1 alpha-2)\" validate:\"required,len=2\"",
+                    "type": "string"
+                },
+                "is_default": {
+                    "description": "Whether this address is the default for the user.\nExample: true\n@Param is_default body bool true \"Is Default Address\"",
+                    "type": "boolean"
+                },
+                "postal_code": {
+                    "description": "The postal or ZIP code of the address, required.\nExample: 10001\n@Param postal_code body string true \"Postal Code\" validate:\"required\"",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "The state or province of the address, required with a length between 2 and 50 characters.\nExample: NY\n@Param state body string true \"State/Province\" validate:\"required,min=2,max=50\"",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2
+                },
+                "user_id": {
+                    "description": "The unique identifier of the user associated with this address.\nExample: 550e8400-e29b-41d4-a716-446655440000\n@Param user_id body string true \"User ID (UUID)\"",
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginDTO": {
             "type": "object",
             "required": [
@@ -382,16 +905,20 @@
             ],
             "properties": {
                 "client_ip": {
+                    "description": "The IP address of the client making the request.\nExample: 192.168.1.1\n@Param client_ip body string false \"Client IP\"",
                     "type": "string"
                 },
                 "email": {
+                    "description": "The user's email address, which must be a valid email format.\nExample: user@example.com\n@Param email body string true \"Email address\" validate:\"required,email\"",
                     "type": "string"
                 },
                 "password": {
+                    "description": "The user's password, which must be at least 8 characters long.\nExample: password123\n@Param password body string true \"Password\" validate:\"required,min=8\"",
                     "type": "string",
                     "minLength": 8
                 },
                 "user_agent": {
+                    "description": "The user agent string of the client making the request.\nExample: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\n@Param user_agent body string false \"User Agent\"",
                     "type": "string"
                 }
             }

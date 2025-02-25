@@ -22,6 +22,18 @@ func NewUserMfaHandler(mfaUseCase input.MFAUseCase, jwtManager jwt.JWTManager) *
 	}
 }
 
+// EnableMfa enables multi-factor authentication for a user
+// @Summary Enable MFA
+// @Description Enables multi-factor authentication for the authenticated user
+// @Tags MFA
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.ApiResponse
+// @Failure 400 {object} response.ApiResponse
+// @Failure 401 {object} response.ApiResponse
+// @Failure 500 {object} response.ApiResponse
+// @Router /v1/api/users/mfa [post]
+
 func (u *UserMfaHandler) EnableMfa(c *fiber.Ctx) error {
 	claims, err := u.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -44,6 +56,17 @@ func (u *UserMfaHandler) EnableMfa(c *fiber.Ctx) error {
 	})
 }
 
+// DisableMfa disables multi-factor authentication for a user
+// @Summary Disable MFA
+// @Description Disables multi-factor authentication for the authenticated user
+// @Tags MFA
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.ApiResponse
+// @Failure 400 {object} response.ApiResponse
+// @Failure 401 {object} response.ApiResponse
+// @Failure 500 {object} response.ApiResponse
+// @Router /v1/api/users/mfa [delete]
 func (u *UserMfaHandler) DisableMfa(c *fiber.Ctx) error {
 	claims, err := u.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -62,6 +85,17 @@ func (u *UserMfaHandler) DisableMfa(c *fiber.Ctx) error {
 	return response.OK(c, "MFA disabled successfully", nil)
 }
 
+// VerifyMfa verifies the provided MFA code
+// @Summary Verify MFA
+// @Description Verifies the provided multi-factor authentication code
+// @Tags MFA
+// @Accept json
+// @Produce json
+// @Param code query string true "MFA Code"
+// @Success 200 {object} response.ApiResponse
+// @Failure 400 {object} response.ApiResponse
+// @Failure 401 {object} response.ApiResponse
+// @Router /v1/api/users/mfa [put]
 func (u *UserMfaHandler) VerifyMfa(c *fiber.Ctx) error {
 	claims, err := u.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
@@ -85,6 +119,17 @@ func (u *UserMfaHandler) VerifyMfa(c *fiber.Ctx) error {
 	return response.OK(c, "MFA successfully disabled", nil)
 }
 
+// GetMfa retrieves the MFA configuration for the user
+// @Summary Get MFA
+// @Description Retrieves the multi-factor authentication configuration for the authenticated user
+// @Tags MFA
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.ApiResponse
+// @Failure 400 {object} response.ApiResponse
+// @Failure 401 {object} response.ApiResponse
+// @Failure 404 {object} response.ApiResponse
+// @Router /v1/api/users/mfa [get]
 func (u *UserMfaHandler) GetMfa(c *fiber.Ctx) error {
 	claims, err := u.jwtManager.ExtractAndValidateToken(c)
 	if err != nil {
