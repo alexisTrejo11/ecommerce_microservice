@@ -12,11 +12,14 @@ import (
 	"github.com/go-redis/redis/v8"
 
 	models "github.com/alexisTrejo11/ecommerce_microservice/internal/adapters/output/persistence/mysql"
+	port "github.com/alexisTrejo11/ecommerce_microservice/internal/core/ports/output/logger"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/internal/shared/logger"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-func GORMConfig() *gorm.DB {
+func GORMConfig(loggerPort port.LoggerPort) *gorm.DB {
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
@@ -29,9 +32,13 @@ func GORMConfig() *gorm.DB {
 	var db *gorm.DB
 	var err error
 
+	gormLogger := logging.NewGormLogger(loggerPort)
+
 	maxRetries := 10
 	for i := 0; i < maxRetries; i++ {
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			Logger: gormLogger,
+		})
 		if err == nil {
 			break
 		}
