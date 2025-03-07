@@ -34,6 +34,14 @@ func (m *CartMapper) ModelToDomain(model models.CartModel) *domain.Cart {
 	}
 }
 
+func (m *CartMapper) DomainToDTO(model domain.Cart) *dtos.CartDTO {
+	return &dtos.CartDTO{
+		ID:     model.ID,
+		UserID: model.UserID,
+		Items:  m.itemMapper.domainsToDTOs(model.Items),
+	}
+}
+
 type CartItemMapper struct{}
 
 func (m *CartItemMapper) domainsToModels(items []domain.CartItem) []models.CartItemModel {
@@ -96,4 +104,24 @@ func (m *CartItemMapper) ProductToItemList(products []dtos.CartItemFetchedDTO, c
 		items = append(items, *item)
 	}
 	return items
+}
+
+func (m *CartItemMapper) domainsToDTOs(models []domain.CartItem) []dtos.CartItemDTO {
+	domains := make([]dtos.CartItemDTO, len(models))
+	for _, model := range models {
+		domains = append(domains, *m.domainToDTO(model))
+	}
+
+	return domains
+}
+
+func (m *CartItemMapper) domainToDTO(domain domain.CartItem) *dtos.CartItemDTO {
+	return &dtos.CartItemDTO{
+		ID:        domain.ID,
+		CartID:    domain.CartID,
+		ProductID: domain.ProductID,
+		UnitPrice: domain.UnitPrice,
+		Quantity:  domain.Quantity,
+		Discount:  domain.Discount,
+	}
 }

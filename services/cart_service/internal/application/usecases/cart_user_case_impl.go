@@ -16,6 +16,7 @@ import (
 type CartUseCaseImpl struct {
 	repository     output.CartRepository
 	itemMappers    mappers.CartItemMapper
+	cartMappers    mappers.CartMapper
 	productService facadeService.ProductFacadeService
 }
 
@@ -28,6 +29,7 @@ func NewCartUseCase(
 	}
 }
 
+// TODO: Return CARTDTO
 func (us *CartUseCaseImpl) CreateCart(ctx context.Context, userID uuid.UUID) error {
 	newCart := domain.NewCart(userID)
 
@@ -85,13 +87,22 @@ func (us *CartUseCaseImpl) RemoveItems(ctx context.Context, userID uuid.UUID, it
 	return nil
 }
 
-func (us *CartUseCaseImpl) GetCart(ctx context.Context, userID uuid.UUID) (*domain.Cart, error) {
+func (us *CartUseCaseImpl) GetCartByUserId(ctx context.Context, userID uuid.UUID) (*dtos.CartDTO, error) {
 	cart, err := us.repository.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return cart, nil
+	return us.cartMappers.DomainToDTO(*cart), nil
+}
+
+func (us *CartUseCaseImpl) GetCartById(ctx context.Context, id uuid.UUID) (*dtos.CartDTO, error) {
+	cart, err := us.repository.GetById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.cartMappers.DomainToDTO(*cart), nil
 }
 
 func (us *CartUseCaseImpl) DeleteCart(ctx context.Context, userID uuid.UUID) error {
