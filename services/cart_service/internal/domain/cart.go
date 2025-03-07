@@ -71,6 +71,7 @@ func (c *Cart) RemoveItem(itemID uuid.UUID) error {
 	return nil
 }
 
+// Create a struct with data to send to payment and order
 func (c *Cart) Buy(excludeItemsIDs []*uuid.UUID) (float64, error) {
 	if err := c.validateNotEmptyCart(); err != nil {
 		return 0, err
@@ -172,4 +173,17 @@ func (c *Cart) calculateTotal() (float64, error) {
 
 func (c *Cart) updateAction() {
 	c.UpdatedAt = time.Now()
+}
+
+func (c *Cart) AddItems(items []CartItem) {
+	c.Items = append(c.Items, items...)
+}
+
+func (c *Cart) RemoveItems(itemsIds []uuid.UUID) error {
+	for _, itemId := range itemsIds {
+		if err := c.RemoveItem(itemId); err != nil {
+			return err
+		}
+	}
+	return nil
 }
