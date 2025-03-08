@@ -10,13 +10,16 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
     depends_on:
-      - db
-      - redis
-      - rabbitmq
+          db:
+            condition: service_healthy
+          redis:
+            condition: service_healthy
+          rabbitmq:
+            condition: service_healthy
     networks:
       - go-network
     ports:
-      - "3000:3000"
+      - "3001:3000"
     env_file:
       - .env
 

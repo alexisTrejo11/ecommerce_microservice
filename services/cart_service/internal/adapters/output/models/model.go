@@ -8,27 +8,28 @@ import (
 )
 
 type CartModel struct {
-	ID        uuid.UUID       `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	UserID    uuid.UUID       `gorm:"type:uuid;not null"`
+	ID        string          `gorm:"type:char(36);primaryKey"`
+	UserID    string          `gorm:"type:char(36);not null"`
 	Items     []CartItemModel `gorm:"foreignKey:CartID;constraint:OnDelete:CASCADE"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type CartItemModel struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	CartID    uuid.UUID `gorm:"type:uuid;not null"`
-	ProductID uuid.UUID `gorm:"type:uuid;not null"`
-	Name      string    `gorm:"size:255;not null"`
-	UnitPrice float64   `gorm:"not null"`
-	Quantity  int       `gorm:"not null"`
-	Discount  float64   `gorm:"default:0"`
+	ID        string  `gorm:"type:char(36);primaryKey"`
+	CartID    string  `gorm:"type:char(36);not null"`
+	ProductID string  `gorm:"type:char(36);not null"`
+	Name      string  `gorm:"size:255;not null"`
+	UnitPrice float64 `gorm:"not null"`
+	Quantity  int     `gorm:"not null"`
+	Discount  float64 `gorm:"default:0"`
 	AddedAt   time.Time
 }
 
+// Antes de crear un registro, genera un UUID manualmente
 func (c *CartModel) BeforeCreate(tx *gorm.DB) (err error) {
-	if c.ID == uuid.Nil {
-		c.ID = uuid.New()
+	if c.ID == "" {
+		c.ID = uuid.New().String()
 	}
 	c.CreatedAt = time.Now()
 	c.UpdatedAt = time.Now()
@@ -36,8 +37,8 @@ func (c *CartModel) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (ci *CartItemModel) BeforeCreate(tx *gorm.DB) (err error) {
-	if ci.ID == uuid.Nil {
-		ci.ID = uuid.New()
+	if ci.ID == "" {
+		ci.ID = uuid.New().String()
 	}
 	ci.AddedAt = time.Now()
 	return
