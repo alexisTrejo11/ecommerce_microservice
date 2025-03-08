@@ -3,7 +3,7 @@ package output
 import (
 	"context"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/domain"
 	"github.com/google/uuid"
 )
 

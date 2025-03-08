@@ -5,8 +5,8 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/mappers"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/models"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/ports/output"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

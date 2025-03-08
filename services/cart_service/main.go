@@ -7,8 +7,8 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/input/v1/http/api/handlers"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/input/v1/http/api/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/repository"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/usecases"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/config"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/usecases"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/pkg/facadeService"
 	"github.com/gofiber/fiber/v2"
 )

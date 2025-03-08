@@ -3,8 +3,8 @@ package handlers
 import (
 	"context"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/dtos"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/ports/input"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/ports/input"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/shared/dtos"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -41,15 +41,12 @@ func (h *UserCartHandler) AddItems(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid user id"})
 	}
 
-	var insertDTO dtos.CartItemInserDTO
+	var insertDTO []dtos.CartItemInserDTO
 	if err := c.BodyParser(&insertDTO); err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid items ids"})
 	}
 
-	// TODO: Impleent this
-	fetchedDTOS := parseDTOs(insertDTO)
-
-	err = h.cartUseCase.AddItems(context.Background(), userId, fetchedDTOS)
+	err = h.cartUseCase.AddItems(context.Background(), userId, insertDTO)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": err.Error()})
 	}
@@ -112,8 +109,4 @@ func (h *UserCartHandler) BuyProduct(c *fiber.Ctx) error {
 	}
 
 	return c.Status(200).JSON(cart)
-}
-
-func parseDTOs(itemsInsertDTO dtos.CartItemInserDTO) []dtos.CartItemFetchedDTO {
-	return []dtos.CartItemFetchedDTO{}
 }

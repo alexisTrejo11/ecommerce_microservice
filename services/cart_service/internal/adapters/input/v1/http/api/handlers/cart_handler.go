@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/ports/input"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/ports/input"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )

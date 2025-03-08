@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/mappers"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/dtos"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/ports/input"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/ports/output"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/ports/input"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/shared/dtos"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/pkg/facadeService"
 	"github.com/google/uuid"
 )
@@ -57,13 +57,18 @@ func (us *CartUseCaseImpl) Buy(ctx context.Context, userID uuid.UUID, excludeIte
 	return nil
 }
 
-func (us *CartUseCaseImpl) AddItems(ctx context.Context, userID uuid.UUID, dtos []dtos.CartItemFetchedDTO) error {
+func (us *CartUseCaseImpl) AddItems(ctx context.Context, userID uuid.UUID, insertDTOS []dtos.CartItemInserDTO) error {
 	cart, err := us.repository.GetByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	items := us.itemMappers.ProductToItemList(dtos, cart.ID)
+	productData, err := us.fetchProductData(insertDTOS)
+	if err != nil {
+		return err
+	}
+
+	items := us.itemMappers.ProductToItemList(*productData, cart.ID)
 
 	cart.AddItems(items)
 
@@ -112,4 +117,28 @@ func (us *CartUseCaseImpl) DeleteCart(ctx context.Context, userID uuid.UUID) err
 	}
 
 	return nil
+}
+
+func (us *CartUseCaseImpl) fetchProductData(insertDTOS []dtos.CartItemInserDTO) (*[]dtos.CartItemFetchedDTO, error) {
+	var productData []dtos.CartItemFetchedDTO
+	var failedProducts []uuid.UUID
+
+	for _, dto := range insertDTOS {
+		product, err := us.productService.GetProductById(dto.ProductID)
+		if err != nil || !product.IsAvalaible {
+			failedProducts = append(failedProducts, dto.ProductID)
+			continue
+		}
+
+		productData = append(productData, dtos.CartItemFetchedDTO{
+			Quantity:    dto.Quantity,
+			ProductData: *product,
+		})
+	}
+
+	if len(failedProducts) > 0 {
+		return &productData, fmt.Errorf("products not avalaible: %v", failedProducts)
+	}
+
+	return &productData, nil
 }

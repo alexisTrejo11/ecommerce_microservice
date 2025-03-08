@@ -6,8 +6,8 @@ import (
 )
 
 type CartItemInserDTO struct {
-	ProductIDs uuid.UUID `json:"product_id"`
-	Quantity   int       `json:"quantity"`
+	ProductID uuid.UUID `json:"product_id"`
+	Quantity  int       `json:"quantity"`
 }
 
 type CartItemFetchedDTO struct {

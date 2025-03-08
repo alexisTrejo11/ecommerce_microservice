@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/models"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/application/dtos"
-	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/shared/dtos"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/pkg/facadeService"
 	"github.com/google/uuid"
 )
