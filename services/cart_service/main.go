@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/config"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/input/v1/http/api/handlers"
@@ -10,16 +11,26 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/repository"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/core/application/usecases"
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/pkg/facadeService"
+	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/cart-service/pkg/rate_limiter"
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-	// router
+	// ROUTER
 	app := fiber.New()
 
 	// db
 	gormDB := config.GORMConfig()
 
+	//CONFIG
+	//redis
+	config.InitRedis()
+
+	// rate limiter (50 Requests per minute)
+	rateLimiter := ratelimiter.NewRateLimiter(config.RedisClient, 50, 1*time.Minute)
+	app.Use(rateLimiter.Limit)
+
+	// APP
 	// repository
 	cartRepository := repository.NewCartRepository(gormDB)
 
