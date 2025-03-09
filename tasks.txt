@@ -1,4 +1,10 @@
+/ Auth
 # MFA Verification
 # Test Swagger endpoints
 # Error Centralize
 # Test Elk Monitoring
+
+
+/ Cart 
+# Add Item domain logic
+# Set Rabbit MQ
