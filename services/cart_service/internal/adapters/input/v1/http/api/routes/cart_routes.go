@@ -25,6 +25,6 @@ func UserCartRoutes(app *fiber.App, userCartHandler handlers.UserCartHandler) {
 	path.Get("/carts/:userId", userCartHandler.GetMyCart)
 	path.Post("/carts/items/:id", userCartHandler.AddItems)
 	path.Delete("/carts/items/:id", userCartHandler.RemoveItems)
-	path.Post("/carts/buy", userCartHandler.RemoveItems)
-	path.Post("/carts/buy-product", userCartHandler.RemoveItems)
+	path.Post("/carts/buy/:id", userCartHandler.Buy)
+	path.Post("/carts/buy-product/:id", userCartHandler.BuyProduct)
 }

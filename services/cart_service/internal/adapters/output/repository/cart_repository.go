@@ -65,6 +65,10 @@ func (r *CartRepository) UpdateCart(ctx context.Context, cart domain.Cart) (*dom
 		return nil, err
 	}
 
+	if err := r.updateItems(ctx, cart); err != nil {
+		return nil, err
+	}
+
 	r.appendItems(ctx, cartModel)
 
 	return r.mapper.ModelToDomain(*cartModel), nil
@@ -92,5 +96,48 @@ func (r *CartRepository) appendItems(ctx context.Context, cartModel *models.Cart
 	}
 
 	cartModel.Items = cartItemsModel
+	return nil
+}
+
+func (r *CartRepository) updateItems(ctx context.Context, cart domain.Cart) error {
+	var currentItems []models.CartItemModel
+	if err := r.db.WithContext(ctx).Where("cart_id = ?", cart.ID).Find(&currentItems).Error; err != nil {
+		return err
+	}
+
+	productIDs := make(map[string]struct{})
+	for _, item := range cart.Items {
+		productIDs[item.ProductID.String()] = struct{}{}
+	}
+
+	// Delete
+	for _, item := range currentItems {
+		if _, exists := productIDs[item.ProductID]; !exists {
+			if err := r.db.WithContext(ctx).Where("id = ?", item.ID).Delete(&models.CartItemModel{}).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// Adjust
+	for _, item := range cart.Items {
+		var existingItem models.CartItemModel
+		// Create
+		if err := r.db.WithContext(ctx).Where("cart_id = ? AND product_id = ?", cart.ID, item.ProductID).First(&existingItem).Error; err != nil {
+			if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {
+				return err
+			}
+		} else {
+			// Update
+			existingItem.Quantity = item.Quantity
+			existingItem.Name = item.Name
+			existingItem.UnitPrice = item.UnitPrice
+			existingItem.Discount = item.Discount
+			if err := r.db.WithContext(ctx).Save(&existingItem).Error; err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

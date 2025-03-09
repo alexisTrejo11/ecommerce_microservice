@@ -48,16 +48,16 @@ type CartItemMapper struct{}
 
 func (m *CartItemMapper) domainsToModels(items []domain.CartItem) []models.CartItemModel {
 	models := make([]models.CartItemModel, len(items))
-	for _, item := range items {
-		models = append(models, *m.domainToModel(item))
+	for i, item := range items {
+		models[i] = *m.domainToModel(item)
 	}
 	return models
 }
 
 func (m *CartItemMapper) modelsToDomains(models []models.CartItemModel) []domain.CartItem {
 	domains := make([]domain.CartItem, len(models))
-	for _, model := range models {
-		domains = append(domains, *m.modelToDomain(model))
+	for i, model := range models {
+		domains[i] = *m.modelToDomain(model)
 	}
 
 	return domains
@@ -68,6 +68,7 @@ func (m *CartItemMapper) domainToModel(domain domain.CartItem) *models.CartItemM
 		ID:        domain.ID.String(),
 		CartID:    domain.CartID.String(),
 		ProductID: domain.ProductID.String(),
+		Name:      domain.Name,
 		UnitPrice: domain.UnitPrice,
 		Quantity:  domain.Quantity,
 		Discount:  domain.Discount,
@@ -83,6 +84,7 @@ func (m *CartItemMapper) modelToDomain(model models.CartItemModel) *domain.CartI
 	return &domain.CartItem{
 		ID:        id,
 		CartID:    cartId,
+		Name:      model.Name,
 		ProductID: productId,
 		UnitPrice: model.UnitPrice,
 		Quantity:  model.Quantity,
@@ -93,8 +95,10 @@ func (m *CartItemMapper) modelToDomain(model models.CartItemModel) *domain.CartI
 
 func (m *CartItemMapper) productToDomain(product facadeService.Product, quantity uint, cartID uuid.UUID) *domain.CartItem {
 	return &domain.CartItem{
+		ID:        uuid.New(),
 		CartID:    cartID,
 		ProductID: product.Id,
+		Name:      product.Name,
 		UnitPrice: product.Price,
 		Quantity:  int(quantity),
 		Discount:  product.Disccount,
@@ -105,17 +109,18 @@ func (m *CartItemMapper) productToDomain(product facadeService.Product, quantity
 func (m *CartItemMapper) ProductToItemList(products []dtos.CartItemFetchedDTO, cartID uuid.UUID) []domain.CartItem {
 	items := make([]domain.CartItem, len(products))
 
-	for _, product := range products {
+	for i, product := range products {
 		item := m.productToDomain(product.ProductData, uint(product.Quantity), cartID)
-		items = append(items, *item)
+		items[i] = *item
 	}
+
 	return items
 }
 
 func (m *CartItemMapper) domainsToDTOs(models []domain.CartItem) []dtos.CartItemDTO {
 	domains := make([]dtos.CartItemDTO, len(models))
-	for _, model := range models {
-		domains = append(domains, *m.domainToDTO(model))
+	for i, model := range models {
+		domains[i] = *m.domainToDTO(model)
 	}
 
 	return domains
@@ -125,6 +130,7 @@ func (m *CartItemMapper) domainToDTO(domain domain.CartItem) *dtos.CartItemDTO {
 	return &dtos.CartItemDTO{
 		ID:        domain.ID,
 		CartID:    domain.CartID,
+		Name:      domain.Name,
 		ProductID: domain.ProductID,
 		UnitPrice: domain.UnitPrice,
 		Quantity:  domain.Quantity,

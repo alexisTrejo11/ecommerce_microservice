@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/cart-service/internal/adapters/output/mappers"
@@ -29,10 +30,13 @@ func NewCartUseCase(
 	}
 }
 
-// TODO: Return CARTDTO
 func (us *CartUseCaseImpl) CreateCart(ctx context.Context, userID uuid.UUID) error {
-	newCart := domain.NewCart(userID)
+	cart, _ := us.repository.GetByUserID(ctx, userID)
+	if cart != nil {
+		return errors.New("user already have a cart")
+	}
 
+	newCart := domain.NewCart(userID)
 	if _, err := us.repository.CreateCart(ctx, *newCart); err != nil {
 		return err
 	}
@@ -57,39 +61,45 @@ func (us *CartUseCaseImpl) Buy(ctx context.Context, userID uuid.UUID, excludeIte
 	return nil
 }
 
-func (us *CartUseCaseImpl) AddItems(ctx context.Context, userID uuid.UUID, insertDTOS []dtos.CartItemInserDTO) error {
+func (us *CartUseCaseImpl) AddItems(ctx context.Context, userID uuid.UUID, insertDTOS []dtos.CartItemInserDTO) (*dtos.CartDTO, error) {
 	cart, err := us.repository.GetByUserID(ctx, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	productData, err := us.fetchProductData(insertDTOS)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	items := us.itemMappers.ProductToItemList(*productData, cart.ID)
 
 	cart.AddItems(items)
 
-	us.repository.UpdateCart(ctx, *cart)
+	cartUpdated, err := us.repository.UpdateCart(ctx, *cart)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
+	return us.cartMappers.DomainToDTO(*cartUpdated), nil
 }
-func (us *CartUseCaseImpl) RemoveItems(ctx context.Context, userID uuid.UUID, itemIDs []uuid.UUID) error {
+func (us *CartUseCaseImpl) RemoveItems(ctx context.Context, userID uuid.UUID, itemIDs []uuid.UUID) (*dtos.CartDTO, error) {
 	cart, err := us.repository.GetByUserID(ctx, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = cart.RemoveItems(itemIDs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	us.repository.UpdateCart(ctx, *cart)
+	cartUpdated, err := us.repository.UpdateCart(ctx, *cart)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
+	return us.cartMappers.DomainToDTO(*cartUpdated), nil
 }
 
 func (us *CartUseCaseImpl) GetCartByUserId(ctx context.Context, userID uuid.UUID) (*dtos.CartDTO, error) {

@@ -46,12 +46,12 @@ func (h *UserCartHandler) AddItems(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid items ids"})
 	}
 
-	err = h.cartUseCase.AddItems(context.Background(), userId, insertDTO)
+	cart, err := h.cartUseCase.AddItems(context.Background(), userId, insertDTO)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	return c.Status(200).JSON("Items removed")
+	return c.Status(200).JSON(cart)
 }
 
 func (h *UserCartHandler) RemoveItems(c *fiber.Ctx) error {
@@ -66,12 +66,12 @@ func (h *UserCartHandler) RemoveItems(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid items ids"})
 	}
 
-	err = h.cartUseCase.RemoveItems(context.Background(), userId, itemsIds)
+	cart, err := h.cartUseCase.RemoveItems(context.Background(), userId, itemsIds)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	return c.Status(200).JSON("Items removed")
+	return c.Status(200).JSON(cart)
 }
 
 func (h *UserCartHandler) Buy(c *fiber.Ctx) error {
