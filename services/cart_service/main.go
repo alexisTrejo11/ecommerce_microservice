@@ -32,7 +32,8 @@ func main() {
 
 	// APP
 	// repository
-	cartRepository := repository.NewCartRepository(gormDB)
+	itemRepository := repository.NewCartItemRepository(gormDB)
+	cartRepository := repository.NewCartRepository(gormDB, *itemRepository)
 
 	// usecases
 	productService := facadeService.NewProductFacadeService()

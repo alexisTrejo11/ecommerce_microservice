@@ -12,12 +12,16 @@ import (
 )
 
 type CartRepository struct {
-	db     *gorm.DB
-	mapper mappers.CartMapper
+	db             *gorm.DB
+	itemRepository CartItemRepository
+	mapper         mappers.CartMapper
 }
 
-func NewCartRepository(db *gorm.DB) output.CartRepository {
-	return &CartRepository{db: db}
+func NewCartRepository(db *gorm.DB, itemRepository CartItemRepository) output.CartRepository {
+	return &CartRepository{
+		db:             db,
+		itemRepository: itemRepository,
+	}
 }
 
 func (r *CartRepository) GetById(ctx context.Context, id uuid.UUID) (*domain.Cart, error) {
@@ -55,7 +59,6 @@ func (r *CartRepository) CreateCart(ctx context.Context, cart domain.Cart) (*dom
 	return r.mapper.ModelToDomain(*cartModel), nil
 }
 
-// WORKS ?
 func (r *CartRepository) UpdateCart(ctx context.Context, cart domain.Cart) (*domain.Cart, error) {
 	cartModel := r.mapper.DomainToModel(cart)
 
@@ -100,42 +103,17 @@ func (r *CartRepository) appendItems(ctx context.Context, cartModel *models.Cart
 }
 
 func (r *CartRepository) updateItems(ctx context.Context, cart domain.Cart) error {
-	var currentItems []models.CartItemModel
-	if err := r.db.WithContext(ctx).Where("cart_id = ?", cart.ID).Find(&currentItems).Error; err != nil {
-		return err
-	}
+	// Check if are some candidates to be deleted
+	r.itemRepository.DeleteItems(ctx, cart)
 
-	productIDs := make(map[string]struct{})
-	for _, item := range cart.Items {
-		productIDs[item.ProductID.String()] = struct{}{}
-	}
-
-	// Delete
-	for _, item := range currentItems {
-		if _, exists := productIDs[item.ProductID]; !exists {
-			if err := r.db.WithContext(ctx).Where("id = ?", item.ID).Delete(&models.CartItemModel{}).Error; err != nil {
-				return err
-			}
-		}
-	}
-
-	// Adjust
+	// Create or Update depding in each item case
 	for _, item := range cart.Items {
 		var existingItem models.CartItemModel
-		// Create
-		if err := r.db.WithContext(ctx).Where("cart_id = ? AND product_id = ?", cart.ID, item.ProductID).First(&existingItem).Error; err != nil {
-			if err := r.db.WithContext(ctx).Create(&item).Error; err != nil {
-				return err
-			}
+		_, err := r.itemRepository.GetItemByCartAndProduct(ctx, item.ID.String(), item.ProductID.String())
+		if err != nil {
+			r.itemRepository.CreateItem(ctx, item)
 		} else {
-			// Update
-			existingItem.Quantity = item.Quantity
-			existingItem.Name = item.Name
-			existingItem.UnitPrice = item.UnitPrice
-			existingItem.Discount = item.Discount
-			if err := r.db.WithContext(ctx).Save(&existingItem).Error; err != nil {
-				return err
-			}
+			r.itemRepository.UpdateItem(ctx, item, existingItem)
 		}
 	}
 
