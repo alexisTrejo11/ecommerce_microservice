@@ -5,7 +5,8 @@ import (
 )
 
 type CartDTO struct {
-	ID     uuid.UUID     `json:"id"`
-	UserID uuid.UUID     `json:"user_id"`
-	Items  []CartItemDTO `json:"items"`
+	ID       uuid.UUID     `json:"id"`
+	UserID   uuid.UUID     `json:"user_id"`
+	Items    []CartItemDTO `json:"items"`
+	SubTotal float64       `json:"sub_total"`
 }

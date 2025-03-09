@@ -93,9 +93,9 @@ func (r *CartRepository) DeleteCart(ctx context.Context, userId uuid.UUID) error
 }
 
 func (r *CartRepository) appendItems(ctx context.Context, cartModel *models.CartModel) error {
-	var cartItemsModel []models.CartItemModel
-	if err := r.db.WithContext(ctx).Where("cart_id = ?", cartModel.ID).Find(&cartItemsModel).Error; err != nil {
-		return err
+	cartItemsModel, err := r.itemRepository.GetItemsByCartId(ctx, cartModel.ID)
+	if err != nil {
+		return nil
 	}
 
 	cartModel.Items = cartItemsModel

@@ -32,9 +32,7 @@ func (c *Cart) AddItem(item CartItem) error {
 
 	for i, existingItem := range c.Items {
 		if existingItem.ProductID == item.ProductID {
-			// Actualizar cantidad en lugar de duplicar
 			c.Items[i].Quantity += item.Quantity
-			c.updateAction()
 			return nil
 		}
 	}

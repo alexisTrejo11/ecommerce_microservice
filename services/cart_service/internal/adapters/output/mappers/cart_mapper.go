@@ -37,10 +37,12 @@ func (m *CartMapper) ModelToDomain(model models.CartModel) *domain.Cart {
 }
 
 func (m *CartMapper) DomainToDTO(model domain.Cart) *dtos.CartDTO {
+	subTotal, _ := model.CalculateTotal()
 	return &dtos.CartDTO{
-		ID:     model.ID,
-		UserID: model.UserID,
-		Items:  m.itemMapper.domainsToDTOs(model.Items),
+		ID:       model.ID,
+		UserID:   model.UserID,
+		Items:    m.itemMapper.domainsToDTOs(model.Items),
+		SubTotal: subTotal,
 	}
 }
 
