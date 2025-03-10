@@ -31,7 +31,7 @@ type Course struct {
 	Id              uuid.UUID
 	Name            string
 	Description     string
-	Category        string
+	Category        CourseCategory
 	Level           CourseLevel
 	Price           float64
 	IsFree          bool
