@@ -5,8 +5,9 @@ import (
 )
 
 type Module struct {
-	ID      uuid.UUID `json:"id"`
-	Title   string    `json:"title"`
-	Order   int       `json:"order"`
-	Lessons []Lesson  `json:"lessons"`
+	ID       uuid.UUID
+	Title    string
+	CourseID uuid.UUID
+	Order    int
+	Lessons  []Lesson
 }

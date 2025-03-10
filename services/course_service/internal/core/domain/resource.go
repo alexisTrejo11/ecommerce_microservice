@@ -5,10 +5,11 @@ import (
 )
 
 type Resource struct {
-	ID    uuid.UUID    `json:"id"`
-	Title string       `json:"title"`
-	Type  ResourceType `json:"type"`
-	URL   string       `json:"url"`
+	ID       uuid.UUID
+	LessonID uuid.UUID
+	Title    string
+	Type     ResourceType
+	URL      string
 }
 
 type ResourceType string
