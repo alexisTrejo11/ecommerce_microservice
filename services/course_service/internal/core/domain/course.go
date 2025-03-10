@@ -37,12 +37,14 @@ type Course struct {
 	IsFree          bool
 	Rating          int
 	InstructorId    uuid.UUID
+	ThumbnailURL    string
+	Language        string
 	ReviewCount     int
 	EnrollmentCount int
 	PublishedAt     *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
-	Lesson          string
+	Modules         []Module
 }
 
 type Instructor struct {
