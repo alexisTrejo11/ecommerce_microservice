@@ -6,7 +6,7 @@ import (
 )
 
 func LessonRoutes(app *fiber.App, lessonHanlders handlers.LessonHandler) {
-	path := app.Group("v1/api/modules")
+	path := app.Group("v1/api/lessons")
 	path.Get("/:id", lessonHanlders.GetLessonById)
 	path.Post("", lessonHanlders.CreateLesson)
 	path.Put("/:id", lessonHanlders.UpdateLesson)

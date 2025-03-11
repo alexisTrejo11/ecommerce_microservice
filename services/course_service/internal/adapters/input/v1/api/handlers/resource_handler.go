@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -48,13 +49,17 @@ func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	if err := lh.validator.Struct(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorsMap,
+		})
 	}
 
 	ResourceCreated, err := lh.useCase.CreateResource(context.TODO(), insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(ResourceCreated)
+		return c.Status(400).JSON(err.Error())
 	}
 
 	return c.Status(201).JSON(ResourceCreated)
@@ -77,8 +82,12 @@ func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	if err := lh.validator.Struct(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorsMap,
+		})
 	}
 
 	ResourceUpdated, err := lh.useCase.UpdateResource(context.TODO(), id, insertDTO)

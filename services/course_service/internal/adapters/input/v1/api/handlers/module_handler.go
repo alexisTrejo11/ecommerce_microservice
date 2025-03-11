@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -48,8 +49,12 @@ func (lh *ModuleHandler) CreateHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	if err := lh.validator.Struct(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorsMap,
+		})
 	}
 
 	ModuleCreated, err := lh.useCase.CreateModule(context.TODO(), insertDTO)
@@ -77,8 +82,12 @@ func (lh *ModuleHandler) UpdateHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	if err := lh.validator.Struct(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorsMap,
+		})
 	}
 
 	ModuleUpdated, err := lh.useCase.UpdateModule(context.TODO(), id, insertDTO)

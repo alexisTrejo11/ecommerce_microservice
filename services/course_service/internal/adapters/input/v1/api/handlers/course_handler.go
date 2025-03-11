@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -42,22 +42,16 @@ func (lh *CourseHandler) GetCourseById(c *fiber.Ctx) error {
 	return c.Status(200).JSON(Course)
 }
 
-func (lh *CourseHandler) CreateHandler(c *fiber.Ctx) error {
+func (lh *CourseHandler) CreateCourse(c *fiber.Ctx) error {
 	var insertDTO dtos.CourseInsertDTO
 
 	if err := c.BodyParser(&insertDTO); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	if err := lh.validator.Struct(&insertDTO); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorsMap := map[string]string{}
-
-		for _, fieldErr := range validationErrors {
-			errorsMap[fieldErr.Field()] = fieldErr.Tag()
-		}
-
-		return c.Status(400).JSON(fiber.Map{
+	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Validation failed",
 			"errors":  errorsMap,
 		})
@@ -71,7 +65,7 @@ func (lh *CourseHandler) CreateHandler(c *fiber.Ctx) error {
 	return c.Status(201).JSON(CourseCreated)
 }
 
-func (lh *CourseHandler) UpdateHandler(c *fiber.Ctx) error {
+func (lh *CourseHandler) UpdateCourse(c *fiber.Ctx) error {
 	var insertDTO dtos.CourseInsertDTO
 
 	idSTR := c.Params("id")
@@ -88,17 +82,9 @@ func (lh *CourseHandler) UpdateHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	fmt.Println(insertDTO)
-
-	if err := lh.validator.Struct(&insertDTO); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorsMap := map[string]string{}
-
-		for _, fieldErr := range validationErrors {
-			errorsMap[fieldErr.Field()] = fieldErr.Tag()
-		}
-
-		return c.Status(400).JSON(fiber.Map{
+	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Validation failed",
 			"errors":  errorsMap,
 		})
@@ -112,7 +98,7 @@ func (lh *CourseHandler) UpdateHandler(c *fiber.Ctx) error {
 	return c.Status(201).JSON(CourseUpdated)
 }
 
-func (lh *CourseHandler) DeleteLession(c *fiber.Ctx) error {
+func (lh *CourseHandler) DeleteCourse(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})

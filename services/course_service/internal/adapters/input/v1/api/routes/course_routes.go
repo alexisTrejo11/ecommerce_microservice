@@ -12,7 +12,7 @@ func CourseRoutes(app *fiber.App, courseHanlders handlers.CourseHandler) {
 
 	path := app.Group("v1/api/courses")
 	path.Get("/:id", courseHanlders.GetCourseById)
-	path.Post("", courseHanlders.CreateHandler)
-	path.Put("/:id", courseHanlders.UpdateHandler)
-	path.Delete("/:id", courseHanlders.DeleteLession)
+	path.Post("", courseHanlders.CreateCourse)
+	path.Put("/:id", courseHanlders.UpdateCourse)
+	path.Delete("/:id", courseHanlders.DeleteCourse)
 }

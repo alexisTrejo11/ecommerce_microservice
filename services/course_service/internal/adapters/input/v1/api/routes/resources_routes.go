@@ -6,7 +6,7 @@ import (
 )
 
 func ResourceRoutes(app *fiber.App, resourceHanlders handlers.ResourceHandler) {
-	path := app.Group("v1/api/courses")
+	path := app.Group("v1/api/resources")
 	path.Get("/:id", resourceHanlders.GetResourceById)
 	path.Post("", resourceHanlders.CreateResource)
 	path.Put("/:id", resourceHanlders.UpdateResource)
