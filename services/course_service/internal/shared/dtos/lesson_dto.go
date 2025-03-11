@@ -1,6 +1,10 @@
 package dtos
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type LessonInsertDTO struct {
 	Title     string              `json:"title" binding:"required"`
@@ -13,7 +17,7 @@ type LessonInsertDTO struct {
 }
 
 type LessonDTO struct {
-	ID        string        `json:"id"`
+	ID        uuid.UUID     `json:"id"`
 	Title     string        `json:"title"`
 	VideoURL  string        `json:"video_url"`
 	Content   string        `json:"content"`

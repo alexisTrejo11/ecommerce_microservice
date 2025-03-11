@@ -1,12 +1,17 @@
 package mappers
 
 import (
+	"time"
+
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/models"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
 	"github.com/google/uuid"
 )
 
-type CourseMappers struct{}
+type CourseMappers struct {
+	moduleMapper ModuleMapper
+}
 
 // SLUG, MODULES
 func (m *CourseMappers) DomainToModel(course domain.Course) models.CourseModel {
@@ -59,4 +64,71 @@ func (m *CourseMappers) ModelsToDomains(models []models.CourseModel) *[]domain.C
 	}
 
 	return &courses
+}
+
+func (m *CourseMappers) DomainToDTO(course domain.Course) *dtos.CourseDTO {
+	return &dtos.CourseDTO{
+		ID:              course.Id.String(),
+		Title:           course.Name,
+		Slug:            "",
+		Description:     course.Description,
+		ThumbnailURL:    course.ThumbnailURL,
+		Category:        string(course.Category),
+		Level:           string(course.Level),
+		Language:        course.Language,
+		InstructorID:    course.InstructorId.String(),
+		Tags:            []string{},
+		Price:           course.Price,
+		IsFree:          course.IsFree,
+		IsPublished:     course.PublishedAt != nil,
+		PublishedAt:     course.PublishedAt,
+		EnrollmentCount: course.EnrollmentCount,
+		Rating:          float64(course.Rating),
+		ReviewCount:     course.ReviewCount,
+		CreatedAt:       course.CreatedAt,
+		UpdatedAt:       course.UpdatedAt,
+		Modules:         []dtos.ModuleDTO{},
+	}
+}
+
+func (m *CourseMappers) DomainsToDTOs(courses []domain.Course) []dtos.CourseDTO {
+	dtosList := make([]dtos.CourseDTO, 0, len(courses))
+
+	for _, course := range courses {
+		dto := m.DomainToDTO(course)
+		dtosList = append(dtosList, *dto)
+	}
+
+	return dtosList
+}
+
+func (m *CourseMappers) InsertDTOToDomain(dto dtos.CourseInsertDTO) *domain.Course {
+	instructorID := uuid.MustParse(dto.InstructorID)
+
+	modules := make([]domain.Module, 0, len(dto.Modules))
+	for _, mod := range dto.Modules {
+		domainMod := m.moduleMapper.InsertDTOToDomain(mod)
+		modules = append(modules, *domainMod)
+	}
+
+	return &domain.Course{
+		Id:           uuid.New(),
+		Name:         dto.Title,
+		Description:  dto.Description,
+		Category:     domain.CourseCategory(dto.Category),
+		Level:        domain.CourseLevel(dto.Level),
+		Language:     dto.Language,
+		InstructorId: instructorID,
+		ThumbnailURL: dto.ThumbnailURL,
+		//Tags:            dto.Tags,
+		Price:           dto.Price,
+		IsFree:          dto.IsFree,
+		Rating:          0,
+		ReviewCount:     0,
+		EnrollmentCount: 0,
+		PublishedAt:     nil,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		Modules:         modules,
+	}
 }
