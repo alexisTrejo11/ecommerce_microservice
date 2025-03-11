@@ -11,52 +11,67 @@ import (
 )
 
 type ModuleUseCaseImpl struct {
-	ModuleRepository output.ModuleRepository
+	moduleRepository output.ModuleRepository
+	courseRepository output.CourseRepository
 	mappers          mappers.ModuleMapper
 }
 
-func NewModuleUseCase(ModuleRepository output.ModuleRepository) input.ModuleUseCase {
+func NewModuleUseCase(ModuleRepository output.ModuleRepository, courseRepository output.CourseRepository) input.ModuleUseCase {
 	return &ModuleUseCaseImpl{
-		ModuleRepository: ModuleRepository,
+		moduleRepository: ModuleRepository,
+		courseRepository: courseRepository,
 	}
 }
 
 func (us *ModuleUseCaseImpl) GetModuleById(ctx context.Context, id uuid.UUID) (*dtos.ModuleDTO, error) {
-	Module, err := us.ModuleRepository.GetById(ctx, id.String())
+	module, err := us.moduleRepository.GetById(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*Module), nil
+	return us.mappers.DomainToDTO(*module), nil
 }
 
 // TODO: Add Buisness logic
 func (us *ModuleUseCaseImpl) CreateModule(ctx context.Context, insertDTO dtos.ModuleInsertDTO) (*dtos.ModuleDTO, error) {
-	domain := us.mappers.InsertDTOToDomain(insertDTO)
+	module := us.mappers.InsertDTOToDomain(insertDTO)
 
-	domainCreated, err := us.ModuleRepository.Create(ctx, *domain)
+	if _, err := us.courseRepository.GetById(ctx, module.CourseID.String()); err != nil {
+		return nil, err
+	}
+
+	moduleCreated, err := us.moduleRepository.Create(ctx, *module)
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*domainCreated), nil
+	return us.mappers.DomainToDTO(*moduleCreated), nil
 }
 
 // TODO Implement Correct Update
 func (us *ModuleUseCaseImpl) UpdateModule(ctx context.Context, id uuid.UUID, insertDTO dtos.ModuleInsertDTO) (*dtos.ModuleDTO, error) {
-	domain := us.mappers.InsertDTOToDomain(insertDTO)
-	domain.ID = id
+	module := us.mappers.InsertDTOToDomain(insertDTO)
+	module.ID = id
 
-	domainCreated, err := us.ModuleRepository.Update(ctx, id, *domain)
+	if _, err := us.courseRepository.GetById(ctx, module.CourseID.String()); err != nil {
+		return nil, err
+	}
+
+	domainUpdated, err := us.moduleRepository.Update(ctx, id, *module)
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*domainCreated), nil
+	return us.mappers.DomainToDTO(*domainUpdated), nil
 }
 
 func (us *ModuleUseCaseImpl) DeleteModule(ctx context.Context, id uuid.UUID) error {
-	if err := us.ModuleRepository.Delete(ctx, id); err != nil {
+	_, err := us.moduleRepository.GetById(ctx, id.String())
+	if err != nil {
+		return err
+	}
+
+	if err := us.moduleRepository.Delete(ctx, id); err != nil {
 		return err
 	}
 

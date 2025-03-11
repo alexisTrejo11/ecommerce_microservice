@@ -59,7 +59,7 @@ func (lh *LessonHandler) CreateLesson(c *fiber.Ctx) error {
 
 	lessonCreated, err := lh.useCase.CreateLesson(context.TODO(), insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(lessonCreated)
+		return c.Status(400).JSON(err.Error())
 	}
 
 	return c.Status(201).JSON(lessonCreated)

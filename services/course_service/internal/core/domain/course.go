@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,16 +22,17 @@ const (
 	DesignSoftware       CourseCategory = "DESGIN_SOFTWARE"
 	EngineerSoftaware    CourseCategory = "ENGINEER_SOFTWARE"
 	ArchitectureSoftware CourseCategory = "ARCHITECTURE_SOFTWARE"
-	AI                   CourseCategory = "ARCHITECTURE_SOFTWARE"
+	AI                   CourseCategory = "AI"
 	Art                  CourseCategory = "ART"
 	Marketing            CourseCategory = "MARKETING"
 	SocialNetwork        CourseCategory = "SOCIAL_NETWORK"
-	Language             CourseCategory = "Language"
+	Language             CourseCategory = "LANGUAGE"
 )
 
 type Course struct {
 	Id              uuid.UUID
 	Name            string
+	Slug            string
 	Description     string
 	Category        CourseCategory
 	Level           CourseLevel
@@ -41,16 +44,36 @@ type Course struct {
 	Language        string
 	ReviewCount     int
 	EnrollmentCount int
+	Tags            []string
 	PublishedAt     *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	Modules         []Module
 }
 
-type Instructor struct {
-	FirstName string
-	LastName  string
-	Type      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+func (c *Course) GenerateSlug() {
+	slug := strings.ToLower(c.Name)
+
+	slug = strings.ReplaceAll(slug, " ", "-")
+	slug = strings.ReplaceAll(slug, "_", "-")
+
+	reg := regexp.MustCompile("[^a-z0-9-]+")
+	slug = reg.ReplaceAllString(slug, "")
+
+	slug = regexp.MustCompile("-+").ReplaceAllString(slug, "-")
+
+	slug = strings.Trim(slug, "-")
+
+	c.Slug = slug
+}
+
+func (c *Course) ValidateLanguage() bool {
+	availableLanguages := []string{"ENGLISH", "SPANISH", "FRENCH", "ITALIAN", "PORTUGUESE"}
+
+	for _, lang := range availableLanguages {
+		if strings.EqualFold(c.Language, lang) {
+			return true
+		}
+	}
+	return false
 }

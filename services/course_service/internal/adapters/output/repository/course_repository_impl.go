@@ -76,6 +76,11 @@ func (r *CourseRepositoryImpl) Update(ctx context.Context, id uuid.UUID, updated
 }
 
 func (r *CourseRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	var courseModel models.CourseModel
+	if err := r.db.WithContext(ctx).First(&courseModel, "id = ?", id).Error; err != nil {
+		return err
+	}
+
 	if err := r.db.WithContext(ctx).Delete(&models.CourseModel{}, "id = ?", id).Error; err != nil {
 		return err
 	}

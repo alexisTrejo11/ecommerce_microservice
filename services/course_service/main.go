@@ -28,9 +28,9 @@ func main() {
 
 	// Use Case
 	courseUseCase := usecase.NewCourseUseCase(courseRepository)
-	lessonUseCase := usecase.NewLessonUseCase(lessonRepository)
-	moduleUseCase := usecase.NewModuleUseCase(moduleRepository)
-	resourceUseCase := usecase.NewResourceUseCase(resourceRepository)
+	moduleUseCase := usecase.NewModuleUseCase(moduleRepository, courseRepository)
+	lessonUseCase := usecase.NewLessonUseCase(lessonRepository, moduleRepository)
+	resourceUseCase := usecase.NewResourceUseCase(resourceRepository, lessonRepository)
 
 	// Handler
 	courseHandler := handlers.NewCourseHandler(courseUseCase)

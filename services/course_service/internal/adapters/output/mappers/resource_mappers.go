@@ -11,31 +11,37 @@ type ResourceMapper struct{}
 
 func (m *ResourceMapper) ModelToDomain(model models.ResourceModel) *domain.Resource {
 	return &domain.Resource{
-		ID:       uuid.MustParse(model.ID),
-		Title:    model.Title,
-		LessonID: model.LessonID,
-		Type:     domain.ResourceType(model.Type),
-		URL:      model.URL,
+		ID:        uuid.MustParse(model.ID),
+		Title:     model.Title,
+		LessonID:  model.LessonID,
+		Type:      domain.ResourceType(model.Type),
+		URL:       model.URL,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
 	}
 }
 
 func (m *ResourceMapper) DomainToModel(resource domain.Resource) *models.ResourceModel {
 	return &models.ResourceModel{
-		ID:       resource.ID.String(),
-		Title:    resource.Title,
-		Type:     string(resource.Type),
-		URL:      resource.URL,
-		LessonID: resource.LessonID,
+		ID:        resource.ID.String(),
+		Title:     resource.Title,
+		Type:      string(resource.Type),
+		URL:       resource.URL,
+		LessonID:  resource.LessonID,
+		CreatedAt: resource.CreatedAt,
+		UpdatedAt: resource.UpdatedAt,
 	}
 }
 
 func (m *ResourceMapper) DomainToDTO(resource domain.Resource) *dtos.ResourceDTO {
 	return &dtos.ResourceDTO{
-		ID:       resource.ID,
-		Title:    resource.Title,
-		Type:     string(resource.Type),
-		URL:      resource.URL,
-		LessonID: resource.LessonID,
+		ID:        resource.ID,
+		Title:     resource.Title,
+		Type:      string(resource.Type),
+		URL:       resource.URL,
+		LessonID:  resource.LessonID,
+		CreatedAt: resource.CreatedAt,
+		UpdatedAt: resource.UpdatedAt,
 	}
 }
 

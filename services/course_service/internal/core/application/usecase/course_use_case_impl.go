@@ -55,9 +55,9 @@ func (us *CourseUseCaseImpl) CourseSearch(ctx context.Context) (*[]dtos.CourseDT
 	return nil, nil
 }
 
-// TODO: Add Buisness logic
 func (us *CourseUseCaseImpl) CreateCourse(ctx context.Context, insertDTO dtos.CourseInsertDTO) (*dtos.CourseDTO, error) {
 	domain := us.mappers.InsertDTOToDomain(insertDTO)
+	domain.GenerateSlug()
 
 	domainCreated, err := us.courseRepository.Create(ctx, *domain)
 	if err != nil {
@@ -67,11 +67,11 @@ func (us *CourseUseCaseImpl) CreateCourse(ctx context.Context, insertDTO dtos.Co
 	return us.mappers.DomainToDTO(*domainCreated), nil
 }
 
-// TODO Implement Correct Update
 func (us *CourseUseCaseImpl) UpdateCourse(ctx context.Context, id uuid.UUID, insertDTO dtos.CourseInsertDTO) (*dtos.CourseDTO, error) {
 	domain := us.mappers.InsertDTOToDomain(insertDTO)
-	domain.Id = id
+	domain.GenerateSlug()
 
+	domain.Id = id
 	domainCreated, err := us.courseRepository.Update(ctx, id, *domain)
 	if err != nil {
 		return nil, err

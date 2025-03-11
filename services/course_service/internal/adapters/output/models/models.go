@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,7 +20,7 @@ type CourseModel struct {
 	Language        string        `gorm:"size:50" json:"language"`
 	InstructorID    uuid.UUID     `gorm:"type:char(36);not null" json:"instructor_id"`
 	Modules         []ModuleModel `gorm:"foreignKey:CourseID;constraint:OnDelete:CASCADE" json:"modules"`
-	Tags            string        `gorm:"type:text" json:"tags"`
+	Tags            StringArray   `gorm:"type:json" json:"tags"`
 	Price           float64       `gorm:"type:numeric(10,2)" json:"price"`
 	IsFree          bool          `json:"is_free"`
 	IsPublished     bool          `json:"is_published"`
@@ -28,6 +30,16 @@ type CourseModel struct {
 	ReviewCount     int           `json:"review_count"`
 	CreatedAt       time.Time     `json:"created_at"`
 	UpdatedAt       time.Time     `json:"updated_at"`
+}
+
+type StringArray []string
+
+func (s *StringArray) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), s)
+}
+
+func (s StringArray) Value() (driver.Value, error) {
+	return json.Marshal(s)
 }
 
 func (CourseModel) TableName() string {

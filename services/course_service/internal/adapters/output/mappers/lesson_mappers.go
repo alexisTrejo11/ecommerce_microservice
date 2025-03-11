@@ -19,6 +19,7 @@ func (m *LessonMappers) ModelToDomain(model models.LessonModel) *domain.Lesson {
 		Order:     model.Order,
 		IsPreview: model.IsPreview,
 		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
 	}
 }
 
@@ -27,11 +28,13 @@ func (m *LessonMappers) DomainToModel(domain domain.Lesson) *models.LessonModel 
 		ID:        domain.ID.String(),
 		Title:     domain.Title,
 		VideoURL:  domain.VideoURL,
+		ModuleID:  domain.ModuleId,
 		Content:   domain.Content,
 		Duration:  domain.Duration,
 		Order:     domain.Order,
 		IsPreview: domain.IsPreview,
 		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
 	}
 }
 
@@ -39,6 +42,7 @@ func (m *LessonMappers) InsertDTOToDomain(insertDTO dtos.LessonInsertDTO) *domai
 	return &domain.Lesson{
 		ID:        uuid.New(),
 		Title:     insertDTO.Title,
+		ModuleId:  insertDTO.ModuleId,
 		VideoURL:  insertDTO.VideoURL,
 		Content:   insertDTO.Content,
 		Duration:  insertDTO.Duration,
@@ -57,5 +61,6 @@ func (m *LessonMappers) DomainToDTO(domain domain.Lesson) *dtos.LessonDTO {
 		Order:     domain.Order,
 		IsPreview: domain.IsPreview,
 		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
 	}
 }

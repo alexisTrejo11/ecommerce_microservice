@@ -11,30 +11,36 @@ import (
 )
 
 type ResourceUseCaseImpl struct {
-	ResourceRepository output.ResourceRepository
+	resourceRepository output.ResourceRepository
+	lessonRepository   output.LessonRepository
 	mappers            mappers.ResourceMapper
 }
 
-func NewResourceUseCase(ResourceRepository output.ResourceRepository) input.ResourceUseCase {
+func NewResourceUseCase(resourceRepository output.ResourceRepository, lessonRepository output.LessonRepository) input.ResourceUseCase {
 	return &ResourceUseCaseImpl{
-		ResourceRepository: ResourceRepository,
+		resourceRepository: resourceRepository,
+		lessonRepository:   lessonRepository,
 	}
 }
 
 func (us *ResourceUseCaseImpl) GetResourceById(ctx context.Context, id uuid.UUID) (*dtos.ResourceDTO, error) {
-	Resource, err := us.ResourceRepository.GetById(ctx, id.String())
+	resource, err := us.resourceRepository.GetById(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*Resource), nil
+	return us.mappers.DomainToDTO(*resource), nil
 }
 
 // TODO: Add Buisness logic
 func (us *ResourceUseCaseImpl) CreateResource(ctx context.Context, insertDTO dtos.ResourceInsertDTO) (*dtos.ResourceDTO, error) {
 	domain := us.mappers.InsertDTOToDomain(insertDTO)
 
-	domainCreated, err := us.ResourceRepository.Create(ctx, *domain)
+	if _, err := us.lessonRepository.GetById(ctx, insertDTO.LessonID.String()); err != nil {
+		return nil, err
+	}
+
+	domainCreated, err := us.resourceRepository.Create(ctx, *domain)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +50,21 @@ func (us *ResourceUseCaseImpl) CreateResource(ctx context.Context, insertDTO dto
 
 // TODO Implement Correct Update
 func (us *ResourceUseCaseImpl) UpdateResource(ctx context.Context, id uuid.UUID, insertDTO dtos.ResourceInsertDTO) (*dtos.ResourceDTO, error) {
-	domain := us.mappers.InsertDTOToDomain(insertDTO)
-	domain.ID = id
+	exisitingResource, err := us.resourceRepository.GetById(ctx, id.String())
+	if err != nil {
+		return nil, err
+	}
 
-	domainCreated, err := us.ResourceRepository.Update(ctx, id, *domain)
+	updatedResource := us.mappers.InsertDTOToDomain(insertDTO)
+	updatedResource.ID = id
+	updatedResource.CreatedAt = exisitingResource.CreatedAt
+	updatedResource.UpdatedAt = exisitingResource.UpdatedAt
+
+	if _, err := us.lessonRepository.GetById(ctx, insertDTO.LessonID.String()); err != nil {
+		return nil, err
+	}
+
+	domainCreated, err := us.resourceRepository.Update(ctx, id, *updatedResource)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +73,11 @@ func (us *ResourceUseCaseImpl) UpdateResource(ctx context.Context, id uuid.UUID,
 }
 
 func (us *ResourceUseCaseImpl) DeleteResource(ctx context.Context, id uuid.UUID) error {
-	if err := us.ResourceRepository.Delete(ctx, id); err != nil {
+	if _, err := us.resourceRepository.GetById(ctx, id.String()); err != nil {
+		return err
+	}
+
+	if err := us.resourceRepository.Delete(ctx, id); err != nil {
 		return err
 	}
 

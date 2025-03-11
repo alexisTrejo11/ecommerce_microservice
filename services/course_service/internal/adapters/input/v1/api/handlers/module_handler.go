@@ -57,12 +57,12 @@ func (lh *ModuleHandler) CreateHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	ModuleCreated, err := lh.useCase.CreateModule(context.TODO(), insertDTO)
+	moduleCreated, err := lh.useCase.CreateModule(context.TODO(), insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(ModuleCreated)
+		return c.Status(400).JSON(err.Error())
 	}
 
-	return c.Status(201).JSON(ModuleCreated)
+	return c.Status(201).JSON(moduleCreated)
 }
 
 func (lh *ModuleHandler) UpdateHandler(c *fiber.Ctx) error {

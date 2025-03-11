@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/mappers"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/models"
@@ -60,14 +61,16 @@ func (r *ModuleRepositoryImpl) Update(ctx context.Context, id uuid.UUID, updated
 		return nil, err
 	}
 
-	newModel := r.mappers.DomainToModel(updatedModule)
-	newModel.ID = existingModel.ID
+	modelUpdated := r.mappers.DomainToModel(updatedModule)
+	modelUpdated.ID = existingModel.ID
+	modelUpdated.CreatedAt = existingModel.CreatedAt
+	modelUpdated.UpdatedAt = time.Now()
 
-	if err := r.db.WithContext(ctx).Save(&newModel).Error; err != nil {
+	if err := r.db.WithContext(ctx).Save(&modelUpdated).Error; err != nil {
 		return nil, err
 	}
 
-	return r.mappers.ModelToDomain(*newModel), nil
+	return r.mappers.ModelToDomain(*modelUpdated), nil
 }
 
 func (r *ModuleRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {

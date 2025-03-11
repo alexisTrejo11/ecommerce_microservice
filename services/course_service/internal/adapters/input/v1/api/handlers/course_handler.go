@@ -59,7 +59,7 @@ func (lh *CourseHandler) CreateCourse(c *fiber.Ctx) error {
 
 	CourseCreated, err := lh.useCase.CreateCourse(context.TODO(), insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(CourseCreated)
+		return c.Status(400).JSON(err.Error())
 	}
 
 	return c.Status(201).JSON(CourseCreated)

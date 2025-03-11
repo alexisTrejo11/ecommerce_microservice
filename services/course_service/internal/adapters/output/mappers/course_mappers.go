@@ -10,10 +10,9 @@ import (
 )
 
 type CourseMappers struct {
-	moduleMapper ModuleMapper
+	//moduleMapper ModuleMapper
 }
 
-// SLUG, MODULES
 func (m *CourseMappers) DomainToModel(course domain.Course) models.CourseModel {
 	return models.CourseModel{
 		ID:              course.Id.String(),
@@ -21,10 +20,12 @@ func (m *CourseMappers) DomainToModel(course domain.Course) models.CourseModel {
 		Description:     course.Description,
 		Category:        string(course.Category),
 		Level:           string(course.Level),
+		Slug:            course.Slug,
 		Price:           course.Price,
 		IsFree:          course.IsFree,
 		Rating:          float64(course.Rating),
 		InstructorID:    course.InstructorId,
+		Tags:            course.Tags,
 		ThumbnailURL:    course.ThumbnailURL,
 		Language:        course.Language,
 		ReviewCount:     course.ReviewCount,
@@ -37,18 +38,20 @@ func (m *CourseMappers) DomainToModel(course domain.Course) models.CourseModel {
 
 func (m *CourseMappers) ModelToDomain(model models.CourseModel) *domain.Course {
 	return &domain.Course{
-		Id:          uuid.MustParse(model.ID),
-		Name:        model.Title,
-		Description: model.Description,
-		//Category:        CourseCategory(model.Category),
-		//Level:           CourseLevel(model.Level),
+		Id:              uuid.MustParse(model.ID),
+		Name:            model.Title,
+		Description:     model.Description,
+		Category:        domain.CourseCategory(model.Category),
+		Level:           domain.CourseLevel(model.Level),
 		Price:           model.Price,
 		IsFree:          model.IsFree,
 		Rating:          int(model.Rating),
+		Slug:            model.Slug,
 		InstructorId:    model.InstructorID,
 		ThumbnailURL:    model.ThumbnailURL,
 		Language:        model.Language,
 		ReviewCount:     model.ReviewCount,
+		Tags:            model.Tags,
 		EnrollmentCount: model.EnrollmentCount,
 		PublishedAt:     model.PublishedAt,
 		CreatedAt:       model.CreatedAt,
@@ -70,14 +73,14 @@ func (m *CourseMappers) DomainToDTO(course domain.Course) *dtos.CourseDTO {
 	return &dtos.CourseDTO{
 		ID:              course.Id.String(),
 		Title:           course.Name,
-		Slug:            "",
+		Slug:            course.Slug,
 		Description:     course.Description,
 		ThumbnailURL:    course.ThumbnailURL,
 		Category:        string(course.Category),
 		Level:           string(course.Level),
 		Language:        course.Language,
 		InstructorID:    course.InstructorId.String(),
-		Tags:            []string{},
+		Tags:            course.Tags,
 		Price:           course.Price,
 		IsFree:          course.IsFree,
 		IsPublished:     course.PublishedAt != nil,
@@ -103,23 +106,23 @@ func (m *CourseMappers) DomainsToDTOs(courses []domain.Course) []dtos.CourseDTO 
 }
 
 func (m *CourseMappers) InsertDTOToDomain(dto dtos.CourseInsertDTO) *domain.Course {
-
-	modules := make([]domain.Module, 0, len(dto.Modules))
-	for _, mod := range dto.Modules {
-		domainMod := m.moduleMapper.InsertDTOToDomain(mod)
-		modules = append(modules, *domainMod)
-	}
-
+	/*
+		modules := make([]domain.Module, 0, len(dto.Modules))
+		for _, mod := range dto.Modules {
+			domainMod := m.moduleMapper.InsertDTOToDomain(mod)
+			modules = append(modules, *domainMod)
+		}
+	*/
 	return &domain.Course{
-		Id:           uuid.New(),
-		Name:         dto.Title,
-		Description:  dto.Description,
-		Category:     domain.CourseCategory(dto.Category),
-		Level:        domain.CourseLevel(dto.Level),
-		Language:     dto.Language,
-		InstructorId: dto.InstructorID,
-		ThumbnailURL: dto.ThumbnailURL,
-		//Tags:            dto.Tags,
+		Id:              uuid.New(),
+		Name:            dto.Title,
+		Description:     dto.Description,
+		Category:        domain.CourseCategory(dto.Category),
+		Level:           domain.CourseLevel(dto.Level),
+		Language:        dto.Language,
+		InstructorId:    dto.InstructorID,
+		ThumbnailURL:    dto.ThumbnailURL,
+		Tags:            dto.Tags,
 		Price:           dto.Price,
 		IsFree:          dto.IsFree,
 		Rating:          0,
@@ -128,6 +131,6 @@ func (m *CourseMappers) InsertDTOToDomain(dto dtos.CourseInsertDTO) *domain.Cour
 		PublishedAt:     nil,
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
-		Modules:         modules,
+		//Modules:         modules,
 	}
 }

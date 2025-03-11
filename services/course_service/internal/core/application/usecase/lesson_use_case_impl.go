@@ -11,30 +11,36 @@ import (
 )
 
 type LessonUseCaseImpl struct {
-	LessonRepository output.LessonRepository
+	lessonRepository output.LessonRepository
+	moduleRepository output.ModuleRepository
 	mappers          mappers.LessonMappers
 }
 
-func NewLessonUseCase(LessonRepository output.LessonRepository) input.LessonUseCase {
+func NewLessonUseCase(lessonRepository output.LessonRepository, moduleRepository output.ModuleRepository) input.LessonUseCase {
 	return &LessonUseCaseImpl{
-		LessonRepository: LessonRepository,
+		lessonRepository: lessonRepository,
+		moduleRepository: moduleRepository,
 	}
 }
 
 func (us *LessonUseCaseImpl) GetLessonById(ctx context.Context, id uuid.UUID) (*dtos.LessonDTO, error) {
-	Lesson, err := us.LessonRepository.GetById(ctx, id.String())
+	lesson, err := us.lessonRepository.GetById(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*Lesson), nil
+	return us.mappers.DomainToDTO(*lesson), nil
 }
 
 // TODO: Add Buisness logic
 func (us *LessonUseCaseImpl) CreateLesson(ctx context.Context, insertDTO dtos.LessonInsertDTO) (*dtos.LessonDTO, error) {
 	domain := us.mappers.InsertDTOToDomain(insertDTO)
 
-	domainCreated, err := us.LessonRepository.Create(ctx, *domain)
+	if _, err := us.moduleRepository.GetByCourseId(ctx, domain.ModuleId.String()); err != nil {
+		return nil, err
+	}
+
+	domainCreated, err := us.lessonRepository.Create(ctx, *domain)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +50,21 @@ func (us *LessonUseCaseImpl) CreateLesson(ctx context.Context, insertDTO dtos.Le
 
 // TODO Implement Correct Update
 func (us *LessonUseCaseImpl) UpdateLesson(ctx context.Context, id uuid.UUID, insertDTO dtos.LessonInsertDTO) (*dtos.LessonDTO, error) {
+	lesson, err := us.lessonRepository.GetById(ctx, id.String())
+	if err != nil {
+		return nil, err
+	}
+
 	domain := us.mappers.InsertDTOToDomain(insertDTO)
 	domain.ID = id
+	domain.CreatedAt = lesson.CreatedAt
+	domain.UpdatedAt = lesson.UpdatedAt
 
-	domainCreated, err := us.LessonRepository.Update(ctx, id, *domain)
+	if _, err := us.moduleRepository.GetByCourseId(ctx, domain.ModuleId.String()); err != nil {
+		return nil, err
+	}
+
+	domainCreated, err := us.lessonRepository.Update(ctx, id, *domain)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +73,7 @@ func (us *LessonUseCaseImpl) UpdateLesson(ctx context.Context, id uuid.UUID, ins
 }
 
 func (us *LessonUseCaseImpl) DeleteLesson(ctx context.Context, id uuid.UUID) error {
-	if err := us.LessonRepository.Delete(ctx, id); err != nil {
+	if err := us.lessonRepository.Delete(ctx, id); err != nil {
 		return err
 	}
 
