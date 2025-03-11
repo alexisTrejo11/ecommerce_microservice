@@ -5,19 +5,46 @@ import (
 	"os"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/config"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/input/v1/api/handlers"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/input/v1/api/routes"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/repository"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/usecase"
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
+	// Router
 	app := fiber.New()
 
-	config.GORMConfig()
+	// Config
+	db := config.GORMConfig()
 	config.InitRedis()
 
-	app.Get("/home", func(c *fiber.Ctx) error {
-		return c.SendString("Welcome to Course Service")
-	})
+	// Repository
+	courseRepository := repository.NewCourseRepository(*db)
+	lessonRepository := repository.NewLessonRepository(*db)
+	moduleRepository := repository.NewModuleRepository(*db)
+	resourceRepository := repository.NewResourceRepository(*db)
 
+	// Use Case
+	courseUseCase := usecase.NewCourseUseCase(courseRepository)
+	lessonUseCase := usecase.NewLessonUseCase(lessonRepository)
+	moduleUseCase := usecase.NewModuleUseCase(moduleRepository)
+	resourceUseCase := usecase.NewResourceUseCase(resourceRepository)
+
+	// Handler
+	courseHandler := handlers.NewCourseHandler(courseUseCase)
+	lessonHandler := handlers.NewLessonHandler(lessonUseCase)
+	moduleHandler := handlers.NewModuleHandler(moduleUseCase)
+	resourceHandler := handlers.NewResourceHandler(resourceUseCase)
+
+	// Routes
+	routes.CourseRoutes(app, *courseHandler)
+	routes.LessonRoutes(app, *lessonHandler)
+	routes.ModulesRoutes(app, *moduleHandler)
+	routes.ResourceRoutes(app, *resourceHandler)
+
+	// Run Server
 	port := os.Getenv("APP_PORT")
 	if port == "" {
 		port = "3000"
