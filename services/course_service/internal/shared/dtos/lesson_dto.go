@@ -7,13 +7,13 @@ import (
 )
 
 type LessonInsertDTO struct {
-	Title     string              `json:"title" binding:"required"`
-	VideoURL  string              `json:"video_url" binding:"omitempty,url"`
+	Title     string              `json:"title" validate:"required"`
+	VideoURL  string              `json:"video_url" validate:"omitempty,url"`
 	Content   string              `json:"content"`
-	Duration  int                 `json:"duration" binding:"required,min=1"`
-	Order     int                 `json:"order" binding:"required,min=0"`
+	Duration  int                 `json:"duration" validate:"required,min=1"`
+	Order     int                 `json:"order" validate:"required,min=0"`
 	IsPreview bool                `json:"is_preview"`
-	Resources []ResourceInsertDTO `json:"resources" binding:"dive"`
+	Resources []ResourceInsertDTO `json:"resources" validate:"dive"`
 }
 
 type LessonDTO struct {

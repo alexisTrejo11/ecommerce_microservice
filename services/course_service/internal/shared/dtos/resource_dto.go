@@ -11,8 +11,8 @@ type ResourceDTO struct {
 }
 
 type ResourceInsertDTO struct {
-	Title    string    `json:"title" binding:"required"`
-	LessonID uuid.UUID `json:"lesson_id" binding:"required"`
-	Type     string    `json:"type" binding:"required,oneof=PDF SLIDES LINK CODE OTHER"`
-	URL      string    `json:"url" binding:"required,url"`
+	Title    string    `json:"title" validate:"required"`
+	LessonID uuid.UUID `json:"lesson_id" validate:"required"`
+	Type     string    `json:"type" validate:"required,oneof=PDF SLIDES LINK CODE OTHER"`
+	URL      string    `json:"url" validate:"required,url"`
 }

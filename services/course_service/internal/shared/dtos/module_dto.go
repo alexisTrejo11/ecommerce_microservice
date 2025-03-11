@@ -11,8 +11,8 @@ type ModuleDTO struct {
 }
 
 type ModuleInsertDTO struct {
-	Title    string            `json:"title" binding:"required"`
+	Title    string            `json:"title" validate:"required"`
 	CourseID uuid.UUID         `json:"course_id"`
-	Order    int               `json:"order" binding:"required,min=0"`
-	Lessons  []LessonInsertDTO `json:"lessons" binding:"dive"`
+	Order    int               `json:"order" validate:"required,min=0"`
+	Lessons  []LessonInsertDTO `json:"lessons" validate:"dive"`
 }

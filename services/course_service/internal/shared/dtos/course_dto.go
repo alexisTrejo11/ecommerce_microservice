@@ -1,20 +1,24 @@
 package dtos
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type CourseInsertDTO struct {
-	Title        string            `json:"title" binding:"required,min=3"`
-	Slug         string            `json:"slug" binding:"required,alphanumdash"`
-	Description  string            `json:"description" binding:"required"`
-	ThumbnailURL string            `json:"thumbnail_url" binding:"omitempty,url"`
-	Category     string            `json:"category" binding:"required"`
-	Level        string            `json:"level" binding:"required,oneof=BEGINNER INTERMEDIATE ADVANCED"`
-	Language     string            `json:"language" binding:"required"`
-	InstructorID string            `json:"instructor_id" binding:"required,uuid"`
+	Title        string            `json:"title" validate:"required,min=3"`
+	Slug         string            `json:"slug" validate:"required,alphanum"`
+	Description  string            `json:"description" validate:"required"`
+	ThumbnailURL string            `json:"thumbnail_url" validate:"omitempty,url"`
+	Category     string            `json:"category" validate:"required"`
+	Level        string            `json:"level" validate:"required,oneof=BEGINNER INTERMEDIATE ADVANCED"`
+	Language     string            `json:"language" validate:"required"`
+	InstructorID uuid.UUID         `json:"instructor_id" validate:"required,uuid"`
 	Tags         []string          `json:"tags"`
-	Price        float64           `json:"price" binding:"gte=0"`
+	Price        float64           `json:"price" validate:"gte=0"`
 	IsFree       bool              `json:"is_free"`
-	Modules      []ModuleInsertDTO `json:"modules" binding:"dive"`
+	Modules      []ModuleInsertDTO `json:"modules" validate:"dive"`
 }
 
 type CourseDTO struct {

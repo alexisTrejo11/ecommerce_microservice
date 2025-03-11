@@ -12,13 +12,13 @@ import (
 
 type LessonHandler struct {
 	useCase   input.LessonUseCase
-	validator validator.Validate
+	validator *validator.Validate
 }
 
 func NewLessonHandler(useCase input.LessonUseCase) *LessonHandler {
 	return &LessonHandler{
 		useCase:   useCase,
-		validator: *validator.New(),
+		validator: validator.New(),
 	}
 }
 

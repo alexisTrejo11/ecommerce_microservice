@@ -16,7 +16,7 @@ type CourseModel struct {
 	Category        string        `gorm:"size:100" json:"category"`
 	Level           string        `gorm:"size:50" json:"level"`
 	Language        string        `gorm:"size:50" json:"language"`
-	InstructorID    uuid.UUID     `gorm:"type:uuid;not null" json:"instructor_id"`
+	InstructorID    uuid.UUID     `gorm:"type:char(36);not null" json:"instructor_id"`
 	Modules         []ModuleModel `gorm:"foreignKey:CourseID;constraint:OnDelete:CASCADE" json:"modules"`
 	Tags            string        `gorm:"type:text" json:"tags"`
 	Price           float64       `gorm:"type:numeric(10,2)" json:"price"`

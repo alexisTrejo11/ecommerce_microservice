@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
@@ -12,13 +13,13 @@ import (
 
 type CourseHandler struct {
 	useCase   input.CourseUseCase
-	validator validator.Validate
+	validator *validator.Validate
 }
 
 func NewCourseHandler(useCase input.CourseUseCase) *CourseHandler {
 	return &CourseHandler{
 		useCase:   useCase,
-		validator: *validator.New(),
+		validator: validator.New(),
 	}
 }
 
@@ -49,7 +50,17 @@ func (lh *CourseHandler) CreateHandler(c *fiber.Ctx) error {
 	}
 
 	if err := lh.validator.Struct(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+		validationErrors := err.(validator.ValidationErrors)
+		errorsMap := map[string]string{}
+
+		for _, fieldErr := range validationErrors {
+			errorsMap[fieldErr.Field()] = fieldErr.Tag()
+		}
+
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorsMap,
+		})
 	}
 
 	CourseCreated, err := lh.useCase.CreateCourse(context.TODO(), insertDTO)
@@ -77,8 +88,20 @@ func (lh *CourseHandler) UpdateHandler(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
+	fmt.Println(insertDTO)
+
 	if err := lh.validator.Struct(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+		validationErrors := err.(validator.ValidationErrors)
+		errorsMap := map[string]string{}
+
+		for _, fieldErr := range validationErrors {
+			errorsMap[fieldErr.Field()] = fieldErr.Tag()
+		}
+
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorsMap,
+		})
 	}
 
 	CourseUpdated, err := lh.useCase.UpdateCourse(context.TODO(), id, insertDTO)

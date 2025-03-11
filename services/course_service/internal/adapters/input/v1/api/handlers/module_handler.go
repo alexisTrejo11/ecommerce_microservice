@@ -12,13 +12,13 @@ import (
 
 type ModuleHandler struct {
 	useCase   input.ModuleUseCase
-	validator validator.Validate
+	validator *validator.Validate
 }
 
 func NewModuleHandler(useCase input.ModuleUseCase) *ModuleHandler {
 	return &ModuleHandler{
 		useCase:   useCase,
-		validator: *validator.New(),
+		validator: validator.New(),
 	}
 }
 

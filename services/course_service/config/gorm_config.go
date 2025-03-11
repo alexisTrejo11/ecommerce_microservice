@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -36,6 +37,16 @@ func GORMConfig() *gorm.DB {
 
 		time.Sleep(5 * time.Second)
 	}
+
+	if err := db.AutoMigrate(
+		&models.CourseModel{},
+		&models.LessonModel{},
+		&models.ModuleModel{},
+		&models.ResourceModel{},
+	); err != nil {
+		log.Fatal("Failed to migrate database schema:", err)
+	}
+
 	log.Println("Database connected successfully!")
 	return db
 }

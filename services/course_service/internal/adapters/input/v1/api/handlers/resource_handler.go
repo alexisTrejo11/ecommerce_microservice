@@ -12,13 +12,13 @@ import (
 
 type ResourceHandler struct {
 	useCase   input.ResourceUseCase
-	validator validator.Validate
+	validator *validator.Validate
 }
 
 func NewResourceHandler(useCase input.ResourceUseCase) *ResourceHandler {
 	return &ResourceHandler{
 		useCase:   useCase,
-		validator: *validator.New(),
+		validator: validator.New(),
 	}
 }
 

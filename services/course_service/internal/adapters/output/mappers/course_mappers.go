@@ -103,7 +103,6 @@ func (m *CourseMappers) DomainsToDTOs(courses []domain.Course) []dtos.CourseDTO 
 }
 
 func (m *CourseMappers) InsertDTOToDomain(dto dtos.CourseInsertDTO) *domain.Course {
-	instructorID := uuid.MustParse(dto.InstructorID)
 
 	modules := make([]domain.Module, 0, len(dto.Modules))
 	for _, mod := range dto.Modules {
@@ -118,7 +117,7 @@ func (m *CourseMappers) InsertDTOToDomain(dto dtos.CourseInsertDTO) *domain.Cour
 		Category:     domain.CourseCategory(dto.Category),
 		Level:        domain.CourseLevel(dto.Level),
 		Language:     dto.Language,
-		InstructorId: instructorID,
+		InstructorId: dto.InstructorID,
 		ThumbnailURL: dto.ThumbnailURL,
 		//Tags:            dto.Tags,
 		Price:           dto.Price,
