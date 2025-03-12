@@ -56,8 +56,10 @@ func (us *CourseUseCaseImpl) CourseSearch(ctx context.Context) (*[]dtos.CourseDT
 }
 
 func (us *CourseUseCaseImpl) CreateCourse(ctx context.Context, insertDTO dtos.CourseInsertDTO) (*dtos.CourseDTO, error) {
-	domain := us.mappers.InsertDTOToDomain(insertDTO)
-	domain.GenerateSlug()
+	domain, err := us.mappers.InsertDTOToDomain(insertDTO)
+	if err != nil {
+		return nil, err
+	}
 
 	domainCreated, err := us.courseRepository.Create(ctx, *domain)
 	if err != nil {
@@ -68,16 +70,68 @@ func (us *CourseUseCaseImpl) CreateCourse(ctx context.Context, insertDTO dtos.Co
 }
 
 func (us *CourseUseCaseImpl) UpdateCourse(ctx context.Context, id uuid.UUID, insertDTO dtos.CourseInsertDTO) (*dtos.CourseDTO, error) {
-	domain := us.mappers.InsertDTOToDomain(insertDTO)
-	domain.GenerateSlug()
-
-	domain.Id = id
-	domainCreated, err := us.courseRepository.Update(ctx, id, *domain)
+	existingCourse, err := us.courseRepository.GetById(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*domainCreated), nil
+	if err := us.mappers.FillDomainFromDTO(existingCourse, insertDTO); err != nil {
+		return nil, err
+	}
+
+	updated, err := us.courseRepository.Update(ctx, id, *existingCourse)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.mappers.DomainToDTO(*updated), nil
+}
+
+func (us *CourseUseCaseImpl) PublishCourse(ctx context.Context, id uuid.UUID) error {
+	course, err := us.courseRepository.GetById(ctx, id.String())
+	if err != nil {
+		return err
+	}
+
+	if err := course.Publish(); err != nil {
+		return err
+	}
+
+	if _, err = us.courseRepository.Update(ctx, id, *course); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (us *CourseUseCaseImpl) EnrollStudentInCourse(ctx context.Context, courseId uuid.UUID) error {
+	course, err := us.courseRepository.GetById(ctx, courseId.String())
+	if err != nil {
+		return err
+	}
+
+	course.EnrollStudent()
+
+	if _, err = us.courseRepository.Update(ctx, courseId, *course); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (us *CourseUseCaseImpl) UpdateCourseRating(ctx context.Context, courseId uuid.UUID, rating float64) error {
+	course, err := us.courseRepository.GetById(ctx, courseId.String())
+	if err != nil {
+		return err
+	}
+
+	course.UpdateRating(rating)
+
+	if _, err = us.courseRepository.Update(ctx, courseId, *course); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (us *CourseUseCaseImpl) DeleteCourse(ctx context.Context, id uuid.UUID) error {

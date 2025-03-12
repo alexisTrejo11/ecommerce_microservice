@@ -36,7 +36,7 @@ func (r *CourseRepositoryImpl) GetById(ctx context.Context, id string) (*domain.
 	}
 
 	course := r.mappers.ModelToDomain(courseModel)
-	course.Modules = *modules
+	course.SetModules(*modules)
 
 	return course, nil
 }

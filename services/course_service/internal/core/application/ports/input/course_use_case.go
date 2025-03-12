@@ -15,5 +15,8 @@ type CourseUseCase interface {
 	CourseSearch(ctx context.Context) (*[]dtos.CourseDTO, error)
 	CreateCourse(ctx context.Context, dto dtos.CourseInsertDTO) (*dtos.CourseDTO, error)
 	UpdateCourse(ctx context.Context, id uuid.UUID, dto dtos.CourseInsertDTO) (*dtos.CourseDTO, error)
+	PublishCourse(ctx context.Context, id uuid.UUID) error
+	EnrollStudentInCourse(ctx context.Context, courseId uuid.UUID) error
+	UpdateCourseRating(ctx context.Context, courseId uuid.UUID, rating float64) error
 	DeleteCourse(ctx context.Context, id uuid.UUID) error
 }

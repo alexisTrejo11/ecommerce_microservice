@@ -10,7 +10,7 @@ import (
 )
 
 type CourseModel struct {
-	ID              string        `gorm:"type:char(36);primaryKey"`
+	ID              uuid.UUID     `gorm:"type:char(36);primaryKey"`
 	Title           string        `gorm:"size:255;not null" json:"title"`
 	Slug            string        `gorm:"size:255;uniqueIndex;not null" json:"slug"`
 	Description     string        `gorm:"type:text" json:"description"`
@@ -47,9 +47,6 @@ func (CourseModel) TableName() string {
 }
 
 func (c *CourseModel) BeforeCreate(tx *gorm.DB) (err error) {
-	if c.ID == "" {
-		c.ID = uuid.New().String()
-	}
 	c.CreatedAt = time.Now()
 	c.UpdatedAt = time.Now()
 	return
