@@ -6,6 +6,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/mappers"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
 	"github.com/google/uuid"
 )
@@ -42,11 +43,13 @@ func (us *ModuleUseCaseImpl) GetModuleByCourseId(ctx context.Context, id uuid.UU
 	return &dtos, nil
 }
 
-// TODO: Add Buisness logic
 func (us *ModuleUseCaseImpl) CreateModule(ctx context.Context, insertDTO dtos.ModuleInsertDTO) (*dtos.ModuleDTO, error) {
-	module := us.mappers.InsertDTOToDomain(insertDTO)
+	module, err := us.mappers.InsertDTOToDomain(insertDTO)
+	if err != nil {
+		return nil, err
+	}
 
-	if _, err := us.courseRepository.GetById(ctx, module.CourseID.String()); err != nil {
+	if _, err := us.courseRepository.GetById(ctx, module.CourseID().String()); err != nil {
 		return nil, err
 	}
 
@@ -58,21 +61,40 @@ func (us *ModuleUseCaseImpl) CreateModule(ctx context.Context, insertDTO dtos.Mo
 	return us.mappers.DomainToDTO(*moduleCreated), nil
 }
 
-// TODO Implement Correct Update
-func (us *ModuleUseCaseImpl) UpdateModule(ctx context.Context, id uuid.UUID, insertDTO dtos.ModuleInsertDTO) (*dtos.ModuleDTO, error) {
-	module := us.mappers.InsertDTOToDomain(insertDTO)
-	module.ID = id
-
-	if _, err := us.courseRepository.GetById(ctx, module.CourseID.String()); err != nil {
-		return nil, err
+// Implement buisness logic for lesson
+func (us *ModuleUseCaseImpl) AddLesson(ctx context.Context, id uuid.UUID, lesson domain.Lesson) error {
+	existing, err := us.moduleRepository.GetById(ctx, id.String())
+	if err != nil {
+		return err
 	}
 
-	domainUpdated, err := us.moduleRepository.Update(ctx, id, *module)
+	if err := existing.AddLesson(lesson); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (us *ModuleUseCaseImpl) UpdateModule(ctx context.Context, id uuid.UUID, insertDTO dtos.ModuleInsertDTO) (*dtos.ModuleDTO, error) {
+	existing, err := us.moduleRepository.GetById(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	return us.mappers.DomainToDTO(*domainUpdated), nil
+	if _, err := us.courseRepository.GetById(ctx, insertDTO.CourseID.String()); err != nil {
+		return nil, err
+	}
+
+	if err := existing.Update(insertDTO.Title, insertDTO.Order); err != nil {
+		return nil, err
+	}
+
+	updated, err := us.moduleRepository.Update(ctx, id, *existing)
+	if err != nil {
+		return nil, err
+	}
+
+	return us.mappers.DomainToDTO(*updated), nil
 }
 
 func (us *ModuleUseCaseImpl) DeleteModule(ctx context.Context, id uuid.UUID) error {

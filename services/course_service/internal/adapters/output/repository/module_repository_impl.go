@@ -31,7 +31,11 @@ func (r *ModuleRepositoryImpl) GetById(ctx context.Context, id string) (*domain.
 		return nil, err
 	}
 
-	module := r.mappers.ModelToDomain(moduleModel)
+	module, err := r.mappers.ModelToDomain(moduleModel)
+	if err != nil {
+		return nil, err
+	}
+
 	r.fetchLessons(ctx, module)
 
 	return module, nil
@@ -63,7 +67,10 @@ func (r *ModuleRepositoryImpl) Create(ctx context.Context, newModule domain.Modu
 		return nil, err
 	}
 
-	module := r.mappers.ModelToDomain(*moduleModel)
+	module, err := r.mappers.ModelToDomain(*moduleModel)
+	if err != nil {
+		return nil, err
+	}
 	r.fetchLessons(ctx, module)
 
 	return module, nil
@@ -84,7 +91,11 @@ func (r *ModuleRepositoryImpl) Update(ctx context.Context, id uuid.UUID, updated
 		return nil, err
 	}
 
-	module := r.mappers.ModelToDomain(*modelUpdated)
+	module, err := r.mappers.ModelToDomain(*modelUpdated)
+	if err != nil {
+		return nil, err
+	}
+
 	r.fetchLessons(ctx, module)
 
 	return module, nil
@@ -98,12 +109,15 @@ func (r *ModuleRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (r *ModuleRepositoryImpl) fetchLessons(ctx context.Context, module *domain.Module) error {
-	lessons, err := r.lessonRepository.GetByModuleId(ctx, module.ID.String())
+	lessons, err := r.lessonRepository.GetByModuleId(ctx, module.ID().String())
 	if err != nil {
 		return err
 	}
 
-	module.Lessons = *lessons
+	err = module.SetLessons(*lessons)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
