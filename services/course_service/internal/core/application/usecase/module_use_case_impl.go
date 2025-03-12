@@ -32,6 +32,16 @@ func (us *ModuleUseCaseImpl) GetModuleById(ctx context.Context, id uuid.UUID) (*
 	return us.mappers.DomainToDTO(*module), nil
 }
 
+func (us *ModuleUseCaseImpl) GetModuleByCourseId(ctx context.Context, id uuid.UUID) (*[]dtos.ModuleDTO, error) {
+	modules, err := us.moduleRepository.GetByCourseId(ctx, id.String())
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := us.mappers.DomainsToDTOs(*modules)
+	return &dtos, nil
+}
+
 // TODO: Add Buisness logic
 func (us *ModuleUseCaseImpl) CreateModule(ctx context.Context, insertDTO dtos.ModuleInsertDTO) (*dtos.ModuleDTO, error) {
 	module := us.mappers.InsertDTOToDomain(insertDTO)

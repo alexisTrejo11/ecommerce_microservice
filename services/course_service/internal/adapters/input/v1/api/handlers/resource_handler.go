@@ -42,6 +42,25 @@ func (lh *ResourceHandler) GetResourceById(c *fiber.Ctx) error {
 	return c.Status(200).JSON(Resource)
 }
 
+func (lh *ResourceHandler) GetResourceByLessonId(c *fiber.Ctx) error {
+	lessonIdSTR := c.Params("lesson_id")
+	if lessonIdSTR == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+	}
+
+	lessonId, err := uuid.Parse(lessonIdSTR)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid lesson id"})
+	}
+
+	resource, err := lh.useCase.GetResourceaByLessonId(context.Background(), lessonId)
+	if err != nil {
+		return c.Status(404).JSON(err.Error())
+	}
+
+	return c.Status(200).JSON(resource)
+}
+
 func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	var insertDTO dtos.ResourceInsertDTO
 

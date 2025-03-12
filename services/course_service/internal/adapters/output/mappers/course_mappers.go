@@ -10,7 +10,7 @@ import (
 )
 
 type CourseMappers struct {
-	//moduleMapper ModuleMapper
+	moduleMapper ModuleMapper
 }
 
 func (m *CourseMappers) DomainToModel(course domain.Course) models.CourseModel {
@@ -56,6 +56,7 @@ func (m *CourseMappers) ModelToDomain(model models.CourseModel) *domain.Course {
 		PublishedAt:     model.PublishedAt,
 		CreatedAt:       model.CreatedAt,
 		UpdatedAt:       model.UpdatedAt,
+		Modules:         m.moduleMapper.ModelsToDomains(model.Modules),
 	}
 }
 
@@ -90,7 +91,7 @@ func (m *CourseMappers) DomainToDTO(course domain.Course) *dtos.CourseDTO {
 		ReviewCount:     course.ReviewCount,
 		CreatedAt:       course.CreatedAt,
 		UpdatedAt:       course.UpdatedAt,
-		Modules:         []dtos.ModuleDTO{},
+		Modules:         m.moduleMapper.DomainsToDTOs(course.Modules),
 	}
 }
 
@@ -106,13 +107,6 @@ func (m *CourseMappers) DomainsToDTOs(courses []domain.Course) []dtos.CourseDTO 
 }
 
 func (m *CourseMappers) InsertDTOToDomain(dto dtos.CourseInsertDTO) *domain.Course {
-	/*
-		modules := make([]domain.Module, 0, len(dto.Modules))
-		for _, mod := range dto.Modules {
-			domainMod := m.moduleMapper.InsertDTOToDomain(mod)
-			modules = append(modules, *domainMod)
-		}
-	*/
 	return &domain.Course{
 		Id:              uuid.New(),
 		Name:            dto.Title,

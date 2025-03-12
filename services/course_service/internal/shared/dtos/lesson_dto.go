@@ -18,14 +18,13 @@ type LessonInsertDTO struct {
 }
 
 type LessonDTO struct {
-	ID        uuid.UUID     `json:"id"`
-	Title     string        `json:"title"`
-	VideoURL  string        `json:"video_url"`
-	Content   string        `json:"content"`
-	Duration  int           `json:"duration"`
-	Order     int           `json:"order"`
-	IsPreview bool          `json:"is_preview"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
-	Resources []ResourceDTO `json:"resources"`
+	ID        uuid.UUID `json:"id"`
+	Title     string    `json:"title"`
+	VideoURL  string    `json:"video_url"`
+	Content   string    `json:"content"`
+	Duration  int       `json:"duration"`
+	Order     int       `json:"order"`
+	IsPreview bool      `json:"is_preview"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

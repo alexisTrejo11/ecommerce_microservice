@@ -7,7 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type ModuleMapper struct{}
+type ModuleMapper struct {
+	lessonMappers LessonMappers
+}
 
 func (m *ModuleMapper) InsertDTOToDomain(insertDTO dtos.ModuleInsertDTO) *domain.Module {
 	return &domain.Module{
@@ -24,8 +26,17 @@ func (m *ModuleMapper) ModelToDomain(model models.ModuleModel) *domain.Module {
 		Title:    model.Title,
 		Order:    model.Order,
 		CourseID: model.CourseID,
-		//	Lessons: lessons,
+		Lessons:  *m.lessonMappers.ModelsToDomains(model.Lessons),
 	}
+}
+
+func (m *ModuleMapper) ModelsToDomains(models []models.ModuleModel) []domain.Module {
+	modules := make([]domain.Module, len(models))
+	for i, model := range models {
+		modules[i] = *m.ModelToDomain(model)
+	}
+
+	return modules
 }
 
 func (m *ModuleMapper) DomainToModel(domain domain.Module) *models.ModuleModel {
@@ -44,6 +55,15 @@ func (m *ModuleMapper) DomainToDTO(domain domain.Module) *dtos.ModuleDTO {
 		Title:    domain.Title,
 		Order:    domain.Order,
 		CourseID: domain.CourseID,
-		//	Lessons:  lessons,
+		Lessons:  *m.lessonMappers.DomainsToDTOs(domain.Lessons),
 	}
+}
+
+func (m *ModuleMapper) DomainsToDTOs(domains []domain.Module) []dtos.ModuleDTO {
+	modules := make([]dtos.ModuleDTO, len(domains))
+	for i, domain := range domains {
+		modules[i] = *m.DomainToDTO(domain)
+	}
+
+	return modules
 }

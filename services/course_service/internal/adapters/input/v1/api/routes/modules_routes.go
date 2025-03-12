@@ -8,6 +8,7 @@ import (
 func ModulesRoutes(app *fiber.App, moduleHanlders handlers.ModuleHandler) {
 	path := app.Group("v1/api/modules")
 	path.Get("/:id", moduleHanlders.GetModuleById)
+	path.Get("/course/:course_id", moduleHanlders.GetModuleByCourseId)
 	path.Post("", moduleHanlders.CreateHandler)
 	path.Put("/:id", moduleHanlders.UpdateHandler)
 	path.Delete("/:id", moduleHanlders.DeleteLession)

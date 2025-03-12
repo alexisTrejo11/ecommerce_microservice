@@ -45,6 +45,15 @@ func (m *ResourceMapper) DomainToDTO(resource domain.Resource) *dtos.ResourceDTO
 	}
 }
 
+func (m *ResourceMapper) DomainsToDTOs(resources []domain.Resource) *[]dtos.ResourceDTO {
+	resourcesDTOs := make([]dtos.ResourceDTO, len(resources))
+	for i, resource := range resources {
+		resourcesDTOs[i] = *m.DomainToDTO(resource)
+	}
+
+	return &resourcesDTOs
+}
+
 func (m *ResourceMapper) InsertDTOToDomain(insertDTO dtos.ResourceInsertDTO) *domain.Resource {
 	return &domain.Resource{
 		ID:       uuid.New(),

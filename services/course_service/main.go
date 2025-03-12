@@ -21,22 +21,22 @@ func main() {
 	config.InitRedis()
 
 	// Repository
-	courseRepository := repository.NewCourseRepository(*db)
-	lessonRepository := repository.NewLessonRepository(*db)
-	moduleRepository := repository.NewModuleRepository(*db)
 	resourceRepository := repository.NewResourceRepository(*db)
+	lessonRepository := repository.NewLessonRepository(*db)
+	moduleRepository := repository.NewModuleRepository(*db, lessonRepository)
+	courseRepository := repository.NewCourseRepository(*db, moduleRepository)
 
 	// Use Case
-	courseUseCase := usecase.NewCourseUseCase(courseRepository)
-	moduleUseCase := usecase.NewModuleUseCase(moduleRepository, courseRepository)
-	lessonUseCase := usecase.NewLessonUseCase(lessonRepository, moduleRepository)
 	resourceUseCase := usecase.NewResourceUseCase(resourceRepository, lessonRepository)
+	lessonUseCase := usecase.NewLessonUseCase(lessonRepository, moduleRepository)
+	moduleUseCase := usecase.NewModuleUseCase(moduleRepository, courseRepository)
+	courseUseCase := usecase.NewCourseUseCase(courseRepository)
 
 	// Handler
-	courseHandler := handlers.NewCourseHandler(courseUseCase)
 	lessonHandler := handlers.NewLessonHandler(lessonUseCase)
-	moduleHandler := handlers.NewModuleHandler(moduleUseCase)
 	resourceHandler := handlers.NewResourceHandler(resourceUseCase)
+	moduleHandler := handlers.NewModuleHandler(moduleUseCase)
+	courseHandler := handlers.NewCourseHandler(courseUseCase)
 
 	// Routes
 	routes.CourseRoutes(app, *courseHandler)

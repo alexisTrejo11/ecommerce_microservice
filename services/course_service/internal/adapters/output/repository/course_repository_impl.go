@@ -12,13 +12,15 @@ import (
 )
 
 type CourseRepositoryImpl struct {
-	db      gorm.DB
-	mappers mappers.CourseMappers
+	db               gorm.DB
+	moduleRepository output.ModuleRepository
+	mappers          mappers.CourseMappers
 }
 
-func NewCourseRepository(db gorm.DB) output.CourseRepository {
+func NewCourseRepository(db gorm.DB, moduleRepository output.ModuleRepository) output.CourseRepository {
 	return &CourseRepositoryImpl{
-		db: db,
+		db:               db,
+		moduleRepository: moduleRepository,
 	}
 }
 
@@ -28,7 +30,15 @@ func (r *CourseRepositoryImpl) GetById(ctx context.Context, id string) (*domain.
 		return nil, err
 	}
 
-	return r.mappers.ModelToDomain(courseModel), nil
+	modules, err := r.moduleRepository.GetByCourseId(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	course := r.mappers.ModelToDomain(courseModel)
+	course.Modules = *modules
+
+	return course, nil
 }
 
 func (r *CourseRepositoryImpl) GetByCategory(ctx context.Context, category string) (*[]domain.Course, error) {

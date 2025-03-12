@@ -42,6 +42,25 @@ func (lh *ModuleHandler) GetModuleById(c *fiber.Ctx) error {
 	return c.Status(200).JSON(Module)
 }
 
+func (lh *ModuleHandler) GetModuleByCourseId(c *fiber.Ctx) error {
+	idSTR := c.Params("course_id")
+	if idSTR == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "course id is obligatory"})
+	}
+
+	id, err := uuid.Parse(idSTR)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+	}
+
+	courses, err := lh.useCase.GetModuleByCourseId(context.Background(), id)
+	if err != nil {
+		return c.Status(404).JSON(err.Error())
+	}
+
+	return c.Status(200).JSON(courses)
+}
+
 func (lh *ModuleHandler) CreateHandler(c *fiber.Ctx) error {
 	var insertDTO dtos.ModuleInsertDTO
 

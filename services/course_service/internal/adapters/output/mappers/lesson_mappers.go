@@ -23,6 +23,15 @@ func (m *LessonMappers) ModelToDomain(model models.LessonModel) *domain.Lesson {
 	}
 }
 
+func (m *LessonMappers) ModelsToDomains(lessonsModels []models.LessonModel) *[]domain.Lesson {
+	lessons := make([]domain.Lesson, len(lessonsModels))
+	for i, lessonsModel := range lessonsModels {
+		lessons[i] = *m.ModelToDomain(lessonsModel)
+	}
+
+	return &lessons
+}
+
 func (m *LessonMappers) DomainToModel(domain domain.Lesson) *models.LessonModel {
 	return &models.LessonModel{
 		ID:        domain.ID.String(),
@@ -63,4 +72,13 @@ func (m *LessonMappers) DomainToDTO(domain domain.Lesson) *dtos.LessonDTO {
 		CreatedAt: domain.CreatedAt,
 		UpdatedAt: domain.UpdatedAt,
 	}
+}
+
+func (m *LessonMappers) DomainsToDTOs(lessons []domain.Lesson) *[]dtos.LessonDTO {
+	lessondDTOs := make([]dtos.LessonDTO, len(lessons))
+	for i, lesson := range lessons {
+		lessondDTOs[i] = *m.DomainToDTO(lesson)
+	}
+
+	return &lessondDTOs
 }

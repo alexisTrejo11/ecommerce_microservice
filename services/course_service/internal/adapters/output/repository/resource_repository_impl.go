@@ -31,9 +31,9 @@ func (r *ResourceRepositoryImpl) GetById(ctx context.Context, id string) (*domai
 	return r.mappers.ModelToDomain(ResourceModel), nil
 }
 
-func (r *ResourceRepositoryImpl) GetByCourseId(ctx context.Context, id string) (*[]domain.Resource, error) {
+func (r *ResourceRepositoryImpl) GetByLessonId(ctx context.Context, id string) (*[]domain.Resource, error) {
 	var ResourceModels []models.ResourceModel
-	if err := r.db.WithContext(ctx).Where(&ResourceModels, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", id).Find(&ResourceModels).Error; err != nil {
 		return nil, err
 	}
 

@@ -8,6 +8,7 @@ import (
 func ResourceRoutes(app *fiber.App, resourceHanlders handlers.ResourceHandler) {
 	path := app.Group("v1/api/resources")
 	path.Get("/:id", resourceHanlders.GetResourceById)
+	path.Get("/lesson/:lesson_id", resourceHanlders.GetResourceByLessonId)
 	path.Post("", resourceHanlders.CreateResource)
 	path.Put("/:id", resourceHanlders.UpdateResource)
 	path.Delete("/:id", resourceHanlders.DeleteResource)

@@ -16,7 +16,9 @@ type ResourceUseCaseImpl struct {
 	mappers            mappers.ResourceMapper
 }
 
-func NewResourceUseCase(resourceRepository output.ResourceRepository, lessonRepository output.LessonRepository) input.ResourceUseCase {
+func NewResourceUseCase(
+	resourceRepository output.ResourceRepository,
+	lessonRepository output.LessonRepository) input.ResourceUseCase {
 	return &ResourceUseCaseImpl{
 		resourceRepository: resourceRepository,
 		lessonRepository:   lessonRepository,
@@ -30,6 +32,15 @@ func (us *ResourceUseCaseImpl) GetResourceById(ctx context.Context, id uuid.UUID
 	}
 
 	return us.mappers.DomainToDTO(*resource), nil
+}
+
+func (us *ResourceUseCaseImpl) GetResourceaByLessonId(ctx context.Context, lessonId uuid.UUID) (*[]dtos.ResourceDTO, error) {
+	resources, err := us.resourceRepository.GetByLessonId(ctx, lessonId.String())
+	if err != nil {
+		return nil, err
+	}
+
+	return us.mappers.DomainsToDTOs(*resources), nil
 }
 
 // TODO: Add Buisness logic

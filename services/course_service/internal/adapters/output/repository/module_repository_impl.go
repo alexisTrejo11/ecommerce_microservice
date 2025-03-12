@@ -13,13 +13,15 @@ import (
 )
 
 type ModuleRepositoryImpl struct {
-	db      gorm.DB
-	mappers mappers.ModuleMapper
+	db               gorm.DB
+	lessonRepository output.LessonRepository
+	mappers          mappers.ModuleMapper
 }
 
-func NewModuleRepository(db gorm.DB) output.ModuleRepository {
+func NewModuleRepository(db gorm.DB, lessonRepository output.LessonRepository) output.ModuleRepository {
 	return &ModuleRepositoryImpl{
-		db: db,
+		db:               db,
+		lessonRepository: lessonRepository,
 	}
 }
 
@@ -29,19 +31,28 @@ func (r *ModuleRepositoryImpl) GetById(ctx context.Context, id string) (*domain.
 		return nil, err
 	}
 
-	return r.mappers.ModelToDomain(moduleModel), nil
+	module := r.mappers.ModelToDomain(moduleModel)
+	r.fetchLessons(ctx, module)
+
+	return module, nil
 }
 
 func (r *ModuleRepositoryImpl) GetByCourseId(ctx context.Context, id string) (*[]domain.Module, error) {
 	var moduleModels []models.ModuleModel
-	if err := r.db.WithContext(ctx).Where(&moduleModels, "id = ?", id).Error; err != nil {
+
+	if err := r.db.WithContext(ctx).
+		Where("course_id = ?", id).
+		Find(&moduleModels).Error; err != nil {
 		return nil, err
 	}
 
-	modules := make([]domain.Module, len(moduleModels))
-	for i, model := range moduleModels {
-		modules[i] = *r.mappers.ModelToDomain(model)
+	modules := r.mappers.ModelsToDomains(moduleModels)
+	for i := range modules {
+		if err := r.fetchLessons(ctx, &modules[i]); err != nil {
+			return nil, err
+		}
 	}
+
 	return &modules, nil
 }
 
@@ -52,7 +63,10 @@ func (r *ModuleRepositoryImpl) Create(ctx context.Context, newModule domain.Modu
 		return nil, err
 	}
 
-	return r.mappers.ModelToDomain(*moduleModel), nil
+	module := r.mappers.ModelToDomain(*moduleModel)
+	r.fetchLessons(ctx, module)
+
+	return module, nil
 }
 
 func (r *ModuleRepositoryImpl) Update(ctx context.Context, id uuid.UUID, updatedModule domain.Module) (*domain.Module, error) {
@@ -70,12 +84,26 @@ func (r *ModuleRepositoryImpl) Update(ctx context.Context, id uuid.UUID, updated
 		return nil, err
 	}
 
-	return r.mappers.ModelToDomain(*modelUpdated), nil
+	module := r.mappers.ModelToDomain(*modelUpdated)
+	r.fetchLessons(ctx, module)
+
+	return module, nil
 }
 
 func (r *ModuleRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	if err := r.db.WithContext(ctx).Delete(&models.ModuleModel{}, "id = ?", id).Error; err != nil {
 		return err
 	}
+	return nil
+}
+
+func (r *ModuleRepositoryImpl) fetchLessons(ctx context.Context, module *domain.Module) error {
+	lessons, err := r.lessonRepository.GetByModuleId(ctx, module.ID.String())
+	if err != nil {
+		return err
+	}
+
+	module.Lessons = *lessons
+
 	return nil
 }

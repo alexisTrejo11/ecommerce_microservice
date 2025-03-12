@@ -33,15 +33,12 @@ func (r *LessonRepositoryImpl) GetById(ctx context.Context, id string) (*domain.
 
 func (r *LessonRepositoryImpl) GetByModuleId(ctx context.Context, id string) (*[]domain.Lesson, error) {
 	var LessonModels []models.LessonModel
-	if err := r.db.WithContext(ctx).Where(&LessonModels, "module_id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("module_id = ?", id).Find(&LessonModels).Error; err != nil {
 		return nil, err
 	}
 
-	Lessons := make([]domain.Lesson, len(LessonModels))
-	for i, model := range LessonModels {
-		Lessons[i] = *r.mappers.ModelToDomain(model)
-	}
-	return &Lessons, nil
+	lessons := r.mappers.ModelsToDomains(LessonModels)
+	return lessons, nil
 }
 
 func (r *LessonRepositoryImpl) Create(ctx context.Context, newLesson domain.Lesson) (*domain.Lesson, error) {

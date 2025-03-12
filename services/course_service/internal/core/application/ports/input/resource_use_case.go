@@ -9,6 +9,7 @@ import (
 
 type ResourceUseCase interface {
 	GetResourceById(ctx context.Context, id uuid.UUID) (*dtos.ResourceDTO, error)
+	GetResourceaByLessonId(ctx context.Context, lessonId uuid.UUID) (*[]dtos.ResourceDTO, error)
 	CreateResource(ctx context.Context, dto dtos.ResourceInsertDTO) (*dtos.ResourceDTO, error)
 	UpdateResource(ctx context.Context, id uuid.UUID, dto dtos.ResourceInsertDTO) (*dtos.ResourceDTO, error)
 	DeleteResource(ctx context.Context, id uuid.UUID) error

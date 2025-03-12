@@ -9,6 +9,7 @@ import (
 
 type ResourceRepository interface {
 	GetById(ctx context.Context, id string) (*domain.Resource, error)
+	GetByLessonId(ctx context.Context, id string) (*[]domain.Resource, error)
 	Create(ctx context.Context, newResource domain.Resource) (*domain.Resource, error)
 	Update(ctx context.Context, id uuid.UUID, updatedResource domain.Resource) (*domain.Resource, error)
 	Delete(ctx context.Context, id uuid.UUID) error
