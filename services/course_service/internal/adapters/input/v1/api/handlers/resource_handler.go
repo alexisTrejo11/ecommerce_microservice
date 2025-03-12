@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/response"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -26,62 +27,59 @@ func NewResourceHandler(useCase input.ResourceUseCase) *ResourceHandler {
 func (lh *ResourceHandler) GetResourceById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Resource ID is mandatory", "id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Resource ID", "invalid id")
 	}
 
-	Resource, err := lh.useCase.GetResourceById(context.Background(), id)
+	resource, err := lh.useCase.GetResourceById(context.Background(), id)
 	if err != nil {
-		return c.Status(404).JSON(err.Error())
+		return response.NotFound(c, "Resource not found", err.Error())
 	}
 
-	return c.Status(200).JSON(Resource)
+	return response.OK(c, "Resource successfully retrieved", resource)
 }
 
 func (lh *ResourceHandler) GetResourceByLessonId(c *fiber.Ctx) error {
 	lessonIdSTR := c.Params("lesson_id")
 	if lessonIdSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Lesson ID is mandatory", "id is obligatory")
 	}
 
 	lessonId, err := uuid.Parse(lessonIdSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid lesson id"})
+		return response.BadRequest(c, "Invalid Lesson ID", "invalid lesson id")
 	}
 
-	resource, err := lh.useCase.GetResourceaByLessonId(context.Background(), lessonId)
+	resource, err := lh.useCase.GetResourcesByLessonId(context.Background(), lessonId)
 	if err != nil {
-		return c.Status(404).JSON(err.Error())
+		return response.NotFound(c, "Resource not found", err.Error())
 	}
 
-	return c.Status(200).JSON(resource)
+	return response.OK(c, "Resource successfully retrieved", resource)
 }
 
 func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	var insertDTO dtos.ResourceInsertDTO
 
 	if err := c.BodyParser(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Validation failed",
-			"errors":  errorsMap,
-		})
+		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
-	ResourceCreated, err := lh.useCase.CreateResource(context.TODO(), insertDTO)
+	resourceCreated, err := lh.useCase.CreateResource(context.TODO(), insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Error creating resource", err.Error())
 	}
 
-	return c.Status(201).JSON(ResourceCreated)
+	return response.Created(c, "Resource successfully created", resourceCreated)
 }
 
 func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
@@ -89,49 +87,46 @@ func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Resource ID is mandatory", "id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Resource ID", "invalid id")
 	}
 
 	if err := c.BodyParser(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Validation failed",
-			"errors":  errorsMap,
-		})
+		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
-	ResourceUpdated, err := lh.useCase.UpdateResource(context.TODO(), id, insertDTO)
+	resourceUpdated, err := lh.useCase.UpdateResource(context.TODO(), id, insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Error updating resource", err.Error())
 	}
 
-	return c.Status(201).JSON(ResourceUpdated)
+	return response.OK(c, "Resource successfully updated", resourceUpdated)
 }
 
 func (lh *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Resource ID is mandatory", "id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Resource ID", "invalid id")
 	}
 
 	err = lh.useCase.DeleteResource(context.Background(), id)
 	if err != nil {
-		return c.Status(404).JSON(err.Error())
+		return response.NotFound(c, "Resource not found", err.Error())
 	}
 
-	return c.Status(204).JSON("deleted")
+	return response.OK[any](c, "Resource successfully deleted", nil)
 }

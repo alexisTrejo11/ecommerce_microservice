@@ -35,7 +35,7 @@ func (us *ResourceUseCaseImpl) GetResourceById(ctx context.Context, id uuid.UUID
 	return us.mappers.DomainToDTO(*resource), nil
 }
 
-func (us *ResourceUseCaseImpl) GetResourceaByLessonId(ctx context.Context, lessonId uuid.UUID) (*[]dtos.ResourceDTO, error) {
+func (us *ResourceUseCaseImpl) GetResourcesByLessonId(ctx context.Context, lessonId uuid.UUID) (*[]dtos.ResourceDTO, error) {
 	resources, err := us.resourceRepository.GetByLessonId(ctx, lessonId.String())
 	if err != nil {
 		return nil, err

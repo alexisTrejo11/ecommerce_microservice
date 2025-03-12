@@ -10,5 +10,5 @@ func LessonRoutes(app *fiber.App, lessonHanlders handlers.LessonHandler) {
 	path.Get("/:id", lessonHanlders.GetLessonById)
 	path.Post("", lessonHanlders.CreateLesson)
 	path.Put("/:id", lessonHanlders.UpdateLesson)
-	path.Delete("/:id", lessonHanlders.DeleteLession)
+	path.Delete("/:id", lessonHanlders.DeleteLesson)
 }

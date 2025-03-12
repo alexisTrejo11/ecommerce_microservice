@@ -5,6 +5,7 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/response"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/utils"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -26,112 +27,106 @@ func NewModuleHandler(useCase input.ModuleUseCase) *ModuleHandler {
 func (lh *ModuleHandler) GetModuleById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Module ID is mandatory", "id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Module ID", "invalid id")
 	}
 
-	Module, err := lh.useCase.GetModuleById(context.Background(), id)
+	module, err := lh.useCase.GetModuleById(context.Background(), id)
 	if err != nil {
-		return c.Status(404).JSON(err.Error())
+		return response.NotFound(c, "Module not found", err.Error())
 	}
 
-	return c.Status(200).JSON(Module)
+	return response.OK(c, "Module Successfully Retrieved", module)
 }
 
 func (lh *ModuleHandler) GetModuleByCourseId(c *fiber.Ctx) error {
 	idSTR := c.Params("course_id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "course id is obligatory"})
+		return response.BadRequest(c, "Course ID is mandatory", "course id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Course ID", "invalid id")
 	}
 
 	courses, err := lh.useCase.GetModuleByCourseId(context.Background(), id)
 	if err != nil {
-		return c.Status(404).JSON(err.Error())
+		return response.NotFound(c, "Modules not found", err.Error())
 	}
 
-	return c.Status(200).JSON(courses)
+	return response.OK(c, "Modules Successfully Retrieved", courses)
 }
 
-func (lh *ModuleHandler) CreateHandler(c *fiber.Ctx) error {
+func (lh *ModuleHandler) CreateModule(c *fiber.Ctx) error {
 	var insertDTO dtos.ModuleInsertDTO
 
 	if err := c.BodyParser(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Validation failed",
-			"errors":  errorsMap,
-		})
+		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
 	moduleCreated, err := lh.useCase.CreateModule(context.TODO(), insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Error creating module", err.Error())
 	}
 
-	return c.Status(201).JSON(moduleCreated)
+	return response.Created(c, "Module successfully created", moduleCreated)
 }
 
-func (lh *ModuleHandler) UpdateHandler(c *fiber.Ctx) error {
+func (lh *ModuleHandler) UpdateModule(c *fiber.Ctx) error {
 	var insertDTO dtos.ModuleInsertDTO
 
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Module ID is mandatory", "id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Module ID", "invalid id")
 	}
 
 	if err := c.BodyParser(&insertDTO); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Validation failed",
-			"errors":  errorsMap,
-		})
+		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
-	ModuleUpdated, err := lh.useCase.UpdateModule(context.TODO(), id, insertDTO)
+	moduleUpdated, err := lh.useCase.UpdateModule(context.TODO(), id, insertDTO)
 	if err != nil {
-		return c.Status(400).JSON(err.Error())
+		return response.BadRequest(c, "Error updating module", err.Error())
 	}
 
-	return c.Status(201).JSON(ModuleUpdated)
+	return response.OK(c, "Module successfully updated", moduleUpdated)
 }
 
-func (lh *ModuleHandler) DeleteLession(c *fiber.Ctx) error {
+func (lh *ModuleHandler) DeleteModule(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "id is obligatory"})
+		return response.BadRequest(c, "Module ID is mandatory", "id is obligatory")
 	}
 
 	id, err := uuid.Parse(idSTR)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+		return response.BadRequest(c, "Invalid Module ID", "invalid id")
 	}
 
 	err = lh.useCase.DeleteModule(context.Background(), id)
 	if err != nil {
-		return c.Status(404).JSON(err.Error())
+		return response.NotFound(c, "Module not found", err.Error())
 	}
 
-	return c.Status(204).JSON("deleted")
+	return response.OK[any](c, "Module successfully deleted", nil)
 }
