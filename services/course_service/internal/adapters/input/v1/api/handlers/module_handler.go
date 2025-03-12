@@ -24,6 +24,17 @@ func NewModuleHandler(useCase input.ModuleUseCase) *ModuleHandler {
 	}
 }
 
+// GetModuleById godoc
+// @Summary      Get Module by ID
+// @Description  Retrieve a module by its unique ID.
+// @Tags         Modules
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Module ID"
+// @Success      200  {object}  response.ApiResponse{data=dtos.ModuleDTO} "Module successfully retrieved"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Module not found"
+// @Router       /v1/api/modules/{id} [get]
 func (lh *ModuleHandler) GetModuleById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -40,9 +51,20 @@ func (lh *ModuleHandler) GetModuleById(c *fiber.Ctx) error {
 		return response.NotFound(c, "Module not found", err.Error())
 	}
 
-	return response.OK(c, "Module Successfully Retrieved", module)
+	return response.OK(c, "Module successfully retrieved", module)
 }
 
+// GetModuleByCourseId godoc
+// @Summary      Get Modules by Course ID
+// @Description  Retrieve modules associated with a given course ID.
+// @Tags         Modules
+// @Accept       json
+// @Produce      json
+// @Param        course_id   path      string  true  "Course ID"
+// @Success      200  {object}  response.ApiResponse{data=[]dtos.ModuleDTO} "Modules successfully retrieved"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Modules not found"
+// @Router       /v1/api/modules/course/{course_id} [get]
 func (lh *ModuleHandler) GetModuleByCourseId(c *fiber.Ctx) error {
 	idSTR := c.Params("course_id")
 	if idSTR == "" {
@@ -59,9 +81,19 @@ func (lh *ModuleHandler) GetModuleByCourseId(c *fiber.Ctx) error {
 		return response.NotFound(c, "Modules not found", err.Error())
 	}
 
-	return response.OK(c, "Modules Successfully Retrieved", courses)
+	return response.OK(c, "Modules successfully retrieved", courses)
 }
 
+// CreateModule godoc
+// @Summary      Create Module
+// @Description  Create a new module with the provided details.
+// @Tags         Modules
+// @Accept       json
+// @Produce      json
+// @Param        module  body      dtos.ModuleInsertDTO  true  "Module data"
+// @Success      201  {object}  response.ApiResponse{data=dtos.ModuleDTO} "Module successfully created"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Router       /modules [post]
 func (lh *ModuleHandler) CreateModule(c *fiber.Ctx) error {
 	var insertDTO dtos.ModuleInsertDTO
 
@@ -82,6 +114,17 @@ func (lh *ModuleHandler) CreateModule(c *fiber.Ctx) error {
 	return response.Created(c, "Module successfully created", moduleCreated)
 }
 
+// UpdateModule godoc
+// @Summary      Update Module
+// @Description  Update an existing module by its ID with the provided details.
+// @Tags         Modules
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string                true  "Module ID"
+// @Param        module  body      dtos.ModuleInsertDTO  true  "Module data to update"
+// @Success      200  {object}  response.ApiResponse{data=dtos.ModuleDTO} "Module successfully updated"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Router       /v1/api/modules/{id} [put]
 func (lh *ModuleHandler) UpdateModule(c *fiber.Ctx) error {
 	var insertDTO dtos.ModuleInsertDTO
 
@@ -112,6 +155,17 @@ func (lh *ModuleHandler) UpdateModule(c *fiber.Ctx) error {
 	return response.OK(c, "Module successfully updated", moduleUpdated)
 }
 
+// DeleteModule godoc
+// @Summary      Delete Module
+// @Description  Delete an existing module by its ID.
+// @Tags         Modules
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Module ID"
+// @Success      200  {object}  response.ApiResponse "Module successfully deleted"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Module not found"
+// @Router       /v1/api/modules/{id} [delete]
 func (lh *ModuleHandler) DeleteModule(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -128,5 +182,5 @@ func (lh *ModuleHandler) DeleteModule(c *fiber.Ctx) error {
 		return response.NotFound(c, "Module not found", err.Error())
 	}
 
-	return response.OK[any](c, "Module successfully deleted", nil)
+	return response.OK(c, "Module successfully deleted", nil)
 }

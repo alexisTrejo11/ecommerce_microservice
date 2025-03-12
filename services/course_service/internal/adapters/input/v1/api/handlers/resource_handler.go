@@ -24,6 +24,17 @@ func NewResourceHandler(useCase input.ResourceUseCase) *ResourceHandler {
 	}
 }
 
+// GetResourceById godoc
+// @Summary      Get Resource by ID
+// @Description  Retrieve a resource by its unique ID.
+// @Tags         Resources
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Resource ID"
+// @Success      200  {object}  response.ApiResponse{data=dtos.ResourceDTO} "Resource successfully retrieved"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Resource not found"
+// @Router       /v1/api/resources/{id} [get]
 func (lh *ResourceHandler) GetResourceById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -43,6 +54,17 @@ func (lh *ResourceHandler) GetResourceById(c *fiber.Ctx) error {
 	return response.OK(c, "Resource successfully retrieved", resource)
 }
 
+// GetResourceByLessonId godoc
+// @Summary      Get Resources by Lesson ID
+// @Description  Retrieve resources associated with a specific lesson.
+// @Tags         Resources
+// @Accept       json
+// @Produce      json
+// @Param        lesson_id   path      string  true  "Lesson ID"
+// @Success      200  {object}  response.ApiResponse{data=[]dtos.ResourceDTO} "Resources successfully retrieved"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Resources not found"
+// @Router       /v1/api/lesson/{lesson_id} [get]
 func (lh *ResourceHandler) GetResourceByLessonId(c *fiber.Ctx) error {
 	lessonIdSTR := c.Params("lesson_id")
 	if lessonIdSTR == "" {
@@ -62,6 +84,16 @@ func (lh *ResourceHandler) GetResourceByLessonId(c *fiber.Ctx) error {
 	return response.OK(c, "Resource successfully retrieved", resource)
 }
 
+// CreateResource godoc
+// @Summary      Create a new Resource
+// @Description  Create a new resource for a lesson with the provided details.
+// @Tags         Resources
+// @Accept       json
+// @Produce      json
+// @Param        resource  body      dtos.ResourceInsertDTO  true  "Resource to create"
+// @Success      201  {object}  response.ApiResponse{data=dtos.ResourceDTO} "Resource successfully created"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Router       /resources [post]
 func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	var insertDTO dtos.ResourceInsertDTO
 
@@ -82,6 +114,17 @@ func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 	return response.Created(c, "Resource successfully created", resourceCreated)
 }
 
+// UpdateResource godoc
+// @Summary      Update an existing Resource
+// @Description  Update the details of an existing resource identified by its ID.
+// @Tags         Resources
+// @Accept       json
+// @Produce      json
+// @Param        id        path      string                 true  "Resource ID"
+// @Param        resource  body      dtos.ResourceInsertDTO true  "Resource data to update"
+// @Success      200  {object}  response.ApiResponse{data=dtos.ResourceDTO} "Resource successfully updated"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Router       /v1/api/resources/{id} [put]
 func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 	var insertDTO dtos.ResourceInsertDTO
 
@@ -112,6 +155,17 @@ func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 	return response.OK(c, "Resource successfully updated", resourceUpdated)
 }
 
+// DeleteResource godoc
+// @Summary      Delete a Resource
+// @Description  Delete an existing resource identified by its ID.
+// @Tags         Resources
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Resource ID"
+// @Success      200  {object}  response.ApiResponse "Resource successfully deleted"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Resource not found"
+// @Router       /v1/api/resources/{id} [delete]
 func (lh *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -128,5 +182,5 @@ func (lh *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
 		return response.NotFound(c, "Resource not found", err.Error())
 	}
 
-	return response.OK[any](c, "Resource successfully deleted", nil)
+	return response.OK(c, "Resource successfully deleted", nil)
 }

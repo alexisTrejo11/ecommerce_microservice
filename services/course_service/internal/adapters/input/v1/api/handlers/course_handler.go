@@ -24,6 +24,17 @@ func NewCourseHandler(useCase input.CourseUseCase) *CourseHandler {
 	}
 }
 
+// GetCourseById godoc
+// @Summary      Get Course by ID
+// @Description  Retrieve a course by its unique ID.
+// @Tags         Courses
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Course ID"
+// @Success      200  {object}  response.ApiResponse{data=dtos.CourseDTO} "Course successfully retrieved"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Course not found"
+// @Router       /v1/api/courses/{id} [get]
 func (lh *CourseHandler) GetCourseById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -43,6 +54,16 @@ func (lh *CourseHandler) GetCourseById(c *fiber.Ctx) error {
 	return response.OK(c, "Course Successfully Retrieved", course)
 }
 
+// CreateCourse godoc
+// @Summary      Create a new Course
+// @Description  Create a course with the provided information.
+// @Tags         Courses
+// @Accept       json
+// @Produce      json
+// @Param        course  body      dtos.CourseInsertDTO  true  "Course information"
+// @Success      201     {object}  response.ApiResponse{data=dtos.CourseDTO} "Course successfully created"
+// @Failure      400     {object}  response.ApiResponse "Bad Request"
+// @Router       /v1/api/courses [post]
 func (lh *CourseHandler) CreateCourse(c *fiber.Ctx) error {
 	var insertDTO dtos.CourseInsertDTO
 
@@ -63,6 +84,17 @@ func (lh *CourseHandler) CreateCourse(c *fiber.Ctx) error {
 	return response.Created(c, "Course successfully created", CourseCreated)
 }
 
+// UpdateCourse godoc
+// @Summary      Update an existing Course
+// @Description  Update course details using its ID.
+// @Tags         Courses
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string                true  "Course ID"
+// @Param        course  body      dtos.CourseInsertDTO  true  "Course information to update"
+// @Success      200     {object}  response.ApiResponse{data=dtos.CourseDTO} "Course successfully updated"
+// @Failure      400     {object}  response.ApiResponse "Bad Request"
+// @Router       /v1/api/courses/{id} [put]
 func (lh *CourseHandler) UpdateCourse(c *fiber.Ctx) error {
 	var insertDTO dtos.CourseInsertDTO
 
@@ -93,6 +125,17 @@ func (lh *CourseHandler) UpdateCourse(c *fiber.Ctx) error {
 	return response.OK(c, "Course successfully updated", CourseUpdated)
 }
 
+// DeleteCourse godoc
+// @Summary      Delete a Course
+// @Description  Delete an existing course by its unique ID.
+// @Tags         Courses
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Course ID"
+// @Success      200  {object}  response.ApiResponse "Course successfully deleted"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Course not found"
+// @Router       /v1/api/courses/{id} [delete]
 func (lh *CourseHandler) DeleteCourse(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -109,5 +152,5 @@ func (lh *CourseHandler) DeleteCourse(c *fiber.Ctx) error {
 		return response.NotFound(c, "Course not found", err.Error())
 	}
 
-	return response.OK[any](c, "Course successfully deleted", nil)
+	return response.OK(c, "Course successfully deleted", nil)
 }

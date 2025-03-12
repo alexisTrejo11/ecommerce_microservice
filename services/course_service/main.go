@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/config"
+	_ "github.com/alexisTrejo11/ecommerce_microservice/course-service/docs"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/input/v1/api/handlers"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/input/v1/api/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/repository"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/usecase"
 	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/rate_limter"
+	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,6 +23,9 @@ func main() {
 	// Config
 	db := config.GORMConfig()
 	config.InitRedis()
+
+	// Swagger
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// rate limiter (50 Requests per minute)
 	rateLimiter := ratelimiter.NewRateLimiter(config.RedisClient, 50, 1*time.Minute)

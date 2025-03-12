@@ -1,0 +1,1038 @@
+definitions:
+  dtos.CourseDTO:
+    description: DTO that contains all the details of a course, including its modules,
+      instructor, price, and more.
+    properties:
+      category:
+        description: |-
+          Category specifies the course's category.
+          @example PROGRAMMING
+        type: string
+      created_at:
+        description: |-
+          CreatedAt is the timestamp when the course was created.
+          @example 2025-03-12T10:00:00Z
+        type: string
+      description:
+        description: |-
+          Description is a detailed explanation of the course.
+          @example Learn Go programming from scratch.
+        type: string
+      enrollment_count:
+        description: |-
+          EnrollmentCount is the number of students enrolled in the course.
+          @example 100
+        type: integer
+      id:
+        description: |-
+          ID is the unique identifier for the course.
+          @example abc123
+        type: string
+      instructor_id:
+        description: |-
+          InstructorID is the unique identifier of the course instructor.
+          @example 8c1d73a3-4a33-4c60-914f-76b91b3510ad
+        type: string
+      is_free:
+        description: |-
+          IsFree indicates whether the course is free or paid.
+          @example false
+        type: boolean
+      is_published:
+        description: |-
+          IsPublished indicates whether the course is published or not.
+          @example true
+        type: boolean
+      language:
+        description: |-
+          Language is the language in which the course is taught.
+          @example English
+        type: string
+      level:
+        description: |-
+          Level indicates the difficulty level of the course.
+          @example BEGINNER
+        type: string
+      modules:
+        description: |-
+          Modules are the modules associated with the course.
+          @example [...]
+        items:
+          $ref: '#/definitions/dtos.ModuleDTO'
+        type: array
+      price:
+        description: |-
+          Price is the cost of the course.
+          @example 50.0
+        type: number
+      published_at:
+        description: |-
+          PublishedAt is the timestamp when the course was published.
+          @example 2025-03-12T10:00:00Z
+        type: string
+      rating:
+        description: |-
+          Rating is the average rating of the course.
+          @example 4.5
+        type: number
+      review_count:
+        description: |-
+          ReviewCount is the number of reviews the course has received.
+          @example 25
+        type: integer
+      slug:
+        description: |-
+          Slug is a URL-friendly version of the title.
+          @example go-programming
+        type: string
+      tags:
+        description: |-
+          Tags are a list of relevant keywords related to the course.
+          @example ["Go", "Programming"]
+        items:
+          type: string
+        type: array
+      thumbnail_url:
+        description: |-
+          ThumbnailURL is the URL to the course's thumbnail image.
+          @example https://example.com/thumbnail.jpg
+        type: string
+      title:
+        description: |-
+          Title is the name of the course.
+          @example Go Programming
+        type: string
+      updated_at:
+        description: |-
+          UpdatedAt is the timestamp when the course was last updated.
+          @example 2025-03-12T10:00:00Z
+        type: string
+    type: object
+  dtos.CourseInsertDTO:
+    description: DTO used to insert a new course with necessary fields including title,
+      description, level, and more.
+    properties:
+      category:
+        description: |-
+          Category specifies the course's category.
+          @example PROGRAMMING
+        enum:
+        - PROGRAMMING
+        - DESIGN_SOFTWARE
+        - ENGINEER_SOFTWARE
+        - ARCHITECTURE_SOFTWARE
+        - AI
+        - ART
+        - MARKETING
+        - SOCIAL_NETWORK
+        - LANGUAGE
+        type: string
+      description:
+        description: |-
+          Description is a detailed explanation of the course.
+          @example Learn Go programming from scratch.
+        type: string
+      instructor_id:
+        description: |-
+          InstructorID is the unique identifier of the course instructor.
+          @example 8c1d73a3-4a33-4c60-914f-76b91b3510ad
+        type: string
+      is_free:
+        description: |-
+          IsFree indicates whether the course is free or paid.
+          @example false
+        type: boolean
+      language:
+        description: |-
+          Language is the language in which the course is taught.
+          @example English
+        type: string
+      level:
+        description: |-
+          Level indicates the difficulty level of the course.
+          @example BEGINNER
+        enum:
+        - BEGINNER
+        - INTERMEDIATE
+        - ADVANCED
+        type: string
+      price:
+        description: |-
+          Price is the cost of the course.
+          @example 50.0
+        minimum: 0
+        type: number
+      tags:
+        description: |-
+          Tags are a list of relevant keywords related to the course.
+          @example ["Go", "Programming"]
+        items:
+          type: string
+        type: array
+      thumbnail_url:
+        description: |-
+          ThumbnailURL is the URL to the course's thumbnail image.
+          @example https://example.com/thumbnail.jpg
+        type: string
+      title:
+        description: |-
+          Title is the name of the course.
+          @example Go Programming
+        minLength: 3
+        type: string
+    required:
+    - category
+    - description
+    - instructor_id
+    - language
+    - level
+    - title
+    type: object
+  dtos.LessonDTO:
+    description: DTO that contains the full details of a lesson within a module, including
+      resources and metadata.
+    properties:
+      content:
+        description: |-
+          Content is the textual content of the lesson.
+          @example This is a lesson on Go
+        type: string
+      created_at:
+        description: |-
+          CreatedAt is the timestamp when the lesson was created.
+          @example 2025-03-12T10:00:00Z
+        type: string
+      duration:
+        description: |-
+          Duration is the duration of the lesson in minutes.
+          @example 120
+        type: integer
+      id:
+        description: |-
+          ID is the unique identifier for the lesson.
+          @example f2b02b99-4789-4c30-a9b9-b574fbcbd7cd
+        type: string
+      is_preview:
+        description: |-
+          IsPreview indicates whether the lesson is available as a preview.
+          @example true
+        type: boolean
+      order:
+        description: |-
+          Order is the sequence number of the lesson within the module.
+          @example 1
+        type: integer
+      title:
+        description: |-
+          Title is the title of the lesson.
+          @example Lesson 1
+        type: string
+      updated_at:
+        description: |-
+          UpdatedAt is the timestamp when the lesson was last updated.
+          @example 2025-03-12T10:00:00Z
+        type: string
+      video_url:
+        description: |-
+          VideoURL is the URL for the lesson's video.
+          @example https://example.com/video
+        type: string
+    type: object
+  dtos.LessonInsertDTO:
+    description: DTO used to insert a new lesson, including resources and other required
+      fields.
+    properties:
+      content:
+        description: |-
+          Content is the textual content of the lesson.
+          @example This is a lesson on Go
+        type: string
+      duration:
+        description: |-
+          Duration is the duration of the lesson in minutes.
+          @example 120
+        minimum: 1
+        type: integer
+      is_preview:
+        description: |-
+          IsPreview indicates whether the lesson is available as a preview.
+          @example true
+        type: boolean
+      module_id:
+        description: |-
+          ModuleId is the unique identifier for the module the lesson belongs to.
+          @example 1c1cdb5c-d6e4-4fb0-9755-f30b9d4fbb8c
+        type: string
+      order:
+        description: |-
+          Order is the sequence number of the lesson within the module.
+          @example 1
+        minimum: 0
+        type: integer
+      resources:
+        description: |-
+          Resources is a list of resources associated with the lesson.
+          @example [{"title": "Resource 1", "lesson_id": "f2b02b99-4789-4c30-a9b9-b574fbcbd7cd", "type": "PDF", "url": "https://example.com/resource"}]
+        items:
+          $ref: '#/definitions/dtos.ResourceInsertDTO'
+        type: array
+      title:
+        description: |-
+          Title is the title of the lesson.
+          @example Lesson 1
+        type: string
+      video_url:
+        description: |-
+          VideoURL is the URL for the lesson's video.
+          @example https://example.com/video
+        type: string
+    required:
+    - duration
+    - module_id
+    - title
+    type: object
+  dtos.ModuleDTO:
+    description: DTO that contains details of a module within a course, including
+      its lessons.
+    properties:
+      course_id:
+        description: |-
+          CourseID is the unique identifier for the course associated with the module.
+          @example 1c1cdb5c-d6e4-4fb0-9755-f30b9d4fbb8c
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the module.
+          @example a6bfc1f9-0f39-4c6f-b3bc-e9d0c44f3c8a
+        type: string
+      lessons:
+        description: |-
+          Lessons is a list of lessons associated with the module.
+          @example [{"id": "f2b02b99-4789-4c30-a9b9-b574fbcbd7cd", "title": "Lesson 1", "content": "Introduction to Go"}]
+        items:
+          $ref: '#/definitions/dtos.LessonDTO'
+        type: array
+      order:
+        description: |-
+          Order is the sequence number of the module in the course.
+          @example 1
+        type: integer
+      title:
+        description: |-
+          Title is the name or title of the module.
+          @example Module 1
+        type: string
+    type: object
+  dtos.ModuleInsertDTO:
+    description: DTO used to insert a new module with the required fields, including
+      lessons.
+    properties:
+      course_id:
+        description: |-
+          CourseID is the unique identifier for the course associated with the module.
+          @example 1c1cdb5c-d6e4-4fb0-9755-f30b9d4fbb8c
+        type: string
+      lessons:
+        description: |-
+          Lessons is a list of lessons associated with the module.
+          @example [{"title": "Lesson 1", "content": "Introduction to Go"}]
+        items:
+          $ref: '#/definitions/dtos.LessonInsertDTO'
+        type: array
+      order:
+        description: |-
+          Order is the sequence number of the module in the course.
+          @example 1
+        minimum: 0
+        type: integer
+      title:
+        description: |-
+          Title is the name or title of the module.
+          @example Module 1
+        type: string
+    required:
+    - course_id
+    - title
+    type: object
+  dtos.ResourceDTO:
+    description: DTO that contains information about a specific resource.
+    properties:
+      created_at:
+        description: |-
+          CreatedAt is the timestamp when the resource was created.
+          @example 2025-03-01T12:34:56Z
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the resource.
+          @example d4fc16ff-4b2a-4a47-9cd6-8579d1f2cf0c
+        type: string
+      lesson_id:
+        description: |-
+          LessonID is the unique identifier for the lesson associated with the resource.
+          @example b7a92b1d-6a84-43f9-bfa0-c3703d13bc3f
+        type: string
+      title:
+        description: |-
+          Title is the name or title of the resource.
+          @example Introduction to Go
+        type: string
+      type:
+        description: |-
+          Type refers to the type of resource (e.g., PDF, SLIDES, LINK, CODE, OTHER).
+          @example PDF
+        type: string
+      updated_at:
+        description: |-
+          UpdatedAt is the timestamp when the resource was last updated.
+          @example 2025-03-01T12:34:56Z
+        type: string
+      url:
+        description: |-
+          URL is the link or address where the resource can be accessed.
+          @example https://example.com/intro-to-go.pdf
+        type: string
+    type: object
+  dtos.ResourceInsertDTO:
+    description: DTO used to insert a new resource with the required fields.
+    properties:
+      lesson_id:
+        description: |-
+          LessonID is the unique identifier for the lesson associated with the resource.
+          @example b7a92b1d-6a84-43f9-bfa0-c3703d13bc3f
+        type: string
+      title:
+        description: |-
+          Title is the name or title of the resource.
+          @example Introduction to Go
+        type: string
+      type:
+        description: |-
+          Type refers to the type of resource (e.g., PDF, SLIDES, LINK, CODE, OTHER).
+          @example PDF
+        enum:
+        - PDF
+        - SLIDES
+        - LINK
+        - CODE
+        - OTHER
+        type: string
+      url:
+        description: |-
+          URL is the link or address where the resource can be accessed.
+          @example https://example.com/intro-to-go.pdf
+        type: string
+    required:
+    - lesson_id
+    - title
+    - type
+    - url
+    type: object
+  response.ApiResponse:
+    properties:
+      code:
+        type: integer
+      correlationId:
+        type: string
+      data: {}
+      errors: {}
+      message: {}
+      page:
+        type: integer
+      perPage:
+        type: integer
+      success:
+        type: boolean
+      timestamp:
+        type: string
+      totalCount:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /lessons:
+    post:
+      consumes:
+      - application/json
+      description: Create a new lesson with the provided details.
+      parameters:
+      - description: Lesson to create
+        in: body
+        name: lesson
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LessonInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Lesson successfully created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.LessonDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Create a new Lesson
+      tags:
+      - Lessons
+  /modules:
+    post:
+      consumes:
+      - application/json
+      description: Create a new module with the provided details.
+      parameters:
+      - description: Module data
+        in: body
+        name: module
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ModuleInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Module successfully created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.ModuleDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Create Module
+      tags:
+      - Modules
+  /resources:
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource for a lesson with the provided details.
+      parameters:
+      - description: Resource to create
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ResourceInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Resource successfully created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.ResourceDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Create a new Resource
+      tags:
+      - Resources
+  /v1/api/courses:
+    post:
+      consumes:
+      - application/json
+      description: Create a course with the provided information.
+      parameters:
+      - description: Course information
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CourseInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Course successfully created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.CourseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Create a new Course
+      tags:
+      - Courses
+  /v1/api/courses/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing course by its unique ID.
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Course not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete a Course
+      tags:
+      - Courses
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a course by its unique ID.
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.CourseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Course not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Course by ID
+      tags:
+      - Courses
+    put:
+      consumes:
+      - application/json
+      description: Update course details using its ID.
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Course information to update
+        in: body
+        name: course
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CourseInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course successfully updated
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.CourseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Update an existing Course
+      tags:
+      - Courses
+  /v1/api/lesson/{lesson_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve resources associated with a specific lesson.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: lesson_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resources successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.ResourceDTO'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Resources not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Resources by Lesson ID
+      tags:
+      - Resources
+  /v1/api/lessons/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing lesson identified by its ID.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lesson successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Lesson not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete a Lesson
+      tags:
+      - Lessons
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a lesson by its unique ID.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lesson successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.LessonDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Lesson not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Lesson by ID
+      tags:
+      - Lessons
+    put:
+      consumes:
+      - application/json
+      description: Update the details of an existing lesson identified by its ID.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Lesson data to update
+        in: body
+        name: lesson
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LessonInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lesson successfully updated
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.LessonDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Update an existing Lesson
+      tags:
+      - Lessons
+  /v1/api/modules/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing module by its ID.
+      parameters:
+      - description: Module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Module successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Module not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete Module
+      tags:
+      - Modules
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a module by its unique ID.
+      parameters:
+      - description: Module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Module successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.ModuleDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Module not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Module by ID
+      tags:
+      - Modules
+    put:
+      consumes:
+      - application/json
+      description: Update an existing module by its ID with the provided details.
+      parameters:
+      - description: Module ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Module data to update
+        in: body
+        name: module
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ModuleInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Module successfully updated
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.ModuleDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Update Module
+      tags:
+      - Modules
+  /v1/api/modules/course/{course_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve modules associated with a given course ID.
+      parameters:
+      - description: Course ID
+        in: path
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Modules successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.ModuleDTO'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Modules not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Modules by Course ID
+      tags:
+      - Modules
+  /v1/api/resources/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing resource identified by its ID.
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource successfully deleted
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Resource not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete a Resource
+      tags:
+      - Resources
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a resource by its unique ID.
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.ResourceDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Resource not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Resource by ID
+      tags:
+      - Resources
+    put:
+      consumes:
+      - application/json
+      description: Update the details of an existing resource identified by its ID.
+      parameters:
+      - description: Resource ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Resource data to update
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ResourceInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resource successfully updated
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.ResourceDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Update an existing Resource
+      tags:
+      - Resources
+swagger: "2.0"

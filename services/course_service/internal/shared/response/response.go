@@ -1,6 +1,7 @@
 package response
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,17 +10,17 @@ import (
 // ApiResponse represents the structure of the API response.
 // It contains the success status, message, data, errors (if any), timestamp, and HTTP status code.
 // It supports pagination and correlation tracking.
-type ApiResponse[T any, E any] struct {
+type ApiResponse struct {
 	Success       bool        `json:"success"`
-	Message       interface{} `json:"message,omitempty"` // Puede ser un string o lista de mensajes
-	Data          T           `json:"data,omitempty"`
-	Errors        E           `json:"errors,omitempty"`
+	Message       interface{} `json:"message,omitempty"`
+	Data          interface{} `json:"data,omitempty"`
+	Errors        interface{} `json:"errors,omitempty"`
 	Timestamp     time.Time   `json:"timestamp"`
 	Code          int         `json:"code"`
-	CorrelationID string      `json:"correlationId,omitempty"` // Para seguimiento de solicitudes
-	TotalCount    int         `json:"totalCount,omitempty"`    // Para paginación
-	Page          int         `json:"page,omitempty"`          // Página actual
-	PerPage       int         `json:"perPage,omitempty"`       // Elementos por página
+	CorrelationID string      `json:"correlationId,omitempty"`
+	TotalCount    int         `json:"totalCount,omitempty"`
+	Page          int         `json:"page,omitempty"`
+	PerPage       int         `json:"perPage,omitempty"`
 }
 
 // Success sends a success response with the given data.
@@ -28,8 +29,8 @@ type ApiResponse[T any, E any] struct {
 // @Param message query string true "Response message"
 // @Param data query object false "Response data"
 // @Success 200 {object} ApiResponse "Success response"
-func Success[T any](c *fiber.Ctx, statusCode int, message interface{}, data T) error {
-	return c.Status(statusCode).JSON(ApiResponse[T, any]{
+func Success(c *fiber.Ctx, statusCode int, message string, data interface{}) error {
+	return c.Status(statusCode).JSON(ApiResponse{
 		Success:   true,
 		Message:   message,
 		Data:      data,
@@ -44,8 +45,8 @@ func Success[T any](c *fiber.Ctx, statusCode int, message interface{}, data T) e
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 400 {object} ApiResponse "Error response"
-func Error[E any](c *fiber.Ctx, statusCode int, message string, err E) error {
-	return c.Status(statusCode).JSON(ApiResponse[any, E]{
+func Error(c *fiber.Ctx, statusCode int, message string, err interface{}) error {
+	return c.Status(statusCode).JSON(ApiResponse{
 		Success:   false,
 		Message:   message,
 		Errors:    err,
@@ -60,8 +61,8 @@ func Error[E any](c *fiber.Ctx, statusCode int, message string, err E) error {
 // @Param message query string true "Response message"
 // @Param data query object false "Response data"
 // @Success 200 {object} ApiResponse "OK response"
-func OK[T any](c *fiber.Ctx, message string, data T) error {
-	return Success[T](c, 200, message, data)
+func OK(c *fiber.Ctx, message string, data interface{}) error {
+	return Success(c, http.StatusOK, message, data)
 }
 
 // Created sends a response indicating that a resource was created.
@@ -70,8 +71,8 @@ func OK[T any](c *fiber.Ctx, message string, data T) error {
 // @Param message query string true "Response message"
 // @Param data query object false "Response data"
 // @Success 201 {object} ApiResponse "Created response"
-func Created[T any](c *fiber.Ctx, message string, data T) error {
-	return Success[T](c, 201, message, data)
+func Created(c *fiber.Ctx, message string, data interface{}) error {
+	return Success(c, http.StatusCreated, message, data)
 }
 
 // BadRequest sends a response indicating that the request was invalid.
@@ -80,8 +81,8 @@ func Created[T any](c *fiber.Ctx, message string, data T) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 400 {object} ApiResponse "Bad request response"
-func BadRequest[E any](c *fiber.Ctx, message string, err E) error {
-	return Error[E](c, 400, message, err)
+func BadRequest(c *fiber.Ctx, message string, err interface{}) error {
+	return Error(c, http.StatusBadRequest, message, err)
 }
 
 // Unauthorized sends a response indicating that the user is not authorized.
@@ -90,8 +91,8 @@ func BadRequest[E any](c *fiber.Ctx, message string, err E) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 401 {object} ApiResponse "Unauthorized response"
-func Unauthorized[E any](c *fiber.Ctx, message string, err E) error {
-	return Error[E](c, 401, message, err)
+func Unauthorized(c *fiber.Ctx, message string, err interface{}) error {
+	return Error(c, http.StatusUnauthorized, message, err)
 }
 
 // Forbidden sends a response indicating that access is forbidden.
@@ -100,8 +101,8 @@ func Unauthorized[E any](c *fiber.Ctx, message string, err E) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 403 {object} ApiResponse "Forbidden response"
-func Forbidden[E any](c *fiber.Ctx, message string, err E) error {
-	return Error[E](c, 403, message, err)
+func Forbidden(c *fiber.Ctx, message string, err interface{}) error {
+	return Error(c, http.StatusForbidden, message, err)
 }
 
 // NotFound sends a response indicating that the resource was not found.
@@ -110,8 +111,8 @@ func Forbidden[E any](c *fiber.Ctx, message string, err E) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 404 {object} ApiResponse "Not found response"
-func NotFound[E any](c *fiber.Ctx, message string, err E) error {
-	return Error[E](c, 404, message, err)
+func NotFound(c *fiber.Ctx, message string, err interface{}) error {
+	return Error(c, http.StatusNotFound, message, err)
 }
 
 // InternalServerError sends a response indicating an internal server error.
@@ -120,6 +121,6 @@ func NotFound[E any](c *fiber.Ctx, message string, err E) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 500 {object} ApiResponse "Internal server error response"
-func InternalServerError[E any](c *fiber.Ctx, message string, err E) error {
-	return Error[E](c, 500, message, err)
+func InternalServerError(c *fiber.Ctx, message string, err interface{}) error {
+	return Error(c, http.StatusInternalServerError, message, err)
 }

@@ -24,6 +24,17 @@ func NewLessonHandler(useCase input.LessonUseCase) *LessonHandler {
 	}
 }
 
+// GetLessonById godoc
+// @Summary      Get Lesson by ID
+// @Description  Retrieve a lesson by its unique ID.
+// @Tags         Lessons
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Lesson ID"
+// @Success      200  {object}  response.ApiResponse{data=dtos.LessonDTO} "Lesson successfully retrieved"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Lesson not found"
+// @Router       /v1/api/lessons/{id} [get]
 func (lh *LessonHandler) GetLessonById(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -40,9 +51,19 @@ func (lh *LessonHandler) GetLessonById(c *fiber.Ctx) error {
 		return response.NotFound(c, "Lesson not found", err.Error())
 	}
 
-	return response.OK(c, "Lesson Successfully Retrieved", lesson)
+	return response.OK(c, "Lesson successfully retrieved", lesson)
 }
 
+// CreateLesson godoc
+// @Summary      Create a new Lesson
+// @Description  Create a new lesson with the provided details.
+// @Tags         Lessons
+// @Accept       json
+// @Produce      json
+// @Param        lesson  body      dtos.LessonInsertDTO  true  "Lesson to create"
+// @Success      201  {object}  response.ApiResponse{data=dtos.LessonDTO} "Lesson successfully created"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Router       /lessons [post]
 func (lh *LessonHandler) CreateLesson(c *fiber.Ctx) error {
 	var insertDTO dtos.LessonInsertDTO
 
@@ -63,6 +84,17 @@ func (lh *LessonHandler) CreateLesson(c *fiber.Ctx) error {
 	return response.Created(c, "Lesson successfully created", lessonCreated)
 }
 
+// UpdateLesson godoc
+// @Summary      Update an existing Lesson
+// @Description  Update the details of an existing lesson identified by its ID.
+// @Tags         Lessons
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string               true  "Lesson ID"
+// @Param        lesson  body      dtos.LessonInsertDTO true  "Lesson data to update"
+// @Success      200     {object}  response.ApiResponse{data=dtos.LessonDTO} "Lesson successfully updated"
+// @Failure      400     {object}  response.ApiResponse "Bad Request"
+// @Router       /v1/api/lessons/{id} [put]
 func (lh *LessonHandler) UpdateLesson(c *fiber.Ctx) error {
 	var insertDTO dtos.LessonInsertDTO
 
@@ -93,6 +125,17 @@ func (lh *LessonHandler) UpdateLesson(c *fiber.Ctx) error {
 	return response.OK(c, "Lesson successfully updated", lessonUpdated)
 }
 
+// DeleteLesson godoc
+// @Summary      Delete a Lesson
+// @Description  Delete an existing lesson identified by its ID.
+// @Tags         Lessons
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Lesson ID"
+// @Success      200  {object}  response.ApiResponse "Lesson successfully deleted"
+// @Failure      400  {object}  response.ApiResponse "Bad Request"
+// @Failure      404  {object}  response.ApiResponse "Lesson not found"
+// @Router       /v1/api/lessons/{id} [delete]
 func (lh *LessonHandler) DeleteLesson(c *fiber.Ctx) error {
 	idSTR := c.Params("id")
 	if idSTR == "" {
@@ -109,5 +152,5 @@ func (lh *LessonHandler) DeleteLesson(c *fiber.Ctx) error {
 		return response.NotFound(c, "Lesson not found", err.Error())
 	}
 
-	return response.OK[any](c, "Lesson successfully deleted", nil)
+	return response.OK(c, "Lesson successfully deleted", nil)
 }
