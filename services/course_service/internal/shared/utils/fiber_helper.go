@@ -1,7 +1,11 @@
 package utils
 
 import (
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func ValidateStruct(v *validator.Validate, dto interface{}) (map[string]string, error) {
@@ -18,4 +22,18 @@ func ValidateStruct(v *validator.Validate, dto interface{}) (map[string]string, 
 	}
 
 	return nil, nil
+}
+
+func GetUUIDParam(c *fiber.Ctx, paramName string) (uuid.UUID, error) {
+	idSTR := c.Params(paramName)
+	if idSTR == "" {
+		return uuid.Nil, fmt.Errorf("%s is mandatory", paramName)
+	}
+
+	id, err := uuid.Parse(idSTR)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("invalid %s", paramName)
+	}
+
+	return id, nil
 }

@@ -7,16 +7,19 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/response"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/utils"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/log"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
+// ResourceHandler handles Resource-related endpoints.
 type ResourceHandler struct {
 	useCase   input.ResourceUseCase
 	validator *validator.Validate
 }
 
+// NewResourceHandler creates a new ResourceHandler.
 func NewResourceHandler(useCase input.ResourceUseCase) *ResourceHandler {
 	return &ResourceHandler{
 		useCase:   useCase,
@@ -36,20 +39,39 @@ func NewResourceHandler(useCase input.ResourceUseCase) *ResourceHandler {
 // @Failure      404  {object}  response.ApiResponse "Resource not found"
 // @Router       /v1/api/resources/{id} [get]
 func (lh *ResourceHandler) GetResourceById(c *fiber.Ctx) error {
-	idSTR := c.Params("id")
-	if idSTR == "" {
-		return response.BadRequest(c, "Resource ID is mandatory", "id is obligatory")
-	}
+	// Log incoming request
+	logging.Logger.WithFields(logrus.Fields{
+		"action": "get_resource_by_id",
+		"method": c.Method(),
+		"route":  c.Route().Path,
+		"ip":     c.IP(),
+		"param":  c.Params("id"),
+		"user":   c.Locals("user_id"),
+	}).Info("Incoming request")
 
-	id, err := uuid.Parse(idSTR)
+	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		return response.BadRequest(c, "Invalid Resource ID", "invalid id")
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "get_resource_by_id",
+			"error":  err.Error(),
+		}).Error("Invalid resource ID")
+		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	resource, err := lh.useCase.GetResourceById(context.Background(), id)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action":      "get_resource_by_id",
+			"resource_id": id,
+			"error":       err.Error(),
+		}).Error("Resource not found")
 		return response.NotFound(c, "Resource not found", err.Error())
 	}
+
+	logging.Logger.WithFields(logrus.Fields{
+		"action":      "get_resource_by_id",
+		"resource_id": id,
+	}).Info("Resource successfully retrieved")
 
 	return response.OK(c, "Resource successfully retrieved", resource)
 }
@@ -66,20 +88,39 @@ func (lh *ResourceHandler) GetResourceById(c *fiber.Ctx) error {
 // @Failure      404  {object}  response.ApiResponse "Resources not found"
 // @Router       /v1/api/lesson/{lesson_id} [get]
 func (lh *ResourceHandler) GetResourceByLessonId(c *fiber.Ctx) error {
-	lessonIdSTR := c.Params("lesson_id")
-	if lessonIdSTR == "" {
-		return response.BadRequest(c, "Lesson ID is mandatory", "id is obligatory")
-	}
+	// Log incoming request
+	logging.Logger.WithFields(logrus.Fields{
+		"action": "get_resource_by_lesson_id",
+		"method": c.Method(),
+		"route":  c.Route().Path,
+		"ip":     c.IP(),
+		"param":  c.Params("lesson_id"),
+		"user":   c.Locals("user_id"),
+	}).Info("Incoming request")
 
-	lessonId, err := uuid.Parse(lessonIdSTR)
+	lessonId, err := utils.GetUUIDParam(c, "lesson_id")
 	if err != nil {
-		return response.BadRequest(c, "Invalid Lesson ID", "invalid lesson id")
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "get_resource_by_lesson_id",
+			"error":  err.Error(),
+		}).Error("Invalid lesson ID")
+		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	resource, err := lh.useCase.GetResourcesByLessonId(context.Background(), lessonId)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action":    "get_resource_by_lesson_id",
+			"lesson_id": lessonId,
+			"error":     err.Error(),
+		}).Error("Resource not found")
 		return response.NotFound(c, "Resource not found", err.Error())
 	}
+
+	logging.Logger.WithFields(logrus.Fields{
+		"action":    "get_resource_by_lesson_id",
+		"lesson_id": lessonId,
+	}).Info("Resource successfully retrieved")
 
 	return response.OK(c, "Resource successfully retrieved", resource)
 }
@@ -93,23 +134,49 @@ func (lh *ResourceHandler) GetResourceByLessonId(c *fiber.Ctx) error {
 // @Param        resource  body      dtos.ResourceInsertDTO  true  "Resource to create"
 // @Success      201  {object}  response.ApiResponse{data=dtos.ResourceDTO} "Resource successfully created"
 // @Failure      400  {object}  response.ApiResponse "Bad Request"
-// @Router       /resources [post]
+// @Router       /v1/api/resources [post]
 func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
-	var insertDTO dtos.ResourceInsertDTO
+	// Log incoming request with payload
+	logging.Logger.WithFields(logrus.Fields{
+		"action":  "create_resource",
+		"method":  c.Method(),
+		"route":   c.Route().Path,
+		"ip":      c.IP(),
+		"user":    c.Locals("user_id"),
+		"payload": c.Body(),
+	}).Info("Incoming request")
 
+	var insertDTO dtos.ResourceInsertDTO
 	if err := c.BodyParser(&insertDTO); err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "create_resource",
+			"error":  err.Error(),
+		}).Error("Invalid request body")
 		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "create_resource",
+			"error":  err.Error(),
+		}).Error("Validation failed")
 		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
 	resourceCreated, err := lh.useCase.CreateResource(context.TODO(), insertDTO)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "create_resource",
+			"error":  err.Error(),
+		}).Error("Error creating resource")
 		return response.BadRequest(c, "Error creating resource", err.Error())
 	}
+
+	logging.Logger.WithFields(logrus.Fields{
+		"action":      "create_resource",
+		"resource_id": resourceCreated.ID,
+	}).Info("Resource successfully created")
 
 	return response.Created(c, "Resource successfully created", resourceCreated)
 }
@@ -126,31 +193,58 @@ func (lh *ResourceHandler) CreateResource(c *fiber.Ctx) error {
 // @Failure      400  {object}  response.ApiResponse "Bad Request"
 // @Router       /v1/api/resources/{id} [put]
 func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
+	// Log incoming request with payload
+	logging.Logger.WithFields(logrus.Fields{
+		"action":  "update_resource",
+		"method":  c.Method(),
+		"route":   c.Route().Path,
+		"ip":      c.IP(),
+		"user":    c.Locals("user_id"),
+		"payload": c.Body(),
+	}).Info("Incoming request")
+
 	var insertDTO dtos.ResourceInsertDTO
 
-	idSTR := c.Params("id")
-	if idSTR == "" {
-		return response.BadRequest(c, "Resource ID is mandatory", "id is obligatory")
-	}
-
-	id, err := uuid.Parse(idSTR)
+	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		return response.BadRequest(c, "Invalid Resource ID", "invalid id")
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "update_resource",
+			"error":  err.Error(),
+		}).Error("Invalid resource ID")
+		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	if err := c.BodyParser(&insertDTO); err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "update_resource",
+			"error":  err.Error(),
+		}).Error("Invalid request body")
 		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "update_resource",
+			"error":  err.Error(),
+		}).Error("Validation failed")
 		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
 	resourceUpdated, err := lh.useCase.UpdateResource(context.TODO(), id, insertDTO)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action":      "update_resource",
+			"resource_id": id,
+			"error":       err.Error(),
+		}).Error("Error updating resource")
 		return response.BadRequest(c, "Error updating resource", err.Error())
 	}
+
+	logging.Logger.WithFields(logrus.Fields{
+		"action":      "update_resource",
+		"resource_id": id,
+	}).Info("Resource successfully updated")
 
 	return response.OK(c, "Resource successfully updated", resourceUpdated)
 }
@@ -167,20 +261,39 @@ func (lh *ResourceHandler) UpdateResource(c *fiber.Ctx) error {
 // @Failure      404  {object}  response.ApiResponse "Resource not found"
 // @Router       /v1/api/resources/{id} [delete]
 func (lh *ResourceHandler) DeleteResource(c *fiber.Ctx) error {
-	idSTR := c.Params("id")
-	if idSTR == "" {
-		return response.BadRequest(c, "Resource ID is mandatory", "id is obligatory")
-	}
+	// Log incoming request for deletion
+	logging.Logger.WithFields(logrus.Fields{
+		"action": "delete_resource",
+		"method": c.Method(),
+		"route":  c.Route().Path,
+		"ip":     c.IP(),
+		"user":   c.Locals("user_id"),
+		"param":  c.Params("id"),
+	}).Info("Incoming request")
 
-	id, err := uuid.Parse(idSTR)
+	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		return response.BadRequest(c, "Invalid Resource ID", "invalid id")
+		logging.Logger.WithFields(logrus.Fields{
+			"action": "delete_resource",
+			"error":  err.Error(),
+		}).Error("Invalid resource ID")
+		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	err = lh.useCase.DeleteResource(context.Background(), id)
 	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{
+			"action":      "delete_resource",
+			"resource_id": id,
+			"error":       err.Error(),
+		}).Error("Resource not found")
 		return response.NotFound(c, "Resource not found", err.Error())
 	}
+
+	logging.Logger.WithFields(logrus.Fields{
+		"action":      "delete_resource",
+		"resource_id": id,
+	}).Info("Resource successfully deleted")
 
 	return response.OK(c, "Resource successfully deleted", nil)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/input/v1/api/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/repository"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/usecase"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/log"
 	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/rate_limter"
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
@@ -26,6 +27,9 @@ func main() {
 
 	// Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
+
+	// logger
+	logging.InitLogger()
 
 	// rate limiter (50 Requests per minute)
 	rateLimiter := ratelimiter.NewRateLimiter(config.RedisClient, 50, 1*time.Minute)
