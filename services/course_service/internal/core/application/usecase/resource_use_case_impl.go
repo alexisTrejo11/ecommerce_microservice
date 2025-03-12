@@ -6,6 +6,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/mappers"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/shared/dtos"
 	"github.com/google/uuid"
 )
@@ -43,9 +44,11 @@ func (us *ResourceUseCaseImpl) GetResourceaByLessonId(ctx context.Context, lesso
 	return us.mappers.DomainsToDTOs(*resources), nil
 }
 
-// TODO: Add Buisness logic
 func (us *ResourceUseCaseImpl) CreateResource(ctx context.Context, insertDTO dtos.ResourceInsertDTO) (*dtos.ResourceDTO, error) {
-	domain := us.mappers.InsertDTOToDomain(insertDTO)
+	domain, err := us.mappers.InsertDTOToDomain(insertDTO)
+	if err != nil {
+		return nil, err
+	}
 
 	if _, err := us.lessonRepository.GetById(ctx, insertDTO.LessonID.String()); err != nil {
 		return nil, err
@@ -59,23 +62,22 @@ func (us *ResourceUseCaseImpl) CreateResource(ctx context.Context, insertDTO dto
 	return us.mappers.DomainToDTO(*domainCreated), nil
 }
 
-// TODO Implement Correct Update
 func (us *ResourceUseCaseImpl) UpdateResource(ctx context.Context, id uuid.UUID, insertDTO dtos.ResourceInsertDTO) (*dtos.ResourceDTO, error) {
 	exisitingResource, err := us.resourceRepository.GetById(ctx, id.String())
 	if err != nil {
 		return nil, err
 	}
 
-	updatedResource := us.mappers.InsertDTOToDomain(insertDTO)
-	updatedResource.ID = id
-	updatedResource.CreatedAt = exisitingResource.CreatedAt
-	updatedResource.UpdatedAt = exisitingResource.UpdatedAt
+	err = exisitingResource.UpdateInfo(insertDTO.Title, insertDTO.URL, domain.ResourceType(insertDTO.Type))
+	if err != nil {
+		return nil, err
+	}
 
 	if _, err := us.lessonRepository.GetById(ctx, insertDTO.LessonID.String()); err != nil {
 		return nil, err
 	}
 
-	domainCreated, err := us.resourceRepository.Update(ctx, id, *updatedResource)
+	domainCreated, err := us.resourceRepository.Update(ctx, id, *exisitingResource)
 	if err != nil {
 		return nil, err
 	}

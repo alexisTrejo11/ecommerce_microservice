@@ -10,38 +10,38 @@ import (
 type ResourceMapper struct{}
 
 func (m *ResourceMapper) ModelToDomain(model models.ResourceModel) *domain.Resource {
-	return &domain.Resource{
-		ID:        uuid.MustParse(model.ID),
-		Title:     model.Title,
-		LessonID:  model.LessonID,
-		Type:      domain.ResourceType(model.Type),
-		URL:       model.URL,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
-	}
+	return domain.NewResourceFromModel(
+		uuid.MustParse(model.ID),
+		model.LessonID,
+		model.Title,
+		domain.ResourceType(model.Type),
+		model.URL,
+		model.CreatedAt,
+		model.UpdatedAt,
+	)
 }
 
 func (m *ResourceMapper) DomainToModel(resource domain.Resource) *models.ResourceModel {
 	return &models.ResourceModel{
-		ID:        resource.ID.String(),
-		Title:     resource.Title,
-		Type:      string(resource.Type),
-		URL:       resource.URL,
-		LessonID:  resource.LessonID,
-		CreatedAt: resource.CreatedAt,
-		UpdatedAt: resource.UpdatedAt,
+		ID:        resource.ID().String(),
+		Title:     resource.Title(),
+		Type:      string(resource.Type()),
+		URL:       resource.URL(),
+		LessonID:  resource.LessonID(),
+		CreatedAt: resource.CreatedAt(),
+		UpdatedAt: resource.UpdatedAt(),
 	}
 }
 
 func (m *ResourceMapper) DomainToDTO(resource domain.Resource) *dtos.ResourceDTO {
 	return &dtos.ResourceDTO{
-		ID:        resource.ID,
-		Title:     resource.Title,
-		Type:      string(resource.Type),
-		URL:       resource.URL,
-		LessonID:  resource.LessonID,
-		CreatedAt: resource.CreatedAt,
-		UpdatedAt: resource.UpdatedAt,
+		ID:        resource.ID(),
+		Title:     resource.Title(),
+		Type:      string(resource.Type()),
+		URL:       resource.URL(),
+		LessonID:  resource.LessonID(),
+		CreatedAt: resource.CreatedAt(),
+		UpdatedAt: resource.UpdatedAt(),
 	}
 }
 
@@ -54,12 +54,11 @@ func (m *ResourceMapper) DomainsToDTOs(resources []domain.Resource) *[]dtos.Reso
 	return &resourcesDTOs
 }
 
-func (m *ResourceMapper) InsertDTOToDomain(insertDTO dtos.ResourceInsertDTO) *domain.Resource {
-	return &domain.Resource{
-		ID:       uuid.New(),
-		Title:    insertDTO.Title,
-		LessonID: insertDTO.LessonID,
-		Type:     domain.ResourceType(insertDTO.Type),
-		URL:      insertDTO.URL,
-	}
+func (m *ResourceMapper) InsertDTOToDomain(insertDTO dtos.ResourceInsertDTO) (*domain.Resource, error) {
+	return domain.NewResource(
+		insertDTO.LessonID,
+		insertDTO.Title,
+		domain.ResourceType(insertDTO.Type),
+		insertDTO.URL,
+	)
 }
