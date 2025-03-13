@@ -8,18 +8,14 @@ import (
 )
 
 type PaymentModel struct {
-	ID              uuid.UUID `gorm:"type:char(36);primaryKey"`
-	UserID          uuid.UUID `gorm:"type:char(36);index;not null"`
-	Amount          float64   `gorm:"type:decimal(10,2);not null"`
-	Status          string    `gorm:"type:varchar(20);default:'pending';check:status IN ('pending', 'completed', 'failed')"`
-	StripePaymentID string    `gorm:"type:varchar(255)"`
-	InvoiceID       uuid.UUID `gorm:"type:char(36);index"`
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       gorm.DeletedAt     `gorm:"index"`
-	User            UserModel          `gorm:"foreignKey:UserID"`
-	Invoice         InvoiceModel       `gorm:"foreignKey:InvoiceID"`
-	Transactions    []TransactionModel `gorm:"foreignKey:PaymentID;constraint:OnDelete:CASCADE"`
+	ID              uuid.UUID         `gorm:"primaryKey;type:uuid"`
+	CustomerID      uuid.UUID         `gorm:"not null;type:uuid"`
+	Currency        string            `gorm:"not null;size:3"`
+	PaymentMethodID string            `gorm:"not null;size:255"`
+	Status          string            `gorm:"not null;size:50"`
+	Created         time.Time         `gorm:"autoCreateTime"`
+	Metadata        map[string]string `gorm:"type:jsonb"`
+	TransactionID   *uuid.UUID        `gorm:"type:uuid"`
 }
 
 func (PaymentModel) TableName() string {
@@ -36,7 +32,7 @@ func (p *PaymentModel) BeforeCreate(tx *gorm.DB) error {
 type TransactionModel struct {
 	ID              uuid.UUID `gorm:"type:char(36);primaryKey"`
 	PaymentID       uuid.UUID `gorm:"type:char(36);index;not null"`
-	UserID          uuid.UUID `gorm:"type:char(36);index;not null"`
+	CustomerID      uuid.UUID `gorm:"type:char(36);index;not null"`
 	Amount          float64   `gorm:"type:decimal(10,2);not null"`
 	TransactionType string    `gorm:"type:varchar(20);not null;check:transaction_type IN ('credit', 'debit', 'refund')"`
 	Reference       string    `gorm:"type:varchar(255)"`
@@ -45,7 +41,7 @@ type TransactionModel struct {
 	UpdatedAt       time.Time
 	DeletedAt       gorm.DeletedAt `gorm:"index"`
 	Payment         *PaymentModel  `gorm:"foreignKey:PaymentID"`
-	User            *UserModel     `gorm:"foreignKey:UserID"`
+	Customer        *CustomerModel `gorm:"foreignKey:CustomerID"`
 }
 
 func (TransactionModel) TableName() string {
@@ -60,17 +56,15 @@ func (t *TransactionModel) BeforeCreate(tx *gorm.DB) error {
 }
 
 type InvoiceModel struct {
-	ID            uuid.UUID `gorm:"type:char(36);primaryKey"`
-	UserID        uuid.UUID `gorm:"type:char(36);index;not null"`
-	TotalAmount   float64   `gorm:"type:decimal(10,2);not null"`
-	Status        string    `gorm:"type:varchar(20);default:'pending';check:status IN ('pending', 'paid', 'cancelled')"`
-	InvoiceNumber string    `gorm:"type:varchar(50);unique"`
-	DueDate       time.Time
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     gorm.DeletedAt `gorm:"index"`
-	User          UserModel      `gorm:"foreignKey:UserID"`
-	Payments      []PaymentModel `gorm:"foreignKey:InvoiceID;constraint:OnDelete:SET NULL"`
+	ID             uuid.UUID  `gorm:"primaryKey;size:36"`
+	SubscriptionID string     `gorm:"not null;size:36"`
+	AmountDue      int64      `gorm:"not null"`
+	Currency       string     `gorm:"not null;size:3"`
+	Status         string     `gorm:"not null"`
+	IssuedAt       time.Time  `gorm:"autoCreateTime"`
+	PaidAt         *time.Time `gorm:"default:null"`
+	CreatedAt      time.Time  `gorm:"autoCreateTime"`
+	UpdatedAt      time.Time  `gorm:"autoUpdateTime"`
 }
 
 func (InvoiceModel) TableName() string {
@@ -84,16 +78,25 @@ func (i *InvoiceModel) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-type UserModel struct {
-	ID        uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Email     string    `gorm:"type:varchar(255);unique;not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+type CustomerModel struct {
+	ID               uuid.UUID          `gorm:"primaryKey;size:36"`
+	Email            string             `gorm:"unique;not null"`
+	Name             string             `gorm:"not null"`
+	PaymentMethods   []PaymentMethodRef `gorm:"foreignKey:CustomerID"`
+	DefaultPaymentID *string            `gorm:"size:36"`
+	CreatedAt        time.Time          `gorm:"autoCreateTime"`
+	UpdatedAt        time.Time          `gorm:"autoUpdateTime"`
 }
 
-func (UserModel) TableName() string {
-	return "users"
+type PaymentMethodRef struct {
+	ID         string    `gorm:"primaryKey;size:36"`
+	CustomerID string    `gorm:"size:36;not null"`
+	Method     string    `gorm:"not null"`
+	CreatedAt  time.Time `gorm:"autoCreateTime"`
+}
+
+func (CustomerModel) TableName() string {
+	return "Customers"
 }
 
 type CourseModel struct {

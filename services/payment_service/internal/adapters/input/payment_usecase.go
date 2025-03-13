@@ -8,6 +8,6 @@ import (
 )
 
 type PaymentUseCase interface {
-	ProcessPayment(ctx context.Context, amount float64, currency string, method string) (*entity.Payment, error)
-	GetPaymentByID(ctx context.Context, id valueobject.ID) (*entity.Payment, error)
+	ProcessPayment(ctx context.Context, amount float64, currency string, method string) (*entity.PaymentIntent, error)
+	GetPaymentByID(ctx context.Context, id valueobject.ID) (*entity.PaymentIntent, error)
 }
