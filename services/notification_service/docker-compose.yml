@@ -1,0 +1,73 @@
+services:
+  notification-app:
+    build: .
+    environment:
+      - MONGO_URI=mongodb://notification-db:27017/notifications
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      notification-redis:
+        condition: service_healthy
+      notification-rabbitmq:
+        condition: service_healthy
+    networks:
+      - go-network
+    ports:
+      - "3004:3000"
+    env_file:
+      - .env
+
+  notification-db:
+    image: mongo:6.0
+    container_name: notification-mongodb
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - go-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  notification-redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6378:6379"
+    networks:
+      - go-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    
+  notification-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - go-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mongodb-data:
+
+networks:
+  go-network:
+    driver: bridge

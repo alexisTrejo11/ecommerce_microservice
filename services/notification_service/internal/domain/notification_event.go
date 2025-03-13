@@ -47,11 +47,11 @@ type NotificationFailedEvent struct {
 
 func CreateNotificationCreatedEvent(notification *Notification) (*NotificationEvent, error) {
 	data := NotificationCreatedEvent{
-		NotificationID: notification.id,
-		UserID:         notification.userID,
-		Type:           notification.notificationtType,
-		Title:          notification.title,
-		ScheduledAt:    notification.scheduledAt,
+		NotificationID: notification.ID,
+		UserID:         notification.UserID,
+		Type:           notification.Type,
+		Title:          notification.Title,
+		ScheduledAt:    notification.ScheduledAt,
 	}
 
 	dataBytes, err := json.Marshal(data)
@@ -60,7 +60,7 @@ func CreateNotificationCreatedEvent(notification *Notification) (*NotificationEv
 	}
 
 	return &NotificationEvent{
-		EventID:    notification.id,
+		EventID:    notification.ID,
 		EventType:  EventNotificationCreated,
 		OccurredAt: time.Now(),
 		Data:       dataBytes,
@@ -69,10 +69,10 @@ func CreateNotificationCreatedEvent(notification *Notification) (*NotificationEv
 
 func CreateNotificationSentEvent(notification *Notification) (*NotificationEvent, error) {
 	data := NotificationSentEvent{
-		NotificationID: notification.id,
-		UserID:         notification.userID,
-		Type:           notification.notificationtType,
-		SentAt:         *notification.sentAt,
+		NotificationID: notification.ID,
+		UserID:         notification.UserID,
+		Type:           notification.Type,
+		SentAt:         *notification.SentAt,
 	}
 
 	dataBytes, err := json.Marshal(data)
@@ -81,7 +81,7 @@ func CreateNotificationSentEvent(notification *Notification) (*NotificationEvent
 	}
 
 	return &NotificationEvent{
-		EventID:    notification.id,
+		EventID:    notification.ID,
 		EventType:  EventNotificationSent,
 		OccurredAt: time.Now(),
 		Data:       dataBytes,
@@ -90,9 +90,9 @@ func CreateNotificationSentEvent(notification *Notification) (*NotificationEvent
 
 func CreateNotificationFailedEvent(notification *Notification, reason string) (*NotificationEvent, error) {
 	data := NotificationFailedEvent{
-		NotificationID: notification.id,
-		UserID:         notification.userID,
-		Type:           notification.notificationtType,
+		NotificationID: notification.ID,
+		UserID:         notification.UserID,
+		Type:           notification.Type,
 		FailedAt:       time.Now(),
 		Reason:         reason,
 	}
@@ -103,7 +103,7 @@ func CreateNotificationFailedEvent(notification *Notification, reason string) (*
 	}
 
 	return &NotificationEvent{
-		EventID:    notification.id,
+		EventID:    notification.ID,
 		EventType:  EventNotificationFailed,
 		OccurredAt: time.Now(),
 		Data:       dataBytes,
