@@ -34,6 +34,7 @@ func NewPaymentIntent(
 	amount valueobject.Money,
 	paymentMethodID string,
 	courseID string,
+	status PaymentIntentStatus,
 ) (*PaymentIntent, error) {
 	if id == "" || customerID == "" || paymentMethodID == "" || courseID == "" {
 		return nil, errors.New("id, customerID, paymentMethodID, and courseID cannot be empty")
