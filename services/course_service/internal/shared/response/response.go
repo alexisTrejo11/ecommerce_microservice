@@ -14,7 +14,7 @@ type ApiResponse struct {
 	Success       bool        `json:"success"`
 	Message       interface{} `json:"message,omitempty"`
 	Data          interface{} `json:"data,omitempty"`
-	Errors        interface{} `json:"errors,omitempty"`
+	ErrorCode     interface{} `json:"error_code,omitempty"`
 	Timestamp     time.Time   `json:"timestamp"`
 	Code          int         `json:"code"`
 	CorrelationID string      `json:"correlationId,omitempty"`
@@ -45,11 +45,11 @@ func Success(c *fiber.Ctx, statusCode int, message string, data interface{}) err
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 400 {object} ApiResponse "Error response"
-func Error(c *fiber.Ctx, statusCode int, message string, err interface{}) error {
+func Error(c *fiber.Ctx, statusCode int, message string, errCode interface{}) error {
 	return c.Status(statusCode).JSON(ApiResponse{
 		Success:   false,
 		Message:   message,
-		Errors:    err,
+		ErrorCode: errCode,
 		Timestamp: time.Now(),
 		Code:      statusCode,
 	})
@@ -81,8 +81,8 @@ func Created(c *fiber.Ctx, message string, data interface{}) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 400 {object} ApiResponse "Bad request response"
-func BadRequest(c *fiber.Ctx, message string, err interface{}) error {
-	return Error(c, http.StatusBadRequest, message, err)
+func BadRequest(c *fiber.Ctx, message string, errCode interface{}) error {
+	return Error(c, http.StatusBadRequest, message, errCode)
 }
 
 // Unauthorized sends a response indicating that the user is not authorized.
@@ -91,8 +91,8 @@ func BadRequest(c *fiber.Ctx, message string, err interface{}) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 401 {object} ApiResponse "Unauthorized response"
-func Unauthorized(c *fiber.Ctx, message string, err interface{}) error {
-	return Error(c, http.StatusUnauthorized, message, err)
+func Unauthorized(c *fiber.Ctx, message string, errCode interface{}) error {
+	return Error(c, http.StatusUnauthorized, message, errCode)
 }
 
 // Forbidden sends a response indicating that access is forbidden.
@@ -101,8 +101,8 @@ func Unauthorized(c *fiber.Ctx, message string, err interface{}) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 403 {object} ApiResponse "Forbidden response"
-func Forbidden(c *fiber.Ctx, message string, err interface{}) error {
-	return Error(c, http.StatusForbidden, message, err)
+func Forbidden(c *fiber.Ctx, message string, errCode interface{}) error {
+	return Error(c, http.StatusForbidden, message, errCode)
 }
 
 // NotFound sends a response indicating that the resource was not found.
@@ -111,8 +111,8 @@ func Forbidden(c *fiber.Ctx, message string, err interface{}) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 404 {object} ApiResponse "Not found response"
-func NotFound(c *fiber.Ctx, message string, err interface{}) error {
-	return Error(c, http.StatusNotFound, message, err)
+func NotFound(c *fiber.Ctx, message string, errCode interface{}) error {
+	return Error(c, http.StatusNotFound, message, errCode)
 }
 
 // InternalServerError sends a response indicating an internal server error.
@@ -121,6 +121,6 @@ func NotFound(c *fiber.Ctx, message string, err interface{}) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 500 {object} ApiResponse "Internal server error response"
-func InternalServerError(c *fiber.Ctx, message string, err interface{}) error {
-	return Error(c, http.StatusInternalServerError, message, err)
+func InternalServerError(c *fiber.Ctx, message string, errCode interface{}) error {
+	return Error(c, http.StatusInternalServerError, message, errCode)
 }

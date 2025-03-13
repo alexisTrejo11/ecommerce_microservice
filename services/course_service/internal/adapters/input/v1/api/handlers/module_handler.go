@@ -10,7 +10,6 @@ import (
 	logging "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/log"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 type ModuleHandler struct {
@@ -37,39 +36,24 @@ func NewModuleHandler(useCase input.ModuleUseCase) *ModuleHandler {
 // @Failure      404  {object}  response.ApiResponse "Module not found"
 // @Router       /v1/api/modules/{id} [get]
 func (lh *ModuleHandler) GetModuleById(c *fiber.Ctx) error {
-	// Log incoming request
-	logging.Logger.WithFields(logrus.Fields{
-		"action": "get_module_by_id",
-		"method": c.Method(),
-		"route":  c.Route().Path,
-		"ip":     c.IP(),
-		"param":  c.Params("id"),
-		"user":   c.Locals("user_id"),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "get_module_by_id")
 
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "get_module_by_id",
-			"error":  err.Error(),
-		}).Error("Invalid Module ID")
+		logging.LogError("get_module_by_id", "Invalid module ID", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	module, err := lh.useCase.GetModuleById(context.Background(), id)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action":    "get_module_by_id",
-			"module_id": id,
-			"error":     err.Error(),
-		}).Error("Module not found")
-		return response.NotFound(c, "Module not found", err.Error())
+		return response.HandleApplicationError(c, err, "get_module_by_id", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "get_module_by_id",
+	logging.LogSuccess("get_module_by_id", "Module successfully retrieved", map[string]interface{}{
 		"module_id": id,
-	}).Info("Module successfully retrieved")
+	})
 
 	return response.OK(c, "Module successfully retrieved", module)
 }
@@ -85,40 +69,25 @@ func (lh *ModuleHandler) GetModuleById(c *fiber.Ctx) error {
 // @Failure      400  {object}  response.ApiResponse "Bad Request"
 // @Failure      404  {object}  response.ApiResponse "Modules not found"
 // @Router       /v1/api/modules/course/{course_id} [get]
-func (lh *ModuleHandler) GetModuleByCourseId(c *fiber.Ctx) error {
-	// Log incoming request
-	logging.Logger.WithFields(logrus.Fields{
-		"action": "get_module_by_course_id",
-		"method": c.Method(),
-		"route":  c.Route().Path,
-		"ip":     c.IP(),
-		"param":  c.Params("course_id"),
-		"user":   c.Locals("user_id"),
-	}).Info("Incoming request")
+func (lh *ModuleHandler) GetModulesByCourseId(c *fiber.Ctx) error {
+	logging.LogIncomingRequest(c, "get_modules_course_by_id")
 
 	id, err := utils.GetUUIDParam(c, "course_id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "get_module_by_course_id",
-			"error":  err.Error(),
-		}).Error("Invalid Course ID")
-		return response.BadRequest(c, err.Error(), "invalid id")
+		logging.LogError("update_course", "Invalid course ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), "Invalid course ID")
 	}
 
 	modules, err := lh.useCase.GetModuleByCourseId(context.Background(), id)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action":    "get_module_by_course_id",
-			"course_id": id,
-			"error":     err.Error(),
-		}).Error("Modules not found")
-		return response.NotFound(c, "Modules not found", err.Error())
+		return response.HandleApplicationError(c, err, "get_modules_course_by_id", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "get_module_by_course_id",
+	logging.LogSuccess("get_modules_course_by_id", "Modules successfully retrieved", map[string]interface{}{
 		"course_id": id,
-	}).Info("Modules successfully retrieved")
+	})
 
 	return response.OK(c, "Modules successfully retrieved", modules)
 }
@@ -134,47 +103,32 @@ func (lh *ModuleHandler) GetModuleByCourseId(c *fiber.Ctx) error {
 // @Failure      400  {object}  response.ApiResponse "Bad Request"
 // @Router       /v1/api/modules [post]
 func (lh *ModuleHandler) CreateModule(c *fiber.Ctx) error {
-	// Log incoming request with payload
-	logging.Logger.WithFields(logrus.Fields{
-		"action":  "create_module",
-		"method":  c.Method(),
-		"route":   c.Route().Path,
-		"ip":      c.IP(),
-		"user":    c.Locals("user_id"),
-		"payload": c.Body(),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "create_module")
 
 	var insertDTO dtos.ModuleInsertDTO
 	if err := c.BodyParser(&insertDTO); err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "create_module",
-			"error":  err.Error(),
-		}).Error("Invalid request body")
+		logging.LogError("create_module", "can't parse body request", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "create_module",
-			"error":  err.Error(),
-		}).Error("Validation failed")
+		logging.LogError("create_module", "invalid request data", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
 	moduleCreated, err := lh.useCase.CreateModule(context.TODO(), insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "create_module",
-			"error":  err.Error(),
-		}).Error("Error creating module")
-		return response.BadRequest(c, "Error creating module", err.Error())
+		return response.HandleApplicationError(c, err, "create_module", moduleCreated.ID.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "create_module",
+	logging.LogSuccess("create_module", "Module successfully created", map[string]interface{}{
 		"module_id": moduleCreated.ID,
-	}).Info("Module successfully created")
+	})
 
 	return response.Created(c, "Module successfully created", moduleCreated)
 }
@@ -191,58 +145,41 @@ func (lh *ModuleHandler) CreateModule(c *fiber.Ctx) error {
 // @Failure      400  {object}  response.ApiResponse "Bad Request"
 // @Router       /v1/api/modules/{id} [put]
 func (lh *ModuleHandler) UpdateModule(c *fiber.Ctx) error {
-	// Log incoming request with payload
-	logging.Logger.WithFields(logrus.Fields{
-		"action":  "update_module",
-		"method":  c.Method(),
-		"route":   c.Route().Path,
-		"ip":      c.IP(),
-		"user":    c.Locals("user_id"),
-		"payload": c.Body(),
-	}).Info("Incoming request")
-
-	var insertDTO dtos.ModuleInsertDTO
+	logging.LogIncomingRequest(c, "update_module")
 
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_module",
-			"error":  err.Error(),
-		}).Error("Invalid module ID")
+		logging.LogError("update_module", "Invalid module ID", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
+	var insertDTO dtos.ModuleInsertDTO
+
 	if err := c.BodyParser(&insertDTO); err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_module",
-			"error":  err.Error(),
-		}).Error("Invalid request body")
+		logging.LogError("update_module", "can't parse body request", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_module",
-			"error":  err.Error(),
-		}).Error("Validation failed")
+		logging.LogError("update_module", "invalid request data", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
 	moduleUpdated, err := lh.useCase.UpdateModule(context.TODO(), id, insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action":    "update_module",
-			"module_id": id,
-			"error":     err.Error(),
-		}).Error("Error updating module")
-		return response.BadRequest(c, "Error updating module", err.Error())
+		return response.HandleApplicationError(c, err, "update_module", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "update_module",
+	logging.LogSuccess("update_module", "Module successfully updated", map[string]interface{}{
 		"module_id": id,
-	}).Info("Module successfully updated")
+	})
 
 	return response.OK(c, "Module successfully updated", moduleUpdated)
 }
@@ -259,39 +196,24 @@ func (lh *ModuleHandler) UpdateModule(c *fiber.Ctx) error {
 // @Failure      404  {object}  response.ApiResponse "Module not found"
 // @Router       /v1/api/modules/{id} [delete]
 func (lh *ModuleHandler) DeleteModule(c *fiber.Ctx) error {
-	// Log incoming request for deletion
-	logging.Logger.WithFields(logrus.Fields{
-		"action": "delete_module",
-		"method": c.Method(),
-		"route":  c.Route().Path,
-		"ip":     c.IP(),
-		"user":   c.Locals("user_id"),
-		"param":  c.Params("id"),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "delete_module")
 
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "delete_module",
-			"error":  err.Error(),
-		}).Error("Invalid module ID")
-		return response.BadRequest(c, err.Error(), "invalid id")
+		logging.LogError("delete_module", "Invalid module ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), "Invalid module ID")
 	}
 
 	err = lh.useCase.DeleteModule(context.Background(), id)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action":    "delete_module",
-			"module_id": id,
-			"error":     err.Error(),
-		}).Error("Module not found")
-		return response.NotFound(c, "Module not found", err.Error())
+		return response.HandleApplicationError(c, err, "delete_module", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "delete_module",
-		"module_id": id,
-	}).Info("Module successfully deleted")
+	logging.LogSuccess("delete_module", "Module successfully deleted", map[string]interface{}{
+		"course_id": id,
+	})
 
 	return response.OK(c, "Module successfully deleted", nil)
 }

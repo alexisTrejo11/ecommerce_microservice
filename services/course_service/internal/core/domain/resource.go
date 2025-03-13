@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"errors"
 	"strings"
 	"time"
 
+	customErrors "github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/errors"
 	"github.com/google/uuid"
 )
 
@@ -37,13 +37,13 @@ func NewResource(
 	url string,
 ) (*Resource, error) {
 	if strings.TrimSpace(title) == "" {
-		return nil, errors.New("title is required")
+		return nil, customErrors.ErrResourceTitleRequired
 	}
 	if strings.TrimSpace(url) == "" {
-		return nil, errors.New("URL is required")
+		return nil, customErrors.ErrResourceURLRequired
 	}
 	if !isValidResourceType(resType) {
-		return nil, errors.New("invalid resource type")
+		return nil, customErrors.ErrResourceInvalidType
 	}
 
 	now := time.Now()
@@ -88,18 +88,17 @@ func (r *Resource) UpdatedAt() time.Time { return r.updatedAt }
 
 func (r *Resource) UpdateInfo(newTitle, newURL string, newType ResourceType) error {
 	if strings.TrimSpace(newTitle) == "" {
-		return errors.New("resource title is required")
+		return customErrors.ErrResourceTitleRequired
 	}
 
 	if newURL == "" {
-		return errors.New("resource URL is required")
+		return customErrors.ErrResourceURLRequired
 	}
 
 	if !isValidResourceType(newType) {
-		return errors.New("invalid resource type")
+		return customErrors.ErrResourceInvalidType
 	}
 
-	// Actualizamos los campos
 	r.title = newTitle
 	r.url = newURL
 	r.resType = newType

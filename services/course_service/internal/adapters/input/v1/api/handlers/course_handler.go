@@ -10,7 +10,6 @@ import (
 	logging "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/log"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 type CourseHandler struct {
@@ -37,41 +36,24 @@ func NewCourseHandler(useCase input.CourseUseCase) *CourseHandler {
 // @Failure      404  {object}  response.ApiResponse "Course not found"
 // @Router       /v1/api/courses/{id} [get]
 func (lh *CourseHandler) GetCourseById(c *fiber.Ctx) error {
-	logging.Logger.WithFields(logrus.Fields{
-		"action": "get_course_by_id",
-		"method": c.Method(),
-		"route":  c.Route().Path,
-		"ip":     c.IP(),
-		"user":   c.Locals("user_id"),
-		"params": c.Params("id"),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "get_course_by_id")
 
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "get_course_by_id",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Invalid course ID")
-		return response.BadRequest(c, err.Error(), "invalid id")
+		logging.LogError("get_course_by_id", "invalid course ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), "invalid course ID")
 	}
 
 	course, err := lh.useCase.GetCourseById(context.Background(), id)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action":    "get_course_by_id",
-			"status":    "failed",
-			"course_id": id,
-			"error":     err.Error(),
-		}).Error("Course not found")
-		return response.NotFound(c, "Course not found", err.Error())
+		return response.HandleApplicationError(c, err, "get_course_by_id", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "get_course_by_id",
-		"status":    "success",
+	logging.LogSuccess("get_course_by_id", "Course successfully retrieved", map[string]interface{}{
 		"course_id": course.ID,
-	}).Info("Course successfully retrieved")
+	})
 
 	return response.OK(c, "Course Successfully Retrieved", course)
 }
@@ -87,42 +69,26 @@ func (lh *CourseHandler) GetCourseById(c *fiber.Ctx) error {
 // @Failure      400     {object}  response.ApiResponse "Bad Request"
 // @Router       /v1/api/courses [post]
 func (lh *CourseHandler) CreateCourse(c *fiber.Ctx) error {
-	logging.Logger.WithFields(logrus.Fields{
-		"action":  "create_course",
-		"method":  c.Method(),
-		"route":   c.Route().Path,
-		"ip":      c.IP(),
-		"user":    c.Locals("user_id"),
-		"payload": c.Body(),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "create_course")
 
 	var insertDTO dtos.CourseInsertDTO
 	if err := c.BodyParser(&insertDTO); err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "create_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Invalid request body")
+		logging.LogError("create_course", "can't parse body request", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
-	CourseCreated, err := lh.useCase.CreateCourse(context.TODO(), insertDTO)
+	courseCreated, err := lh.useCase.CreateCourse(context.TODO(), insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "create_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Error creating course")
-		return response.BadRequest(c, "Error creating course", err.Error())
+		return response.HandleApplicationError(c, err, "create_course", courseCreated.ID)
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "create_course",
-		"status":    "success",
-		"course_id": CourseCreated.ID,
-	}).Info("Course successfully created")
+	logging.LogSuccess("create_course", "Course successfully created", map[string]interface{}{
+		"course_id": courseCreated.ID,
+	})
 
-	return response.Created(c, "Course successfully created", CourseCreated)
+	return response.Created(c, "Course successfully created", courseCreated)
 }
 
 // UpdateCourse godoc
@@ -137,60 +103,40 @@ func (lh *CourseHandler) CreateCourse(c *fiber.Ctx) error {
 // @Failure      400     {object}  response.ApiResponse "Bad Request"
 // @Router       /v1/api/courses/{id} [put]
 func (lh *CourseHandler) UpdateCourse(c *fiber.Ctx) error {
-	logging.Logger.WithFields(logrus.Fields{
-		"action":  "update_course",
-		"method":  c.Method(),
-		"route":   c.Route().Path,
-		"ip":      c.IP(),
-		"user":    c.Locals("user_id"),
-		"payload": c.Body(),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "update_course")
 
 	var insertDTO dtos.CourseInsertDTO
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Invalid course ID")
+		logging.LogError("update_course", "Invalid course ID", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	if err := c.BodyParser(&insertDTO); err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Invalid request body")
+		logging.LogError("update_course", "can't parse body request", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Invalid request body", err.Error())
 	}
 
 	errorsMap, err := utils.ValidateStruct(lh.validator, &insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Validation failed")
+		logging.LogError("update_course", "can't parse body request", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, "Validation failed", errorsMap)
 	}
 
 	CourseUpdated, err := lh.useCase.UpdateCourse(context.TODO(), id, insertDTO)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "update_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Error updating course")
-		return response.BadRequest(c, "Error updating course", err.Error())
+		return response.HandleApplicationError(c, err, "update_course", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "update_course",
-		"status":    "success",
-		"course_id": CourseUpdated.ID,
-	}).Info("Course successfully updated")
+	logging.LogSuccess("update_course", "Course successfully deleted", map[string]interface{}{
+		"course_id": id,
+	})
 
 	return response.OK(c, "Course successfully updated", CourseUpdated)
 }
@@ -207,39 +153,24 @@ func (lh *CourseHandler) UpdateCourse(c *fiber.Ctx) error {
 // @Failure      404  {object}  response.ApiResponse "Course not found"
 // @Router       /v1/api/courses/{id} [delete]
 func (lh *CourseHandler) DeleteCourse(c *fiber.Ctx) error {
-	logging.Logger.WithFields(logrus.Fields{
-		"action": "delete_course",
-		"method": c.Method(),
-		"route":  c.Route().Path,
-		"ip":     c.IP(),
-		"user":   c.Locals("user_id"),
-	}).Info("Incoming request")
+	logging.LogIncomingRequest(c, "delete_course")
 
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "delete_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Invalid course ID")
+		logging.LogError("delete_course", "Invalid course ID", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return response.BadRequest(c, err.Error(), "invalid id")
 	}
 
 	err = lh.useCase.DeleteCourse(context.Background(), id)
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{
-			"action": "delete_course",
-			"status": "failed",
-			"error":  err.Error(),
-		}).Error("Course not found")
-		return response.NotFound(c, "Course not found", err.Error())
+		return response.HandleApplicationError(c, err, "delete_course", id.String())
 	}
 
-	logging.Logger.WithFields(logrus.Fields{
-		"action":    "delete_course",
-		"status":    "success",
+	logging.LogSuccess("delete_course", "Course successfully deleted", map[string]interface{}{
 		"course_id": id,
-	}).Info("Course successfully deleted")
+	})
 
 	return response.OK(c, "Course successfully deleted", nil)
 }

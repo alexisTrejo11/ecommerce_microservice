@@ -1,12 +1,12 @@
 package domain
 
 import (
-	"errors"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/adapters/output/models"
+	customErrors "github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/errors"
 	"github.com/google/uuid"
 )
 
@@ -89,7 +89,7 @@ func NewCourse(
 ) (*Course, error) {
 
 	if strings.TrimSpace(name) == "" {
-		return nil, errors.New("name is required")
+		return nil, customErrors.ErrCourseNameRequired
 	}
 
 	c := &Course{
@@ -116,7 +116,7 @@ func NewCourse(
 	c.generateSlug()
 
 	if !c.validateLanguage() {
-		return nil, errors.New("invalid language")
+		return nil, customErrors.ErrCourseInvalidLanguage
 	}
 
 	return c, nil
@@ -159,7 +159,7 @@ func (c *Course) UpdateInfo(
 	tags []string,
 ) error {
 	if strings.TrimSpace(name) == "" {
-		return errors.New("name is required")
+		return customErrors.ErrCourseNameRequired
 	}
 
 	c.name = name
@@ -176,7 +176,7 @@ func (c *Course) UpdateInfo(
 	c.generateSlug()
 
 	if !c.validateLanguage() {
-		return errors.New("invalid language")
+		return customErrors.ErrCourseInvalidLanguage
 	}
 
 	return nil
@@ -204,7 +204,7 @@ func (c *Course) validateLanguage() bool {
 
 func (c *Course) Publish() error {
 	if c.publishedAt != nil {
-		return errors.New("course already published")
+		return customErrors.ErrCourseAlreadyPublished
 	}
 	now := time.Now()
 	c.publishedAt = &now

@@ -1,11 +1,10 @@
 package domain
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 	"time"
 
+	customErrors "github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/errors"
 	"github.com/google/uuid"
 )
 
@@ -24,7 +23,7 @@ type Module struct {
 func NewModule(title string, courseID uuid.UUID, order int) (*Module, error) {
 	title = strings.TrimSpace(title)
 	if title == "" || len(title) > 100 {
-		return nil, errors.New("title is required and must be less than 100 characters")
+		return nil, customErrors.ErrModuleTitleInvalid
 	}
 
 	return &Module{
@@ -46,15 +45,15 @@ func NewModuleFromModel(
 	lessons []Lesson,
 ) (*Module, error) {
 	if len(title) < 3 || len(title) > 100 {
-		return nil, errors.New("title must be between 3 and 100 characters")
+		return nil, customErrors.ErrModuleTitleInvalid
 	}
 
 	if order < 0 {
-		return nil, errors.New("order must be non-negative")
+		return nil, customErrors.ErrModuleOrderInvalid
 	}
 
 	if len(lessons) > maxLessonsPerModule {
-		return nil, fmt.Errorf("a module cannot have more than %d lessons", maxLessonsPerModule)
+		return nil, customErrors.ErrModuleMaxLessonsExceeded
 	}
 
 	return &Module{
@@ -88,7 +87,7 @@ func (m *Module) Update(title string, order int) error {
 
 func (m *Module) AddLesson(lesson Lesson) error {
 	if len(m.lessons) >= maxLessonsPerModule {
-		return errors.New("maximum number of lessons reached for this module")
+		return customErrors.ErrModuleMaxLessonsExceeded
 	}
 	m.lessons = append(m.lessons, lesson)
 	m.updatedAt = time.Now()
@@ -97,7 +96,7 @@ func (m *Module) AddLesson(lesson Lesson) error {
 
 func (m *Module) SetLessons(lessons []Lesson) error {
 	if len(lessons) > maxLessonsPerModule {
-		return errors.New("cannot assign more than 50 lessons to a module")
+		return customErrors.ErrModuleMaxLessonsExceeded
 	}
 	m.lessons = lessons
 	m.updatedAt = time.Now()
@@ -107,7 +106,7 @@ func (m *Module) SetLessons(lessons []Lesson) error {
 func (m *Module) updateTitle(newTitle string) error {
 	newTitle = strings.TrimSpace(newTitle)
 	if newTitle == "" || len(newTitle) > 100 {
-		return errors.New("title must be non-empty and under 100 characters")
+		return customErrors.ErrModuleTitleInvalid
 	}
 	m.title = newTitle
 	m.updatedAt = time.Now()
@@ -116,7 +115,7 @@ func (m *Module) updateTitle(newTitle string) error {
 
 func (m *Module) updateOrder(newOrder int) error {
 	if newOrder < 0 {
-		return errors.New("order must be non-negative")
+		return customErrors.ErrModuleOrderInvalid
 	}
 
 	m.order = newOrder

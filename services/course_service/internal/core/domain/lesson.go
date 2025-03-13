@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"errors"
 	"strings"
 	"time"
 
+	customErrors "github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/errors"
 	"github.com/google/uuid"
 )
 
@@ -98,8 +98,8 @@ func (l *Lesson) CreatedAt() time.Time  { return l.createdAt }
 func (l *Lesson) UpdatedAt() time.Time  { return l.updatedAt }
 
 func (l *Lesson) AddResource(resource Resource) error {
-	if (len(l.resources) + 1) >= maxLimitOfResources {
-		return errors.New("max limit of resources per lesson reachers")
+	if (len(l.resources) + 1) > maxLimitOfResources {
+		return customErrors.ErrLessonMaxResourcesExceeded
 	}
 
 	l.resources = append(l.resources, resource)
@@ -110,13 +110,13 @@ func (l *Lesson) AddResource(resource Resource) error {
 
 func (l *Lesson) UpdateContent(title, content, videoURL string, duration int, isPreview bool) error {
 	if strings.TrimSpace(title) == "" {
-		return errors.New("title is required")
+		return customErrors.ErrLessonTitleRequired
 	}
 	if len(title) > maxLessonTitleLength {
-		return errors.New("title exceeds maximum length")
+		return customErrors.ErrLessonTitleTooLong
 	}
 	if duration < 1 || duration > maxLessonDuration {
-		return errors.New("invalid lesson duration")
+		return customErrors.ErrLessonInvalidDuration
 	}
 
 	l.title = title
@@ -130,10 +130,10 @@ func (l *Lesson) UpdateContent(title, content, videoURL string, duration int, is
 
 func (l *Lesson) validateTitle() error {
 	if strings.TrimSpace(l.title) == "" {
-		return errors.New("lesson title is required")
+		return customErrors.ErrLessonTitleRequired
 	}
 	if len(l.title) > maxLessonTitleLength {
-		return errors.New("lesson title exceeds maximum length")
+		return customErrors.ErrLessonTitleTooLong
 	}
 
 	return nil
@@ -141,7 +141,7 @@ func (l *Lesson) validateTitle() error {
 
 func (l *Lesson) validateDuration() error {
 	if l.duration < 1 || l.duration > maxLessonDuration {
-		return errors.New("invalid lesson duration")
+		return customErrors.ErrLessonInvalidDuration
 	}
 
 	return nil
