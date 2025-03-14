@@ -45,6 +45,7 @@ type NotificationFailedEvent struct {
 	Reason         string           `json:"reason"`
 }
 
+// Error
 func CreateNotificationCreatedEvent(notification *Notification) (*NotificationEvent, error) {
 	data := NotificationCreatedEvent{
 		NotificationID: notification.ID,

@@ -1,4 +1,3 @@
-// internal/domain/notification.go
 package domain
 
 import (
@@ -8,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// NotificationType representa los tipos de notificaciones soportados
 type NotificationType string
 
 const (
@@ -18,7 +16,6 @@ const (
 	TypeInApp NotificationType = "IN_APP"
 )
 
-// NotificationStatus representa los estados posibles de una notificación
 type NotificationStatus string
 
 const (
@@ -28,7 +25,6 @@ const (
 	StatusCancelled NotificationStatus = "CANCELLED"
 )
 
-// Notification es la entidad principal del dominio
 type Notification struct {
 	ID          string
 	UserID      string
@@ -43,7 +39,6 @@ type Notification struct {
 	ScheduledAt *time.Time
 }
 
-// NewNotification crea una nueva notificación con validaciones
 func NewNotification(userID string, notificationType NotificationType, title, content string, metadata map[string]string) (*Notification, error) {
 	if userID == "" {
 		return nil, errors.New("user ID no puede estar vacío")
@@ -72,7 +67,6 @@ func NewNotification(userID string, notificationType NotificationType, title, co
 	}, nil
 }
 
-// ScheduleFor programa la notificación para enviarse en un momento específico
 func (n *Notification) ScheduleFor(scheduledTime time.Time) error {
 	if scheduledTime.Before(time.Now()) {
 		return errors.New("no se puede programar una notificación para el pasado")
@@ -83,7 +77,6 @@ func (n *Notification) ScheduleFor(scheduledTime time.Time) error {
 	return nil
 }
 
-// MarkAsSent marca la notificación como enviada
 func (n *Notification) MarkAsSent() {
 	now := time.Now()
 	n.Status = StatusSent
@@ -91,13 +84,11 @@ func (n *Notification) MarkAsSent() {
 	n.UpdatedAt = now
 }
 
-// MarkAsFailed marca la notificación como fallida
 func (n *Notification) MarkAsFailed() {
 	n.Status = StatusFailed
 	n.UpdatedAt = time.Now()
 }
 
-// Cancel cancela una notificación pendiente
 func (n *Notification) Cancel() error {
 	if n.Status != StatusPending {
 		return errors.New("solo se pueden cancelar notificaciones pendientes")
@@ -108,12 +99,10 @@ func (n *Notification) Cancel() error {
 	return nil
 }
 
-// IsScheduled verifica si la notificación está programada para el futuro
 func (n *Notification) IsScheduled() bool {
 	return n.ScheduledAt != nil && n.ScheduledAt.After(time.Now())
 }
 
-// ShouldSendNow verifica si la notificación debe enviarse ahora
 func (n *Notification) ShouldSendNow() bool {
 	return n.Status == StatusPending &&
 		(n.ScheduledAt == nil || !n.ScheduledAt.After(time.Now()))

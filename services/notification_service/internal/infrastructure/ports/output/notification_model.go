@@ -51,3 +51,13 @@ func ToDomainModel(mongo *MongoNotification) *domain.Notification {
 		ScheduledAt: mongo.ScheduledAt,
 	}
 }
+
+func ToDomainModelList(mongoList *[]MongoNotification) *[]domain.Notification {
+	notificationList := make([]domain.Notification, 0, len(*mongoList))
+	for _, mongo := range *mongoList {
+		notification := ToDomainModel(&mongo)
+		notificationList = append(notificationList, *notification)
+	}
+
+	return &notificationList
+}
