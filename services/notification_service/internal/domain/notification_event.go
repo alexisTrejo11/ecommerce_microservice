@@ -45,6 +45,20 @@ type NotificationFailedEvent struct {
 	Reason         string           `json:"reason"`
 }
 
+type NotificationCancelledEvent struct {
+	NotificationID string           `json:"notification_id"`
+	UserID         string           `json:"user_id"`
+	Type           NotificationType `json:"type"`
+	CancelledAt    time.Time        `json:"cancelled_at"`
+}
+
+type NotificationScheduledEvent struct {
+	NotificationID string           `json:"notification_id"`
+	UserID         string           `json:"user_id"`
+	Type           NotificationType `json:"type"`
+	ScheduledAt    *time.Time       `json:"scheduled_at"`
+}
+
 // Error
 func CreateNotificationCreatedEvent(notification *Notification) (*NotificationEvent, error) {
 	data := NotificationCreatedEvent{
@@ -106,6 +120,48 @@ func CreateNotificationFailedEvent(notification *Notification, reason string) (*
 	return &NotificationEvent{
 		EventID:    notification.ID,
 		EventType:  EventNotificationFailed,
+		OccurredAt: time.Now(),
+		Data:       dataBytes,
+	}, nil
+}
+
+func CreateNotificationCancelledEvent(notification *Notification) (*NotificationEvent, error) {
+	data := NotificationCancelledEvent{
+		NotificationID: notification.ID,
+		UserID:         notification.UserID,
+		Type:           notification.Type,
+		CancelledAt:    time.Now(),
+	}
+
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &NotificationEvent{
+		EventID:    notification.ID,
+		EventType:  EventNotificationCancelled,
+		OccurredAt: time.Now(),
+		Data:       dataBytes,
+	}, nil
+}
+
+func CreateNotificationScheduledEvent(notification *Notification) (*NotificationEvent, error) {
+	data := NotificationScheduledEvent{
+		NotificationID: notification.ID,
+		UserID:         notification.UserID,
+		Type:           notification.Type,
+		ScheduledAt:    notification.ScheduledAt,
+	}
+
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &NotificationEvent{
+		EventID:    notification.ID,
+		EventType:  EventNotificationScheduled,
 		OccurredAt: time.Now(),
 		Data:       dataBytes,
 	}, nil

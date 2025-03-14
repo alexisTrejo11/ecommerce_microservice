@@ -13,9 +13,10 @@ type NotificationMessageDTO struct {
 }
 
 type UserDTO struct {
-	ID    string `json:"user_id"`
-	Email string `json:"user_email"`
-	Name  string `json:"name"`
+	ID    string  `json:"user_id"`
+	Email string  `json:"user_email"`
+	Phone *string `json:"user_phone"`
+	Name  string  `json:"name"`
 }
 
 type NotificationDTO struct {

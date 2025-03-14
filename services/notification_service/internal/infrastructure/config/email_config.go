@@ -14,7 +14,7 @@ type EmailConfig struct {
 	FromEmail    string
 }
 
-func GetEmailConfig() EmailConfig {
+func NewEmailConfig() EmailConfig {
 	port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
 		log.Fatalf("Error converting SMTP_PORT to int: %v", err)
