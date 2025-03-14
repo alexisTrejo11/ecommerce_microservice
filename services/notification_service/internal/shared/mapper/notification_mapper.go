@@ -23,18 +23,20 @@ func ToNotificationDTO(n *domain.Notification) *dtos.NotificationDTO {
 	}
 }
 
-func ToNotificationDTOList(notifications []*domain.Notification) []*dtos.NotificationDTO {
+func ToNotificationDTOList(notifications []domain.Notification) []*dtos.NotificationDTO {
 	dtosList := make([]*dtos.NotificationDTO, 0, len(notifications))
 	for _, n := range notifications {
-		dtosList = append(dtosList, ToNotificationDTO(n))
+		dtosList = append(dtosList, ToNotificationDTO(&n))
 	}
 	return dtosList
 }
 
 func ToNotificationMessageDTO(n *domain.Notification) *dtos.NotificationMessageDTO {
 	return &dtos.NotificationMessageDTO{
-		ID:        n.ID,
-		UserID:    n.UserID,
+		ID: n.ID,
+		UserData: dtos.UserDTO{
+			ID: n.UserID,
+		},
 		Type:      string(n.Type),
 		Title:     n.Title,
 		Content:   n.Content,
@@ -46,7 +48,7 @@ func ToNotificationMessageDTO(n *domain.Notification) *dtos.NotificationMessageD
 func ToDomainFromMessageDTO(dto *dtos.NotificationMessageDTO) *domain.Notification {
 	return &domain.Notification{
 		ID:        dto.ID,
-		UserID:    dto.UserID,
+		UserID:    dto.UserData.ID,
 		Type:      domain.NotificationType(dto.Type),
 		Title:     dto.Title,
 		Content:   dto.Content,

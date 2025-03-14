@@ -7,6 +7,7 @@ import (
 	usecase "github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/application/use_case"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/config"
 	repository "github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/ports/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/email"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -14,12 +15,19 @@ func main() {
 	// Router
 	app := fiber.New()
 
+	// Email Config
+	emailConfig := config.GetEmailConfig()
+	mailClient := email.NewMailClient(emailConfig)
+
 	// DB
 	mongoClient := config.InitMongoClient()
 
 	// Repository
 	notificationRepository := repository.NewNotificationRepository(mongoClient)
-	usecase.NewNotificationUseCase(notificationRepository)
+
+	// Use Case
+	emailClient := usecase.NewEmailUseCase(mailClient)
+	usecase.NewNotificationUseCase(notificationRepository, emailClient)
 
 	// Home
 	app.Get("/home", func(c *fiber.Ctx) error {
