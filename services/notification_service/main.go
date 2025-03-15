@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -20,6 +21,18 @@ func main() {
 	emailConfig := config.NewEmailConfig()
 	mailClient := email.NewMailClient(emailConfig)
 
+	// RabbitMQ
+	conn, err := config.ConnectRabbitMQ()
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+	}
+	defer conn.Close()
+
+	queueClient, err := config.NewRabbitMQClient(conn)
+	if err != nil {
+		log.Fatalf("Failed to create RabbitMQ client: %v", err)
+	}
+
 	// SMS Config
 	smsConfig := config.NewSMSConfig()
 	smsService := sms.NewSMSService(smsConfig)
@@ -32,7 +45,11 @@ func main() {
 
 	// Use Case
 	emailClient := usecase.NewEmailUseCase(mailClient)
-	usecase.NewNotificationUseCase(notificationRepository, emailClient, *smsService)
+	notficationUseCase := usecase.NewNotificationUseCase(notificationRepository, emailClient, *smsService)
+
+	// Notifaction Reciever Queue
+	queueReceiver := config.NewReceiverNotificationQueue(notficationUseCase, queueClient)
+	queueReceiver.ReceiveNotification(context.Background())
 
 	// Home
 	app.Get("/home", func(c *fiber.Ctx) error {
