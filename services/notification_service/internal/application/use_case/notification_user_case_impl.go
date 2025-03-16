@@ -11,6 +11,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/shared/dtos"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/shared/mapper"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/shared/utils"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/log"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/notification"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/sms"
 	"github.com/google/uuid"
@@ -111,16 +112,38 @@ func (us *NotificationUseCaseImpl) GetNotification(ctx context.Context, notifica
 }
 
 func (us *NotificationUseCaseImpl) sendNotification(ctx context.Context, notification domain.Notification, eventType domain.EventType, dto dtos.NotificationMessageDTO) {
-	event, err := us.eventFactory.CreateEvent(eventType, notification)
+	logging.Logger.Info().Str("action", "create_notification_event").
+		Str("event_type", string(eventType)).
+		Str("notification_id", notification.ID).
+		Msg("Creating notification event")
+
+	_, err := us.eventFactory.CreateEvent(eventType, notification)
 	if err != nil {
-		fmt.Printf("Error creating event: %v\n", err)
+		logging.LogError("create_notification_event", "Error creating event", map[string]interface{}{
+			"error":           err.Error(),
+			"event_type":      string(eventType),
+			"notification_id": notification.ID,
+		})
+		return
 	}
-	fmt.Printf("Event created: %v\n", event)
+
+	logging.Logger.Info().
+		Str("action", "event_created").
+		Str("event_type", string(eventType)).
+		Str("notification_id", notification.ID).
+		Msg("Notification event created successfully")
 
 	err = us.notificationContext.SendNotification(ctx, notification, dto)
 	if err != nil {
-		fmt.Printf("Error sending notification: %v\n", err)
+		logging.LogError("send_notification", "Error sending notification", map[string]interface{}{
+			"error":           err.Error(),
+			"notification_id": notification.ID,
+			"type":            notification.Type,
+		})
 	} else {
-		fmt.Printf("%s notification successfully sent\n", notification.Type)
+		logging.LogSuccess("send_notification", "Notification successfully sent", map[string]interface{}{
+			"notification_id": notification.ID,
+			"type":            notification.Type,
+		})
 	}
 }

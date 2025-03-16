@@ -7,8 +7,11 @@ import (
 
 	usecase "github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/application/use_case"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/config"
+	handler "github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/ports/input/handler/v1/api/handlers"
+	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/ports/input/handler/v1/api/routes"
 	repository "github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/ports/output"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/email"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/log"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/sms"
 	"github.com/gofiber/fiber/v2"
 )
@@ -37,6 +40,9 @@ func main() {
 	smsConfig := config.NewSMSConfig()
 	smsService := sms.NewSMSService(smsConfig)
 
+	// Logger
+	logging.InitLogger()
+
 	// DB
 	mongoClient := config.InitMongoClient()
 
@@ -51,10 +57,10 @@ func main() {
 	queueReceiver := config.NewReceiverNotificationQueue(notficationUseCase, queueClient)
 	go queueReceiver.ReceiveNotification(context.Background())
 
-	// Home
-	app.Get("/home", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"Home": "Welcome to notification service"})
-	})
+	// Handler
+	notificationHandler := handler.NewNotificationHandler(notficationUseCase)
+
+	routes.NotificationRoutes(app, notificationHandler)
 
 	// Run Server
 	port := os.Getenv("APP_PORT")
@@ -62,7 +68,7 @@ func main() {
 		port = "3000"
 	}
 
-	log.Printf("Server running on port %s", port)
+	logging.Logger.Info().Msgf("Server running on port %s", port)
 
 	if err := app.Listen(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)

@@ -61,12 +61,12 @@ func (h *NotificationHandler) GetNotificationById(c *fiber.Ctx) error {
 	return response.OK(c, "Notification Successfully Retrieved", notification)
 }
 
-func (h *NotificationHandler) DeleteNotification(c *fiber.Ctx) error {
-	logging.LogIncomingRequest(c, "delete_notification")
+func (h *NotificationHandler) CancelNotification(c *fiber.Ctx) error {
+	logging.LogIncomingRequest(c, "cancel_notification")
 
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		logging.LogError("delete_notifaction", "invalid notification ID", map[string]interface{}{
+		logging.LogError(" cancel_notifaction", "invalid notification ID", map[string]interface{}{
 			"error": err.Error(),
 		})
 		return response.BadRequest(c, err.Error(), "invalid notification ID")
@@ -77,7 +77,7 @@ func (h *NotificationHandler) DeleteNotification(c *fiber.Ctx) error {
 		return response.Error(c, 404, err.Error(), "notification_not_found")
 	}
 
-	logging.LogSuccess("delete_course", "Notification Successfully Cancelled", map[string]interface{}{
+	logging.LogSuccess(" cancel_course", "Notification Successfully Cancelled", map[string]interface{}{
 		"notification_id": id,
 	})
 

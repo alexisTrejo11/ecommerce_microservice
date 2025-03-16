@@ -23,4 +23,6 @@ func InitLogger() {
 		Caller().
 		Logger().
 		Level(zerolog.InfoLevel)
+
+	Logger.Info().Msg("Logger initialized successfully")
 }
