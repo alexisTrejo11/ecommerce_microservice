@@ -1,28 +1,31 @@
 package response
 
-/*
-
 import (
 	"errors"
+	"strings"
 
-	customErrors "github.com/alexisTrejo11/ecommerce_microservice/course-service/internal/core/application/errors"
-	logging "github.com/alexisTrejo11/ecommerce_microservice/course-service/pkg/log"
+	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/domain"
+	repository "github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/infrastructure/ports/output"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/log"
 	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
 )
 
 func HandleApplicationError(c *fiber.Ctx, err error, action string, resourceID string) error {
-	var domainErr *customErrors.DomainError
-	if errors.As(err, &domainErr) {
-		logError(action, resourceID, domainErr.Code, domainErr.Message)
+	var notificationErr *domain.NotificationError
+	var repositoryErr *repository.RepositoryError
 
-		switch domainErr.Code {
-		case "COURSE_NOT_FOUND", "LESSON_NOT_FOUND", "MODULE_NOT_FOUND", "RESOURCE_NOT_FOUND":
-			return Error(c, fiber.StatusNotFound, domainErr.Message, domainErr.Code)
-		case "DATABASE_ERROR":
-			return Error(c, fiber.StatusInternalServerError, domainErr.Message, domainErr.Code)
+	if errors.As(err, &notificationErr) || errors.As(err, &repositoryErr) {
+		logError(action, resourceID, notificationErr.Code, notificationErr.Message)
+
+		switch {
+		case notificationErr.Code == "NOTIFICATION_NOT_FOUND" || notificationErr.Code == "USER_NOT_FOUND":
+			return Error(c, fiber.StatusNotFound, notificationErr.Message, notificationErr.Code)
+		case notificationErr.Code == "DATABASE_ERROR":
+			return Error(c, fiber.StatusInternalServerError, notificationErr.Message, notificationErr.Code)
+		case strings.Contains(notificationErr.Code, "NOTIFICATION_INVALID"):
+			return Error(c, fiber.StatusBadRequest, notificationErr.Message, notificationErr.Code)
 		default:
-			return Error(c, fiber.StatusInternalServerError, "An unexpected error occurred", domainErr.Code)
+			return Error(c, fiber.StatusInternalServerError, "An unexpected error occurred", notificationErr.Code)
 		}
 	}
 
@@ -31,12 +34,11 @@ func HandleApplicationError(c *fiber.Ctx, err error, action string, resourceID s
 }
 
 func logError(action string, resourceID string, code string, message string) {
-	logging.Logger.WithFields(logrus.Fields{
-		"action":      action,
-		"status":      "failed",
-		"resource_id": resourceID,
-		"code":        code,
-		"error":       message,
-	}).Error("Application error occurred")
+	logging.Logger.Error().
+		Str("action", action).
+		Str("status", "failed").
+		Str("resource_id", resourceID).
+		Str("code", code).
+		Str("error", message).
+		Msg("Application error occurred")
 }
-*/

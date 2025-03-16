@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,15 +40,15 @@ type Notification struct {
 
 func NewNotification(userID string, notificationType NotificationType, title, content string, metadata map[string]string) (*Notification, error) {
 	if userID == "" {
-		return nil, errors.New("user ID no puede estar vacío")
+		return nil, ErrUserIDRequired
 	}
 
 	if title == "" {
-		return nil, errors.New("título no puede estar vacío")
+		return nil, ErrTitleRequired
 	}
 
 	if content == "" {
-		return nil, errors.New("contenido no puede estar vacío")
+		return nil, ErrContentRequired
 	}
 
 	now := time.Now()
@@ -69,7 +68,7 @@ func NewNotification(userID string, notificationType NotificationType, title, co
 
 func (n *Notification) ScheduleFor(scheduledTime time.Time) error {
 	if scheduledTime.Before(time.Now()) {
-		return errors.New("no se puede programar una notificación para el pasado")
+		return ErrCannotSchedulePast
 	}
 
 	n.ScheduledAt = &scheduledTime
@@ -91,7 +90,7 @@ func (n *Notification) MarkAsFailed() {
 
 func (n *Notification) Cancel() error {
 	if n.Status != StatusPending {
-		return errors.New("solo se pueden cancelar notificaciones pendientes")
+		return ErrCannotCancelNonPending
 	}
 
 	n.Status = StatusCancelled
