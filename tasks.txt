@@ -8,3 +8,11 @@
 / Cart 
 # Add Item domain logic
 # Set Rabbit MQ
+
+
+# Notification
+-Test SMS
+-Test Queue
+-Elk
+-Rate limiter
+-Documentation
