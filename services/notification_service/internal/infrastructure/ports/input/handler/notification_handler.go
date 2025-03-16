@@ -6,6 +6,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/application/ports/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/shared/response"
 	"github.com/alexisTrejo11/ecommerce_microservice/notification-service/internal/shared/utils"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/notification-service/pkg/log"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -41,21 +42,34 @@ func (h *NotificationHandler) GetNotificationByUserId(c *fiber.Ctx) error {
 func (h *NotificationHandler) GetNotificationById(c *fiber.Ctx) error {
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_notification_id")
+		logging.LogError("get_notification_by_id", "invalid notification ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), "invalid notification ID")
 	}
 
 	notification, err := h.notificationUseCase.GetNotification(context.Background(), id)
 	if err != nil {
+		// Error Handler
 		return response.Error(c, 404, err.Error(), "notification_not_found")
 	}
+
+	logging.LogSuccess("get_notification_by_id", "Notification Successfully Retrieved", map[string]interface{}{
+		"notification_id": id,
+	})
 
 	return response.OK(c, "Notification Successfully Retrieved", notification)
 }
 
 func (h *NotificationHandler) DeleteNotification(c *fiber.Ctx) error {
+	logging.LogIncomingRequest(c, "delete_notification")
+
 	id, err := utils.GetUUIDParam(c, "id")
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_notification_id")
+		logging.LogError("delete_notifaction", "invalid notification ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), "invalid notification ID")
 	}
 
 	err = h.notificationUseCase.CancelNotification(context.Background(), id)
@@ -63,5 +77,9 @@ func (h *NotificationHandler) DeleteNotification(c *fiber.Ctx) error {
 		return response.Error(c, 404, err.Error(), "notification_not_found")
 	}
 
-	return response.OK(c, "Notification Successfully Delete", nil)
+	logging.LogSuccess("delete_course", "Notification Successfully Cancelled", map[string]interface{}{
+		"notification_id": id,
+	})
+
+	return response.OK(c, "Notification Successfully Cancelled", nil)
 }

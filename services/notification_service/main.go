@@ -49,7 +49,7 @@ func main() {
 
 	// Notifaction Reciever Queue
 	queueReceiver := config.NewReceiverNotificationQueue(notficationUseCase, queueClient)
-	queueReceiver.ReceiveNotification(context.Background())
+	go queueReceiver.ReceiveNotification(context.Background())
 
 	// Home
 	app.Get("/home", func(c *fiber.Ctx) error {

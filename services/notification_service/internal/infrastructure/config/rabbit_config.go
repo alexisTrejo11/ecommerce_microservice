@@ -38,7 +38,26 @@ func NewRabbitMQClient(conn *amqp.Connection) (*RabbitMQClient, error) {
 		return nil, fmt.Errorf("failed to open a channel: %w", err)
 	}
 
+	declareQueues(channel)
+
 	return &RabbitMQClient{conn: conn, channel: channel}, nil
+}
+
+func declareQueues(channel *amqp.Channel) {
+	queueName := os.Getenv("RABBITMQ_QUEUE_NAME")
+
+	_, err := channel.QueueDeclare(
+		queueName,
+		true,  // Durable
+		false, // Auto-Delete
+		false, // Exclusive
+		false, // No-Wait
+		nil,
+	)
+
+	if err != nil {
+		log.Fatalf("Failed to declare a queue: %v", err)
+	}
 }
 
 func (r *RabbitMQClient) ReceiveMessage(queueName string, timeout time.Duration) ([]byte, string, error) {

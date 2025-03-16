@@ -27,7 +27,11 @@ type QueueClient interface {
 	DeleteMessage(queueName string, receiptHandle string) error
 }
 
-func NewQueueReceiver(queueClient QueueClient, queueName string, timeout time.Duration, notificationUseCase input.NotificationUseCase) *QueueReceiver {
+func NewQueueReceiver(
+	queueClient QueueClient,
+	queueName string,
+	timeout time.Duration,
+	notificationUseCase input.NotificationUseCase) *QueueReceiver {
 	return &QueueReceiver{
 		queueClient:         queueClient,
 		queueName:           queueName,
