@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/output"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/models"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/mapper"
 	"github.com/google/uuid"
@@ -15,7 +16,7 @@ type ReviewRepositoryImpl struct {
 	mapper mapper.ReviewMapper
 }
 
-func NewReviewRepositoryImpl(db *gorm.DB) *ReviewRepositoryImpl {
+func NewReviewRepositoryImpl(db *gorm.DB) output.ReviewRepository {
 	return &ReviewRepositoryImpl{db: db}
 }
 
@@ -33,7 +34,7 @@ func (r *ReviewRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*doma
 	return r.mapper.ModelToDomain(&model), nil
 }
 
-func (r *ReviewRepositoryImpl) GetByCourseID(ctx context.Context, courseID uuid.UUID) ([]domain.Review, error) {
+func (r *ReviewRepositoryImpl) GetByCourseID(ctx context.Context, courseID uuid.UUID) (*[]domain.Review, error) {
 	var models []models.ReviewModel
 	err := r.db.WithContext(ctx).Where("course_id = ?", courseID).Find(&models).Error
 	if err != nil {
@@ -41,10 +42,10 @@ func (r *ReviewRepositoryImpl) GetByCourseID(ctx context.Context, courseID uuid.
 	}
 
 	domainReviews := r.mapper.ModelsToDomainList(models)
-	return domainReviews, nil
+	return &domainReviews, nil
 }
 
-func (r *ReviewRepositoryImpl) GetByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Review, error) {
+func (r *ReviewRepositoryImpl) GetByUserID(ctx context.Context, userID uuid.UUID) (*[]domain.Review, error) {
 	var models []models.ReviewModel
 	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Find(&models).Error
 	if err != nil {
@@ -52,7 +53,7 @@ func (r *ReviewRepositoryImpl) GetByUserID(ctx context.Context, userID uuid.UUID
 	}
 
 	domainReviews := r.mapper.ModelsToDomainList(models)
-	return domainReviews, nil
+	return &domainReviews, nil
 }
 
 func (r *ReviewRepositoryImpl) DeleteByID(ctx context.Context, id uuid.UUID) error {

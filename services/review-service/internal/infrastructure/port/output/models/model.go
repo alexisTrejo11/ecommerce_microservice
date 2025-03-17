@@ -9,8 +9,8 @@ import (
 
 type ReviewModel struct {
 	ID         uuid.UUID `gorm:"type:char(36);primaryKey"`
-	UserID     uuid.UUID `gorm:"type:uuid;not null"`
-	CourseID   uuid.UUID `gorm:"type:uuid;not null"`
+	UserID     uuid.UUID `gorm:"type:char(36);not null"`
+	CourseID   uuid.UUID `gorm:"type:char(36);not null"`
 	Rating     int       `gorm:"not null;check:rating >= 1 AND rating <= 5"`
 	Comment    string    `gorm:"type:text;default:null"`
 	CreatedAt  time.Time `gorm:"autoCreateTime"`

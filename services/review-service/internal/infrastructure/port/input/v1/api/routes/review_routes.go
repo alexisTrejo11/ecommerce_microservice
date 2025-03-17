@@ -6,6 +6,10 @@ import (
 )
 
 func ReviewRoutes(app *fiber.App, handler handlers.ReviewHandler) {
+	app.Get("/home", func(c *fiber.Ctx) error {
+		return c.SendString("Welcome to Rating Service")
+	})
+
 	path := app.Group("v1/api/reviews")
 
 	path.Get("/:id", handler.GetReviewByID)
