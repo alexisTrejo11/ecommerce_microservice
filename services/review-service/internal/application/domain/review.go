@@ -31,6 +31,28 @@ func NewReview(userID, courseID uuid.UUID, rating int, comment string) *Review {
 	}
 }
 
+func NewReviewFromDTO(
+	id uuid.UUID,
+	userID uuid.UUID,
+	courseID uuid.UUID,
+	rating int,
+	comment string,
+	createdAt time.Time,
+	updatedAt time.Time,
+	isApproved bool,
+) *Review {
+	return &Review{
+		id:         id,
+		userID:     userID,
+		courseID:   courseID,
+		rating:     rating,
+		comment:    comment,
+		createdAt:  createdAt,
+		updatedAt:  updatedAt,
+		isApproved: isApproved,
+	}
+}
+
 func CalculateRating(reviews []Review) float64 {
 	numberOfReviews := len(reviews)
 	if numberOfReviews == 0 {
@@ -46,6 +68,13 @@ func CalculateRating(reviews []Review) float64 {
 	rating := math.Round(average*100) / 100
 
 	return rating
+}
+
+func (r *Review) Update(userID, courseID uuid.UUID, rating int, comment string) {
+	r.userID = userID
+	r.rating = rating
+	r.courseID = courseID
+	r.comment = comment
 }
 
 func (r *Review) SetRating(rating int) {
