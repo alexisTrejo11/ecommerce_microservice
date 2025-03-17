@@ -33,12 +33,12 @@ func (h *ReviewHandler) GetReviewByID(c *fiber.Ctx) error {
 }
 
 func (h *ReviewHandler) GetReviewByUserID(c *fiber.Ctx) error {
-	reviewID, err := response.GetUUIDParam(c, "review_id")
+	userID, err := response.GetUUIDParam(c, "user_id")
 	if err != nil {
 		return response.BadRequest(c, err.Error(), "invalid_review_id")
 	}
 
-	review, err := h.useCase.GetReviewById(context.Background(), reviewID)
+	review, err := h.useCase.GetReviewsByUserId(context.Background(), userID)
 	if err != nil {
 		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
 	}
@@ -54,14 +54,14 @@ func (h *ReviewHandler) GetReviewByCourseID(c *fiber.Ctx) error {
 
 	reviews, err := h.useCase.GetReviewsByCourseId(context.Background(), courseID)
 	if err != nil {
-		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
+		return response.NotFound(c, err.Error(), "COURSE_NOT_FOUND")
 	}
 
 	return response.OK(c, "Course Reviews Succesfully Retrieved", reviews)
 }
 
 func (h *ReviewHandler) DeleteReview(c *fiber.Ctx) error {
-	reviewID, err := response.GetUUIDParam(c, "review_id")
+	reviewID, err := response.GetUUIDParam(c, "id")
 	if err != nil {
 		return response.BadRequest(c, err.Error(), "invalid_review_id")
 	}

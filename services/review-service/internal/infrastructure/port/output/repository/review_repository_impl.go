@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/output"
@@ -28,9 +29,14 @@ func (r *ReviewRepositoryImpl) Save(ctx context.Context, review *domain.Review) 
 func (r *ReviewRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*domain.Review, error) {
 	var model models.ReviewModel
 	err := r.db.WithContext(ctx).First(&model, "id = ?", id).Error
+
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrReviewNotFound
+		}
 		return nil, err
 	}
+
 	return r.mapper.ModelToDomain(&model), nil
 }
 
@@ -62,7 +68,7 @@ func (r *ReviewRepositoryImpl) DeleteByID(ctx context.Context, id uuid.UUID) err
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return ErrReviewNotFound
 	}
 	return nil
 }

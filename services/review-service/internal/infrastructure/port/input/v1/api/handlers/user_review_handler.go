@@ -29,7 +29,7 @@ func (h *UserReviewHandler) MyReviews(c *fiber.Ctx) error {
 		return response.BadRequest(c, err.Error(), "invalid_course_id")
 	}
 
-	review, err := h.useCase.GetReviewById(context.Background(), reviewID)
+	review, err := h.useCase.GetReviewsByUserId(context.Background(), reviewID)
 	if err != nil {
 		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
 	}
@@ -84,7 +84,7 @@ func (h *UserReviewHandler) UpdatMyReview(c *fiber.Ctx) error {
 
 // Check User Auth
 func (h *UserReviewHandler) DeletMyReview(c *fiber.Ctx) error {
-	reviewID, err := response.GetUUIDParam(c, "review_id")
+	reviewID, err := response.GetUUIDParam(c, "id")
 	if err != nil {
 		return response.BadRequest(c, err.Error(), "invalid_review_id")
 	}

@@ -23,8 +23,10 @@ func main() {
 	reviewRepository := repository.NewReviewRepositoryImpl(db)
 	reviewUseCase := usecase.NewReviewUseCase(reviewRepository)
 	reviewHandler := handlers.NewReviewHandler(reviewUseCase)
+	userReviewHandler := handlers.NewUserReviewHandler(reviewUseCase)
 
 	routes.ReviewRoutes(app, *reviewHandler)
+	routes.UserReviewRoutes(app, *userReviewHandler)
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {

@@ -9,13 +9,18 @@ import (
 type ReviewMapper struct {
 }
 
-func (m *ReviewMapper) InsertDTOToDomain(dto dtos.ReviewInsertDTO) *domain.Review {
-	return domain.NewReview(
+func (m *ReviewMapper) InsertDTOToDomain(dto dtos.ReviewInsertDTO) (*domain.Review, error) {
+	review, err := domain.NewReview(
 		dto.UserID,
 		dto.CourseID,
 		dto.Rating,
 		dto.Comment,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	return review, nil
 }
 
 func (m *ReviewMapper) DomainToDTO(review *domain.Review) *dtos.ReviewDTO {

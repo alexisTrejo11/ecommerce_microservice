@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var MAX_COMENT_CHAR_LENGTH = 1000
+
 type Review struct {
 	id         uuid.UUID
 	userID     uuid.UUID
@@ -18,8 +20,8 @@ type Review struct {
 	isApproved bool
 }
 
-func NewReview(userID, courseID uuid.UUID, rating int, comment string) *Review {
-	return &Review{
+func NewReview(userID, courseID uuid.UUID, rating int, comment string) (*Review, error) {
+	review := &Review{
 		id:         uuid.New(),
 		userID:     userID,
 		courseID:   courseID,
@@ -29,6 +31,15 @@ func NewReview(userID, courseID uuid.UUID, rating int, comment string) *Review {
 		updatedAt:  time.Now(),
 		isApproved: true,
 	}
+
+	if err := review.validateComment(); err != nil {
+		return nil, err
+	}
+	if err := review.validateRating(); err != nil {
+		return nil, err
+	}
+
+	return review, nil
 }
 
 func NewReviewFromDTO(
@@ -70,12 +81,21 @@ func CalculateRating(reviews []Review) float64 {
 	return rating
 }
 
-func (r *Review) Update(id, userID, courseID uuid.UUID, rating int, comment string) {
+func (r *Review) Update(id, userID, courseID uuid.UUID, rating int, comment string) error {
 	r.id = id
 	r.userID = userID
 	r.rating = rating
 	r.courseID = courseID
 	r.comment = comment
+
+	if err := r.validateComment(); err != nil {
+		return err
+	}
+	if err := r.validateRating(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *Review) SetRating(rating int) {
@@ -96,6 +116,20 @@ func (r *Review) Approve() {
 func (r *Review) Reject() {
 	r.isApproved = false
 	r.updatedAt = time.Now()
+}
+
+func (r *Review) validateRating() error {
+	if r.rating < 1 || r.rating > 5 {
+		return ErrRatingValue
+	}
+	return nil
+}
+
+func (r *Review) validateComment() error {
+	if len(r.comment) > MAX_COMENT_CHAR_LENGTH {
+		return ErrCommentLenght
+	}
+	return nil
 }
 
 type User struct {

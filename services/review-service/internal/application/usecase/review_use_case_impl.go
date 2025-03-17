@@ -54,9 +54,12 @@ func (uc *ReviewUseCaseImpl) GetReviewsByCourseId(ctx context.Context, courseID 
 }
 
 func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
-	review := uc.mapper.InsertDTOToDomain(insertDTO)
+	review, err := uc.mapper.InsertDTOToDomain(insertDTO)
+	if err != nil {
+		return nil, err
+	}
 
-	err := uc.repository.Save(ctx, review)
+	err = uc.repository.Save(ctx, review)
 	if err != nil {
 		return nil, err
 	}
@@ -65,18 +68,21 @@ func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.Re
 }
 
 func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, id uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
-	existingReview, err := uc.repository.GetByID(ctx, insertDTO.CourseID)
+	existingReview, err := uc.repository.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	existingReview.Update(
+	err = existingReview.Update(
 		id,
 		insertDTO.UserID,
 		insertDTO.CourseID,
 		insertDTO.Rating,
 		insertDTO.Comment,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	err = uc.repository.Save(ctx, existingReview)
 	if err != nil {
@@ -108,7 +114,7 @@ func (uc *ReviewUseCaseImpl) UpdateCourseReviewData(ctx context.Context, courseI
 
 	rating := domain.CalculateRating(*reviews)
 	fmt.Printf("rating: %v\n", rating)
-	// Update In Course
+	// Update In Course Service
 
 	return nil, nil
 }
