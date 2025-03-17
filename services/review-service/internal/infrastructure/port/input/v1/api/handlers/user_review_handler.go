@@ -49,15 +49,15 @@ func (h *UserReviewHandler) CreateReview(c *fiber.Ctx) error {
 
 	var insertDTO dtos.ReviewInsertDTO
 	if err := c.BodyParser(&insertDTO); err != nil {
-		return response.BadRequest(c, err.Error(), "INVALID_BODY_REQUEST")
+		return response.BadRequest(c, err.Error(), "invalid_body_request")
 	}
 
-	_, err := response.ValidateStruct(h.validator, &insertDTO)
+	errorMap, err := response.ValidateStruct(h.validator, &insertDTO)
 	if err != nil {
 		logging.LogError("create_review", "can't parse body request", map[string]interface{}{
 			"error": err.Error(),
 		})
-		return response.BadRequest(c, "Invalid request body", err.Error())
+		return response.BadRequest(c, errorMap, "invalid_data")
 	}
 
 	reviewCreate, err := h.useCase.CreateReview(context.Background(), insertDTO)
@@ -87,12 +87,12 @@ func (h *UserReviewHandler) UpdatMyReview(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 
-		return response.BadRequest(c, err.Error(), "INVALID_BODY_REQUEST")
+		return response.BadRequest(c, err.Error(), "invalid_body_request")
 	}
 
-	_, err = response.ValidateStruct(h.validator, &insertDTO)
+	errorMap, err := response.ValidateStruct(h.validator, &insertDTO)
 	if err != nil {
-		return response.BadRequest(c, "Invalid request body", err.Error())
+		return response.BadRequest(c, errorMap, "invalid_data")
 	}
 
 	reviewUpdate, err := h.useCase.UpdateReview(context.Background(), reviewID, insertDTO)

@@ -8,6 +8,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/output"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/repository"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/dtos"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/mapper"
 	"github.com/google/uuid"
@@ -139,10 +140,12 @@ func (uc *ReviewUseCaseImpl) validateNotDuplicatedReview(
 
 	_, err := uc.repository.GetByCourseIDAndUserID(ctx, courseID, userID)
 	if err != nil {
-		return errors.New("user already have a review in this course")
+		if errors.Is(err, repository.ErrReviewNotFound) {
+			return nil
+		}
+		return err
 	}
-
-	return nil
+	return errors.New("user already has a review on this course")
 }
 
 func (uc *ReviewUseCaseImpl) validateUserEnrollment(

@@ -45,7 +45,7 @@ func Success(c *fiber.Ctx, statusCode int, message string, data interface{}) err
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 400 {object} ApiResponse "Error response"
-func Error(c *fiber.Ctx, statusCode int, message string, errCode interface{}) error {
+func Error(c *fiber.Ctx, statusCode int, message interface{}, errCode interface{}) error {
 	return c.Status(statusCode).JSON(ApiResponse{
 		Success:   false,
 		Message:   message,
@@ -81,7 +81,7 @@ func Created(c *fiber.Ctx, message string, data interface{}) error {
 // @Param message query string true "Response message"
 // @Param errors query object true "Error details"
 // @Failure 400 {object} ApiResponse "Bad request response"
-func BadRequest(c *fiber.Ctx, message string, errCode interface{}) error {
+func BadRequest(c *fiber.Ctx, message interface{}, errCode interface{}) error {
 	return Error(c, http.StatusBadRequest, message, errCode)
 }
 
