@@ -9,6 +9,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/input/v1/api/handlers"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/input/v1/api/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/repository"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,6 +19,8 @@ func main() {
 	// Config
 	db := config.GORMConfig()
 	config.InitRedis()
+
+	logging.InitLogger()
 
 	// Application
 	reviewRepository := repository.NewReviewRepositoryImpl(db)
