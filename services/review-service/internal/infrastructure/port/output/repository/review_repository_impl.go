@@ -72,3 +72,19 @@ func (r *ReviewRepositoryImpl) DeleteByID(ctx context.Context, id uuid.UUID) err
 	}
 	return nil
 }
+
+func (r *ReviewRepositoryImpl) GetByCourseIDAndUserID(ctx context.Context, courseID uuid.UUID, userID uuid.UUID) (*domain.Review, error) {
+	var model models.ReviewModel
+	err := r.db.WithContext(ctx).
+		Where("course_id = ? AND user_id = ?", courseID, userID).
+		First(&model).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrReviewNotFound
+		}
+		return nil, err
+	}
+
+	return r.mapper.ModelToDomain(&model), nil
+}

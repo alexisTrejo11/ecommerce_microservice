@@ -5,7 +5,7 @@ import (
 
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/response"
-	logging "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/log"
 	"github.com/gofiber/fiber/v2"
 )
 

@@ -3,13 +3,15 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/usecase"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/config"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/input/v1/api/handlers"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/input/v1/api/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/repository"
-	logging "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/log"
+	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/rate_limiter"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,6 +23,9 @@ func main() {
 	config.InitRedis()
 
 	logging.InitLogger()
+
+	rateLimiter := ratelimiter.NewRateLimiter(config.RedisClient, 20, 1*time.Minute)
+	app.Use(rateLimiter.Limit)
 
 	// Application
 	reviewRepository := repository.NewReviewRepositoryImpl(db)
