@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
@@ -54,6 +55,14 @@ func (uc *ReviewUseCaseImpl) GetReviewsByCourseId(ctx context.Context, courseID 
 }
 
 func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
+	if err := uc.validateNotDuplicatedReview(ctx, insertDTO.CourseID, insertDTO.UserID); err != nil {
+		return nil, err
+	}
+
+	if err := uc.validateUserEnrollment(ctx, insertDTO.CourseID, insertDTO.UserID); err != nil {
+		return nil, err
+	}
+
 	review, err := uc.mapper.InsertDTOToDomain(insertDTO)
 	if err != nil {
 		return nil, err
@@ -70,6 +79,10 @@ func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.Re
 func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, id uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
 	existingReview, err := uc.repository.GetByID(ctx, id)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := uc.validateUserEnrollment(ctx, insertDTO.CourseID, insertDTO.UserID); err != nil {
 		return nil, err
 	}
 
@@ -117,4 +130,30 @@ func (uc *ReviewUseCaseImpl) UpdateCourseReviewData(ctx context.Context, courseI
 	// Update In Course Service
 
 	return nil, nil
+}
+
+func (uc *ReviewUseCaseImpl) validateNotDuplicatedReview(
+	ctx context.Context,
+	courseID uuid.UUID,
+	userID uuid.UUID) error {
+
+	_, err := uc.repository.GetByCourseIDAndUserID(ctx, courseID, userID)
+	if err != nil {
+		return errors.New("user already have a review in this course")
+	}
+
+	return nil
+}
+
+func (uc *ReviewUseCaseImpl) validateUserEnrollment(
+	ctx context.Context,
+	courseID uuid.UUID,
+	userID uuid.UUID) error {
+
+	// To Be Implemented
+	fmt.Printf("courseID: %v\n", courseID)
+	fmt.Printf("userID: %v\n", userID)
+	fmt.Printf("ctx: %v\n", ctx)
+
+	return nil
 }
