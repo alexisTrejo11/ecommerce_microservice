@@ -12,7 +12,7 @@ type ReviewUseCase interface {
 	GetReviewsByUserId(ctx context.Context, userID uuid.UUID) (*[]dtos.ReviewDTO, error)
 	GetReviewsByCourseId(ctx context.Context, course uuid.UUID) (*[]dtos.ReviewDTO, error)
 	CreateReview(ctx context.Context, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error)
-	UpdateReview(ctx context.Context, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error)
+	UpdateReview(ctx context.Context, id uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error)
 	DeleteReview(ctx context.Context, id uuid.UUID) error
 
 	GetCourseRating(ctx context.Context, course uuid.UUID) (float64, error)

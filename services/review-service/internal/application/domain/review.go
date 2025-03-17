@@ -70,7 +70,8 @@ func CalculateRating(reviews []Review) float64 {
 	return rating
 }
 
-func (r *Review) Update(userID, courseID uuid.UUID, rating int, comment string) {
+func (r *Review) Update(id, userID, courseID uuid.UUID, rating int, comment string) {
+	r.id = id
 	r.userID = userID
 	r.rating = rating
 	r.courseID = courseID

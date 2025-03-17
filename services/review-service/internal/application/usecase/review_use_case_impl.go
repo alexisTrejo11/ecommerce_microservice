@@ -64,13 +64,14 @@ func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.Re
 	return uc.mapper.DomainToDTO(review), nil
 }
 
-func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
+func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, id uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
 	existingReview, err := uc.repository.GetByID(ctx, insertDTO.CourseID)
 	if err != nil {
 		return nil, err
 	}
 
 	existingReview.Update(
+		id,
 		insertDTO.UserID,
 		insertDTO.CourseID,
 		insertDTO.Rating,

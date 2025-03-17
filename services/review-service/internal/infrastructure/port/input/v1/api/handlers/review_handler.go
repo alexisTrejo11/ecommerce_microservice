@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"context"
+
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/input"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/response"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -16,21 +19,57 @@ func NewReviewHandler(useCase input.ReviewUseCase) *ReviewHandler {
 }
 
 func (h *ReviewHandler) GetReviewByID(c *fiber.Ctx) error {
+	reviewID, err := response.GetUUIDParam(c, "id")
+	if err != nil {
+		return response.BadRequest(c, err.Error(), "invalid_course_id")
+	}
 
-	return c.Status(200).JSON(fiber.Map{"review": "review"})
+	review, err := h.useCase.GetReviewById(context.Background(), reviewID)
+	if err != nil {
+		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
+	}
+
+	return response.OK(c, "Review Succesfully Retrieved", review)
 }
 
 func (h *ReviewHandler) GetReviewByUserID(c *fiber.Ctx) error {
+	reviewID, err := response.GetUUIDParam(c, "review_id")
+	if err != nil {
+		return response.BadRequest(c, err.Error(), "invalid_review_id")
+	}
 
-	return c.Status(200).JSON(fiber.Map{"user_id": "reviews"})
+	review, err := h.useCase.GetReviewById(context.Background(), reviewID)
+	if err != nil {
+		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
+	}
+
+	return response.OK(c, "User Review Succesfully Retrieved", review)
 }
 
 func (h *ReviewHandler) GetReviewByCourseID(c *fiber.Ctx) error {
+	courseID, err := response.GetUUIDParam(c, "course_id")
+	if err != nil {
+		return response.BadRequest(c, err.Error(), "invalid_course_id")
+	}
 
-	return c.Status(200).JSON(fiber.Map{"course_id": "reviews"})
+	reviews, err := h.useCase.GetReviewsByCourseId(context.Background(), courseID)
+	if err != nil {
+		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
+	}
+
+	return response.OK(c, "Course Reviews Succesfully Retrieved", reviews)
 }
 
 func (h *ReviewHandler) DeleteReview(c *fiber.Ctx) error {
+	reviewID, err := response.GetUUIDParam(c, "review_id")
+	if err != nil {
+		return response.BadRequest(c, err.Error(), "invalid_review_id")
+	}
 
-	return c.Status(204).JSON(fiber.Map{"course_id": "reviews"})
+	err = h.useCase.DeleteReview(context.Background(), reviewID)
+	if err != nil {
+		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
+	}
+
+	return response.OK(c, "User Review Succesfully Deleted", nil)
 }
