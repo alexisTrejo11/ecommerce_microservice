@@ -7,7 +7,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/output"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/models"
-	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/mapper"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/mapper"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

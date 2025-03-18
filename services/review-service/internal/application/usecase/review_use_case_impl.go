@@ -8,21 +8,24 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/input"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/output"
+	rabbitmq "github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/message"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/repository"
-	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/dtos"
-	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/mapper"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/mapper"
 	"github.com/google/uuid"
 )
 
 type ReviewUseCaseImpl struct {
-	repository output.ReviewRepository
-	mapper     mapper.ReviewMapper
+	repository    output.ReviewRepository
+	messageClient *rabbitmq.RabbitMQClient
+	mapper        mapper.ReviewMapper
 }
 
-func NewReviewUseCase(repository output.ReviewRepository) input.ReviewUseCase {
+func NewReviewUseCase(repository output.ReviewRepository, messageClient *rabbitmq.RabbitMQClient) input.ReviewUseCase {
 	return &ReviewUseCaseImpl{
-		repository: repository,
-		mapper:     mapper.ReviewMapper{},
+		repository:    repository,
+		messageClient: messageClient,
+		mapper:        mapper.ReviewMapper{},
 	}
 }
 
@@ -55,16 +58,16 @@ func (uc *ReviewUseCaseImpl) GetReviewsByCourseId(ctx context.Context, courseID 
 	return &dtos, nil
 }
 
-func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
-	if err := uc.validateNotDuplicatedReview(ctx, insertDTO.CourseID, insertDTO.UserID); err != nil {
+func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, userID uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
+	if err := uc.validateNotDuplicatedReview(ctx, insertDTO.CourseID, userID); err != nil {
 		return nil, err
 	}
 
-	if err := uc.validateUserEnrollment(ctx, insertDTO.CourseID, insertDTO.UserID); err != nil {
+	if err := uc.validateUserEnrollment(ctx, insertDTO.CourseID, userID); err != nil {
 		return nil, err
 	}
 
-	review, err := uc.mapper.InsertDTOToDomain(insertDTO)
+	review, err := uc.mapper.InsertDTOToDomain(insertDTO, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,22 +77,24 @@ func (uc *ReviewUseCaseImpl) CreateReview(ctx context.Context, insertDTO dtos.Re
 		return nil, err
 	}
 
+	go uc.updateCourseAvgRating(ctx, review.GetCourseID())
+
 	return uc.mapper.DomainToDTO(review), nil
 }
 
-func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, id uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
+func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, userID uuid.UUID, id uuid.UUID, insertDTO dtos.ReviewInsertDTO) (*dtos.ReviewDTO, error) {
 	existingReview, err := uc.repository.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.validateUserEnrollment(ctx, insertDTO.CourseID, insertDTO.UserID); err != nil {
+	if err := uc.validateUserEnrollment(ctx, insertDTO.CourseID, userID); err != nil {
 		return nil, err
 	}
 
 	err = existingReview.Update(
 		id,
-		insertDTO.UserID,
+		userID,
 		insertDTO.CourseID,
 		insertDTO.Rating,
 		insertDTO.Comment,
@@ -103,10 +108,12 @@ func (uc *ReviewUseCaseImpl) UpdateReview(ctx context.Context, id uuid.UUID, ins
 		return nil, err
 	}
 
+	go uc.updateCourseAvgRating(ctx, existingReview.GetCourseID())
+
 	return uc.mapper.DomainToDTO(existingReview), nil
 }
 
-func (uc *ReviewUseCaseImpl) DeleteReview(ctx context.Context, id uuid.UUID) error {
+func (uc *ReviewUseCaseImpl) DeleteReview(ctx context.Context, userID, id uuid.UUID) error {
 	return uc.repository.DeleteByID(ctx, id)
 }
 
@@ -121,14 +128,7 @@ func (uc *ReviewUseCaseImpl) GetCourseRating(ctx context.Context, courseID uuid.
 }
 
 func (uc *ReviewUseCaseImpl) UpdateCourseReviewData(ctx context.Context, courseID uuid.UUID) (*dtos.ReviewDTO, error) {
-	reviews, err := uc.repository.GetByCourseID(ctx, courseID)
-	if err != nil {
-		return nil, err
-	}
-
-	rating := domain.CalculateRating(*reviews)
-	fmt.Printf("rating: %v\n", rating)
-	// Update In Course Service
+	go uc.updateCourseAvgRating(ctx, courseID)
 
 	return nil, nil
 }
@@ -159,4 +159,17 @@ func (uc *ReviewUseCaseImpl) validateUserEnrollment(
 	fmt.Printf("ctx: %v\n", ctx)
 
 	return nil
+}
+
+func (uc *ReviewUseCaseImpl) updateCourseAvgRating(ctx context.Context, courseID uuid.UUID) {
+	reviews, err := uc.repository.GetByCourseID(ctx, courseID)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+
+	rating := domain.CalculateRating(*reviews)
+	uc.messageClient.PublishCourseRatingUpdate(courseID.String(), rating)
+
+	fmt.Printf("rating: send it to queue%v\n", rating)
+
 }

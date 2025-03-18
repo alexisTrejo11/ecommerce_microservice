@@ -15,7 +15,7 @@ func ReviewRoutes(app *fiber.App, handler handlers.ReviewHandler) {
 	path.Get("/:id", handler.GetReviewByID)
 	path.Get("user/:user_id", handler.GetReviewByUserID)
 	path.Get("course/:course_id", handler.GetReviewByCourseID)
-	path.Delete("/:id", handler.DeleteReview)
+	path.Delete("/:id/:user_id", handler.DeleteReview)
 }
 
 func UserReviewRoutes(app *fiber.App, handler handlers.UserReviewHandler) {

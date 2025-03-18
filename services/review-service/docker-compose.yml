@@ -14,6 +14,8 @@ services:
             condition: service_healthy
           redis:
             condition: service_healthy
+          review-rabbitmq:
+            condition: service_healthy
     networks:
       - go-network
     ports:
@@ -52,6 +54,24 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+
+  review-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: review-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - go-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   mysql-data:

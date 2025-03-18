@@ -50,7 +50,6 @@ func (dto *ReviewDTO) SetIsApproved(isApproved bool) {
 }
 
 type ReviewInsertDTO struct {
-	UserID   uuid.UUID `json:"user_id" validate:"required"`
 	CourseID uuid.UUID `json:"course_id" validate:"required"`
 	Rating   int       `json:"rating" validate:"required"`
 	Comment  string    `json:"comment" validate:"omitempty"`

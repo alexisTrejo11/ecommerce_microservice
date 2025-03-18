@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/port/input"
-	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/response"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/log"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/response"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -99,7 +99,15 @@ func (h *ReviewHandler) DeleteReview(c *fiber.Ctx) error {
 		return response.BadRequest(c, err.Error(), "invalid_review_id")
 	}
 
-	err = h.useCase.DeleteReview(context.Background(), reviewID)
+	userID, err := response.GetUUIDParam(c, "user_id")
+	if err != nil {
+		logging.LogError("delete_review", "Invalid review ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), "invalid_review_id")
+	}
+
+	err = h.useCase.DeleteReview(context.Background(), userID, reviewID)
 	if err != nil {
 		return response.NotFound(c, "Review Not Found", "COURSE_NOT_FOUND")
 	}

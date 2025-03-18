@@ -3,15 +3,16 @@ package mapper
 import (
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/application/domain"
 	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/port/output/models"
-	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/internal/infrastructure/shared/dtos"
+	"github.com/alexisTrejo11/ecommerce_microservice/rating-service/pkg/dtos"
+	"github.com/google/uuid"
 )
 
 type ReviewMapper struct {
 }
 
-func (m *ReviewMapper) InsertDTOToDomain(dto dtos.ReviewInsertDTO) (*domain.Review, error) {
+func (m *ReviewMapper) InsertDTOToDomain(dto dtos.ReviewInsertDTO, userID uuid.UUID) (*domain.Review, error) {
 	review, err := domain.NewReview(
-		dto.UserID,
+		userID,
 		dto.CourseID,
 		dto.Rating,
 		dto.Comment,
