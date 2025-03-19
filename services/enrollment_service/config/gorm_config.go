@@ -9,6 +9,7 @@ import (
 	certificate "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/model"
 	enrollment "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/model"
 	progress "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/model"
+	suscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -44,6 +45,7 @@ func GORMConfig() *gorm.DB {
 		&enrollment.Enrollment{},
 		&progress.CompletedLesson{},
 		&certificate.Certificate{},
+		&suscription.Subscription{},
 	); err != nil {
 		log.Fatal("Failed to migrate database schema:", err)
 	}
