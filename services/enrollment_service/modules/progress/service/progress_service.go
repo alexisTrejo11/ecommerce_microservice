@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/dtos"
+	"github.com/google/uuid"
 )
 
 type ProgressService interface {
-	MarkLessonComplete(ctx context.Context, enrollmentID, lessonID uint) error
-	MarkLessonIncomplete(ctx context.Context, enrollmentID, lessonID uint) error
-	GetCompletedLessons(ctx context.Context, enrollmentID uint) ([]dtos.CompletedLessonDTO, error)
-	CalculateProgress(ctx context.Context, enrollmentID uint) (error, float64)
-	IsLessonCompleted(ctx context.Context, enrollmentID, lessonID uint) (error, bool)
+	MarkLessonComplete(ctx context.Context, enrollmentID, lessonID uuid.UUID) error
+	MarkLessonIncomplete(ctx context.Context, enrollmentID, lessonID uuid.UUID) error
+	GetCourseProgress(ctx context.Context, enrollmentID uuid.UUID) ([]dtos.CompletedLessonDTO, error)
+	CalculateProgress(ctx context.Context, enrollmentID uuid.UUID) (float64, error)
+	IsLessonCompleted(ctx context.Context, enrollmentID, lessonID uuid.UUID) (error, bool)
 }

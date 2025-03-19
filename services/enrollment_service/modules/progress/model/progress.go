@@ -3,15 +3,18 @@ package progress
 import (
 	"time"
 
-	"gorm.io/gorm"
+	"github.com/google/uuid"
 )
 
 type CompletedLesson struct {
-	gorm.Model
-	EnrollmentID uint       `json:"enrollment_id"`
-	LessonID     uint       `json:"lesson_id"`
+	ID           uuid.UUID  `gorm:"type:char(36);primaryKey"`
+	EnrollmentID uuid.UUID  `json:"enrollment_id"`
+	LessonID     uuid.UUID  `json:"lesson_id"`
 	IsCompleted  bool       `json:"is_completed"`
 	CompletedAt  *time.Time `json:"completed_at"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time `gorm:"index"`
 }
 
 func (cl *CompletedLesson) MarkAsCompleted() {
