@@ -12,6 +12,6 @@ func SubscriptionRoutes(app *fiber.App, controller controller.SubscriptionContro
 	path.Patch("/cancel", controller.CancelMySubscription)
 
 	path.Post("", controller.CreateSubscription)
-	path.Patch("type/:sub_type", controller.UpdateSubscriptionType)
+	path.Patch(":user_id/type/:sub_type", controller.UpdateSubscriptionType)
 	path.Delete("/:subscription_id", controller.DeleteSubscription)
 }

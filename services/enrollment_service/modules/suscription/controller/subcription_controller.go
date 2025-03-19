@@ -34,14 +34,14 @@ func (sc *SubscriptionController) DeleteSubscription(c *fiber.Ctx) error {
 
 	err = sc.service.DeleteSubscription(context.Background(), subscriptionID)
 	if err != nil {
-		response.BadRequest(c, err.Error(), "invalid_input")
+		return response.BadRequest(c, err.Error(), "invalid_input")
 	}
 
 	return response.OK(c, "Subscription Successfully Deleted.", nil)
 }
 
 func (sc *SubscriptionController) UpdateSubscriptionType(c *fiber.Ctx) error {
-	subscriptionID, err := response.GetUUIDParam(c, "lesson_id")
+	subscriptionID, err := response.GetUUIDParam(c, "user_id")
 	if err != nil {
 		return response.BadRequest(c, err.Error(), "invalid_lesson_id")
 	}
@@ -71,6 +71,7 @@ func (sc *SubscriptionController) CreateSubscription(c *fiber.Ctx) error {
 		response.BadRequest(c, err.Error(), "invalid_request_body")
 	}
 
+	// Fix
 	if err := sc.validator.Struct(&insertDTO); err != nil {
 		response.BadRequest(c, err.Error(), "invalid_request_data")
 	}

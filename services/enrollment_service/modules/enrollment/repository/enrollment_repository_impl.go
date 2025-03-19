@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	enrollment "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/model"
 	"github.com/google/uuid"
@@ -29,6 +30,8 @@ func (r *EnrollmentRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&enrollment).Error; err != nil {
 		return nil, err
 	}
+
+	fmt.Println(enrollment)
 
 	return &enrollment, nil
 }

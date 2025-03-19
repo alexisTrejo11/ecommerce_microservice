@@ -9,11 +9,9 @@ import (
 // ToEnrollmentDTO convierte un modelo Enrollment a EnrollmentDTO
 func ToEnrollmentDTO(enrollment enrollment.Enrollment) dtos.EnrollmentDTO {
 	var completedLessonsDTO []dtos.CompletedLessonDTO
-	/*
-		for _, lesson := range enrollment.CompletedLessons {
-			completedLessonsDTO = append(completedLessonsDTO, ToCompletedLessonDTO(lesson))
-		}
-	*/
+	for _, lesson := range enrollment.CompletedLessons {
+		completedLessonsDTO = append(completedLessonsDTO, ToCompletedLessonDTO(lesson))
+	}
 
 	return dtos.EnrollmentDTO{
 		ID:               enrollment.ID,
@@ -52,9 +50,9 @@ func ToEnrollment(enrollmentDTO dtos.EnrollmentDTO) enrollment.Enrollment {
 }
 
 func ToEnrollmentDTOs(enrollments []enrollment.Enrollment) []dtos.EnrollmentDTO {
-	var dtos []dtos.EnrollmentDTO
-	for _, enrollment := range enrollments {
-		dtos = append(dtos, ToEnrollmentDTO(enrollment))
+	dtos := make([]dtos.EnrollmentDTO, len(enrollments))
+	for i, enrollment := range enrollments {
+		dtos[i] = ToEnrollmentDTO(enrollment)
 	}
 	return dtos
 }

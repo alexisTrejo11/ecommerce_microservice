@@ -18,7 +18,7 @@ var (
 )
 
 var (
-	MONTLY       SubscriptionType = "MONTLY"
+	MONTLY       SubscriptionType = "MOTHLY"
 	FREE_TRIAL   SubscriptionType = "FREE_TRIAL"
 	ANUALLY      SubscriptionType = "ANUALLY"
 	THREE_MONTHS SubscriptionType = "THREE_MONTHS"

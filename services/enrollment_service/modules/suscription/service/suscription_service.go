@@ -2,6 +2,7 @@ package su_service
 
 import (
 	"context"
+	"fmt"
 
 	suscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/model"
 	su_repository "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/repository"
@@ -79,7 +80,8 @@ func (s *SubscriptionServiceImpl) CancelSubscription(ctx context.Context, userID
 func (s *SubscriptionServiceImpl) DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error {
 	_, err := s.repo.GetByID(ctx, subscriptionID)
 	if err != nil {
-		return nil
+		fmt.Printf("err: %v\n", err)
+		return err
 	}
 
 	return s.repo.Delete(ctx, subscriptionID)

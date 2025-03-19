@@ -24,7 +24,7 @@ func NewEnrollmentQueryController(entollmentService services.EnrollmentService, 
 func (ec *EnrollmentQueryController) GetUserEnrollments(c *fiber.Ctx) error {
 	userID, err := ec.jwtManager.GetUserIDFromToken(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_enrollment_id")
+		return response.BadRequest(c, err.Error(), "invalid_user_id")
 	}
 
 	enrollment, _, err := ec.entollmentService.GetUserEnrollments(context.Background(), userID, 1, 10)
@@ -79,5 +79,9 @@ func (ec *EnrollmentQueryController) GetCourseEnrollments(c *fiber.Ctx) error {
 		return response.NotFound(c, "Enrollment Not Found", "enrollment_not_found")
 	}
 
-	return response.OK(c, "Enrollment Successfully Retrieved", enrollments)
+	if len(enrollments) == 0 {
+		return response.OK(c, "No Enrollments Found for this Course", enrollments)
+	}
+
+	return response.OK(c, "Course Enrollment Successfully Retrieved", enrollments)
 }

@@ -6,11 +6,11 @@ import (
 )
 
 func ProgressRoutes(app *fiber.App, controller controller.ProgressController) {
-	app.Group("/v1/api/enrollments/progress")
+	path := app.Group("/v1/api/enrollments/courses/progress")
 
-	app.Get("/my", controller.GetMyCourseProgress)
+	path.Get("/users/my", controller.GetMyCourseProgress)
 	// Ad by Id
-	app.Put("/:lesson_id/complete", controller.MarkLessonComplete)
-	app.Put("/:lesson_id/uncomplete", controller.MarkLessonIncomplete)
+	path.Put("/:lesson_id/complete", controller.MarkLessonComplete)
+	path.Put("/:lesson_id/uncomplete", controller.MarkLessonIncomplete)
 
 }

@@ -21,6 +21,7 @@ func NewProgressController(service services.ProgressService, jwtManager jwt.JWTM
 	}
 }
 
+// Group By Course
 func (pc *ProgressController) GetMyCourseProgress(c *fiber.Ctx) error {
 	userID, err := pc.jwtManager.GetUserIDFromToken(c)
 	if err != nil {

@@ -21,7 +21,7 @@ type SubscriptionDTO struct {
 type SubscriptionInsertDTO struct {
 	UserID    uuid.UUID                     `json:"user_id" validate:"required,uuid"`
 	PlanName  string                        `json:"plan_name" validate:"required,min=3,max=50"`
-	Status    suscription.SuscriptionStatus `json:"status" validate:"required,enum"`
-	Type      suscription.SubscriptionType  `json:"type" validate:"required,enum"`
+	Status    suscription.SuscriptionStatus `json:"status" validate:"required"`
+	Type      suscription.SubscriptionType  `json:"type" validate:"required"`
 	PaymentID uuid.UUID                     `json:"payment_id" validate:"required,uuid"`
 }
