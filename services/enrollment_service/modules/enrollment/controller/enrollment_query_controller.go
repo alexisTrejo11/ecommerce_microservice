@@ -6,6 +6,7 @@ import (
 	services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/service"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/response"
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,9 +24,9 @@ func NewEnrollmentQueryController(entollmentService services.EnrollmentService, 
 }
 
 func (ec *EnrollmentQueryController) GetMyEnrollments(c *fiber.Ctx) error {
-	userID, err := ec.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.Unauthorized(c, err.Error(), "unauthorized")
 	}
 
 	logging.LogIncomingRequest(c, "get_my_enrollments")

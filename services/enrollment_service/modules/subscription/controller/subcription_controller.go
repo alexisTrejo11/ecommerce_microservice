@@ -8,6 +8,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/dtos"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -101,11 +102,10 @@ func (sc *SubscriptionController) CreateSubscription(c *fiber.Ctx) error {
 	return response.Created(c, "Subscription Successfully Created", subscription)
 }
 
-// User
 func (sc *SubscriptionController) GetMySubscription(c *fiber.Ctx) error {
-	userID, err := sc.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.Unauthorized(c, err.Error(), "unauthorized")
 	}
 
 	logging.LogIncomingRequest(c, "get_my_subscription")
@@ -123,9 +123,9 @@ func (sc *SubscriptionController) GetMySubscription(c *fiber.Ctx) error {
 }
 
 func (sc *SubscriptionController) CancelMySubscription(c *fiber.Ctx) error {
-	userID, err := sc.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.Unauthorized(c, err.Error(), "unauthorized")
 	}
 
 	logging.LogIncomingRequest(c, "cancel_my_subscription")

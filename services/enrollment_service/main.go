@@ -21,6 +21,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -34,6 +35,16 @@ func main() {
 	// Config
 	db := config.GORMConfig()
 
+	mongoDBName := os.Getenv("MONGO_DB_NAME")
+	if mongoDBName == "" {
+		mongoDBName = "ENROLLMENT_DB"
+	}
+	mongoClient := config.InitMongoClient()
+	mongoCollections, err := config.CreateCollections(mongoClient, mongoDBName)
+	if err != nil {
+		log.Fatalf("Can't Start Mongo Collection %v", err)
+	}
+
 	// Log
 	logging.InitLogger()
 
@@ -46,13 +57,14 @@ func main() {
 	// Repository
 	certificateRepository := certificateRepo.NewCertificateRepository(db)
 	enrollmentRepository := enrollmentRepo.NewEnrollmentRepository(db)
-	progressRepo := progressRepo.NewProgressRepository(db)
+	progressRepository := progressRepo.NewProgressRepository(db)
+	progressRepo.NewMongoDBCourseRepository(mongoClient, mongoDBName, *mongoCollections)
 	subRepos := su_repository.NewSubscriptionRepository(db)
 
 	// Service
 	certificateService := certificateService.NewCertificateService(certificateRepository, enrollmentRepository)
 	enrollmentService := enrollmentService.NewEnrollmentService(enrollmentRepository)
-	progressService := progressService.NewProgressService(progressRepo)
+	progressService := progressService.NewProgressService(progressRepository)
 	subscriptionService := su_service.NewSubscriptionService(subRepos)
 
 	// Controller
@@ -63,13 +75,20 @@ func main() {
 	subscriptionController := controller.NewSubscriptionController(subscriptionService, *jwtManager)
 
 	// routes
+	// Public Routes
+	routes.UserCerticationRoutes(app, *certificationController)
 	routes.CerticationRoutes(app, *certificationController)
-	routes.ProgressRoutes(app, *progressController)
-	routes.EnrollmentsRoutes(app, *enrollmentCommandController, *enrollmentQueryController)
 	routes.SubscriptionRoutes(app, *subscriptionController)
+	routes.EnrollmentsRoutes(app, *enrollmentCommandController, *enrollmentQueryController)
+
+	// Auth Routes
+	app.Use(middleware.JWTAuthMiddleware(*jwtManager))
+	routes.UserSubscriptionRoutes(app, *subscriptionController)
+	routes.UserEnrollmentsRoutes(app, *enrollmentCommandController, *enrollmentQueryController)
+	routes.ProgressRoutes(app, *progressController)
 
 	// Checker to Expire Notification
-	go subscriptionService.StartSubscriptionChecker(1 * time.Minute)
+	go subscriptionService.StartSubscriptionChecker(5 * time.Minute)
 
 	// Run Server
 	app.Get("/home", func(c *fiber.Ctx) error {

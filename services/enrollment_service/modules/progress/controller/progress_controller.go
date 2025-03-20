@@ -6,6 +6,7 @@ import (
 	services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/service"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/response"
 	"github.com/gofiber/fiber/v2"
 )
@@ -24,9 +25,9 @@ func NewProgressController(service services.ProgressService, jwtManager jwt.JWTM
 
 // Group By Course
 func (pc *ProgressController) GetMyCourseProgress(c *fiber.Ctx) error {
-	userID, err := pc.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.Unauthorized(c, err.Error(), "unauthorized")
 	}
 
 	logging.LogIncomingRequest(c, "get_my_course_progress")
@@ -40,9 +41,9 @@ func (pc *ProgressController) GetMyCourseProgress(c *fiber.Ctx) error {
 }
 
 func (pc *ProgressController) MarkLessonComplete(c *fiber.Ctx) error {
-	userID, err := pc.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.Unauthorized(c, err.Error(), "unauthorized")
 	}
 
 	logging.LogIncomingRequest(c, "mark_lesson_complete")
@@ -65,9 +66,9 @@ func (pc *ProgressController) MarkLessonComplete(c *fiber.Ctx) error {
 }
 
 func (pc *ProgressController) MarkLessonIncomplete(c *fiber.Ctx) error {
-	userID, err := pc.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.Unauthorized(c, err.Error(), "unauthorized")
 	}
 
 	logging.LogIncomingRequest(c, "mark_lesson_incompleted")

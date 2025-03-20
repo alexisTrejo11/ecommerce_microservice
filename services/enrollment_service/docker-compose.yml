@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     build: .
@@ -10,10 +12,12 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
     depends_on:
-          db:
-            condition: service_healthy
-          redis:
-            condition: service_healthy
+      my-sql:
+        condition: service_healthy
+      mongoDB:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - go-network
     ports:
@@ -21,31 +25,50 @@ services:
     env_file:
       - .env
 
-  db:
+  my-sql:
     image: mysql:8.0
-    container_name: enrollment-db
+    container_name: enrollment-mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD} 
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USER} 
+      - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
       - go-network
-    ports:
-      - "3307:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${DB_USER}", "-p${DB_PASSWORD}"]
       interval: 5s
       timeout: 10s
       retries: 10
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3307:3306"
+
+  mongoDB:
+    image: mongo:6.0
+    container_name: enrollment-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - go-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    ports:
+      - "27019:27017" 
 
   redis:
     image: redis:latest
     container_name: enrollment-redis
-    ports:
-      - "6378:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     networks:
       - go-network
     healthcheck:
@@ -53,9 +76,13 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - "6378:6379"
 
 volumes:
   mysql-data:
+  mongodb-data:
 
 networks:
   go-network:
