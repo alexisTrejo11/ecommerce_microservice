@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	suscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/model"
+	subscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type SubscriptionRepository interface {
-	GetByID(ctx context.Context, subscriptionID uuid.UUID) (*suscription.Subscription, error)
-	GetByUserID(ctx context.Context, userID uuid.UUID) (*suscription.Subscription, error)
-	GetByIdAndUserID(ctx context.Context, subscriptionID, userID uuid.UUID) (*suscription.Subscription, error)
-	GetValidByUserID(ctx context.Context, userID uuid.UUID) (*suscription.Subscription, error)
-	Save(ctx context.Context, subscription *suscription.Subscription) error
+	GetByID(ctx context.Context, subscriptionID uuid.UUID) (*subscription.Subscription, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) (*subscription.Subscription, error)
+	GetByIdAndUserID(ctx context.Context, subscriptionID, userID uuid.UUID) (*subscription.Subscription, error)
+	GetValidByUserID(ctx context.Context, userID uuid.UUID) (*subscription.Subscription, error)
+	Save(ctx context.Context, subscription *subscription.Subscription) error
 	SoftDelete(ctx context.Context, subscriptionID uuid.UUID) error
 	ExpireSubscriptions(ctx context.Context) error
 }
@@ -28,8 +28,8 @@ func NewSubscriptionRepository(db *gorm.DB) SubscriptionRepository {
 	return &SubscriptionRepositoryImpl{db: db}
 }
 
-func (r *SubscriptionRepositoryImpl) GetByID(ctx context.Context, subscriptionID uuid.UUID) (*suscription.Subscription, error) {
-	var subscription suscription.Subscription
+func (r *SubscriptionRepositoryImpl) GetByID(ctx context.Context, subscriptionID uuid.UUID) (*subscription.Subscription, error) {
+	var subscription subscription.Subscription
 	if err := r.db.WithContext(ctx).Where("id = ?", subscriptionID).First(&subscription).Error; err != nil {
 		return nil, err
 	}
@@ -37,8 +37,8 @@ func (r *SubscriptionRepositoryImpl) GetByID(ctx context.Context, subscriptionID
 	return &subscription, nil
 }
 
-func (r *SubscriptionRepositoryImpl) GetByIdAndUserID(ctx context.Context, subscriptionID, userID uuid.UUID) (*suscription.Subscription, error) {
-	var subscription suscription.Subscription
+func (r *SubscriptionRepositoryImpl) GetByIdAndUserID(ctx context.Context, subscriptionID, userID uuid.UUID) (*subscription.Subscription, error) {
+	var subscription subscription.Subscription
 	if err := r.db.WithContext(ctx).Where("id = ? AND user_id", subscriptionID, userID).First(&subscription).Error; err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func (r *SubscriptionRepositoryImpl) GetByIdAndUserID(ctx context.Context, subsc
 	return &subscription, nil
 }
 
-func (r *SubscriptionRepositoryImpl) GetByUserID(ctx context.Context, userID uuid.UUID) (*suscription.Subscription, error) {
-	var subscription suscription.Subscription
+func (r *SubscriptionRepositoryImpl) GetByUserID(ctx context.Context, userID uuid.UUID) (*subscription.Subscription, error) {
+	var subscription subscription.Subscription
 
 	if err := r.db.WithContext(ctx).
 		Where("user_id = ? AND status != ?", userID, "EXPIRED").
@@ -58,8 +58,8 @@ func (r *SubscriptionRepositoryImpl) GetByUserID(ctx context.Context, userID uui
 	return &subscription, nil
 }
 
-func (r *SubscriptionRepositoryImpl) GetValidByUserID(ctx context.Context, userID uuid.UUID) (*suscription.Subscription, error) {
-	var subscription suscription.Subscription
+func (r *SubscriptionRepositoryImpl) GetValidByUserID(ctx context.Context, userID uuid.UUID) (*subscription.Subscription, error) {
+	var subscription subscription.Subscription
 	if err := r.db.WithContext(ctx).Where("user_id = ? and status = 'ACTIVE'", userID).First(&subscription).Error; err != nil {
 		return nil, err
 	}
@@ -67,12 +67,12 @@ func (r *SubscriptionRepositoryImpl) GetValidByUserID(ctx context.Context, userI
 	return &subscription, nil
 }
 
-func (r *SubscriptionRepositoryImpl) Save(ctx context.Context, subscription *suscription.Subscription) error {
+func (r *SubscriptionRepositoryImpl) Save(ctx context.Context, subscription *subscription.Subscription) error {
 	return r.db.WithContext(ctx).Save(subscription).Error
 }
 
 func (r *SubscriptionRepositoryImpl) SoftDelete(ctx context.Context, subscriptionID uuid.UUID) error {
-	var subscription suscription.Subscription
+	var subscription subscription.Subscription
 
 	if err := r.db.WithContext(ctx).Where("id = ?", subscriptionID).First(&subscription).Error; err != nil {
 		return err
@@ -89,7 +89,7 @@ func (r *SubscriptionRepositoryImpl) ExpireSubscriptions(ctx context.Context) er
 	now := time.Now()
 
 	result := r.db.WithContext(ctx).
-		Model(&suscription.Subscription{}).
+		Model(&subscription.Subscription{}).
 		Where("end_date <= ? AND status != ?", now, "EXPIRED").
 		Update("status", "EXPIRED")
 
@@ -97,6 +97,6 @@ func (r *SubscriptionRepositoryImpl) ExpireSubscriptions(ctx context.Context) er
 		return result.Error
 	}
 
-	fmt.Printf("%d suscriptions have been expired.\n", result.RowsAffected)
+	fmt.Printf("%d subscriptions have been expired.\n", result.RowsAffected)
 	return nil
 }

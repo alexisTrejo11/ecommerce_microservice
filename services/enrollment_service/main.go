@@ -15,11 +15,12 @@ import (
 	progressController "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/controller"
 	progressRepo "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/repository"
 	progressService "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/service"
-	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/controller"
-	su_repository "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/repository"
-	su_service "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/service"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/controller"
+	su_repository "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/repository"
+	su_service "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/service"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
+	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -32,6 +33,9 @@ func main() {
 
 	// Config
 	db := config.GORMConfig()
+
+	// Log
+	logging.InitLogger()
 
 	// JWT
 	jwtManager, err := jwt.NewJWTManager()
@@ -48,15 +52,15 @@ func main() {
 	// Service
 	certificateService := certificateService.NewCertificateService(certificateRepository, enrollmentRepository)
 	enrollmentService := enrollmentService.NewEnrollmentService(enrollmentRepository)
-	progresssService := progressService.NewProgressService(progressRepo)
-	subscriptionSeervice := su_service.NewSubscriptionService(subRepos)
+	progressService := progressService.NewProgressService(progressRepo)
+	subscriptionService := su_service.NewSubscriptionService(subRepos)
 
 	// Controller
 	certificationController := certificateController.NewCertificateController(certificateService, *jwtManager)
 	enrollmentCommandController := enrollmentController.NewEnrollmentComandController(enrollmentService)
 	enrollmentQueryController := enrollmentController.NewEnrollmentQueryController(enrollmentService, *jwtManager)
-	progressController := progressController.NewProgressController(progresssService, *jwtManager)
-	subscriptionController := controller.NewSubscriptionController(subscriptionSeervice, *jwtManager)
+	progressController := progressController.NewProgressController(progressService, *jwtManager)
+	subscriptionController := controller.NewSubscriptionController(subscriptionService, *jwtManager)
 
 	// routes
 	routes.CerticationRoutes(app, *certificationController)
@@ -65,7 +69,7 @@ func main() {
 	routes.SubscriptionRoutes(app, *subscriptionController)
 
 	// Checker to Expire Notification
-	go subscriptionSeervice.StartSubscriptionChecker(1 * time.Minute)
+	go subscriptionService.StartSubscriptionChecker(1 * time.Minute)
 
 	// Run Server
 	app.Get("/home", func(c *fiber.Ctx) error {

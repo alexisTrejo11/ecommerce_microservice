@@ -1,11 +1,11 @@
 package mapper
 
 import (
-	suscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/model"
+	subscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/model"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/dtos"
 )
 
-func ToSubscriptionDTO(sub suscription.Subscription) dtos.SubscriptionDTO {
+func ToSubscriptionDTO(sub subscription.Subscription) dtos.SubscriptionDTO {
 	return dtos.SubscriptionDTO{
 		ID:        sub.GetID(),
 		UserID:    sub.GetUserID(),
@@ -18,8 +18,8 @@ func ToSubscriptionDTO(sub suscription.Subscription) dtos.SubscriptionDTO {
 	}
 }
 
-func ToSubscription(subDTO dtos.SubscriptionInsertDTO) suscription.Subscription {
-	return *suscription.NewSubscription(
+func ToSubscription(subDTO dtos.SubscriptionInsertDTO) subscription.Subscription {
+	return *subscription.NewSubscription(
 		subDTO.UserID,
 		subDTO.PlanName,
 		subDTO.PaymentID,

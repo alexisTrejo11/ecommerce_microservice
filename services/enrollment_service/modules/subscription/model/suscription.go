@@ -1,4 +1,4 @@
-package suscription
+package subscription
 
 import (
 	"errors"
@@ -8,14 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type SuscriptionStatus string
+type SubscriptionStatus string
 type SubscriptionType string
 
 var (
-	ACTIVE          SuscriptionStatus = "ACTIVE"
-	CANCELLED       SuscriptionStatus = "CANCELLED"
-	EXPIRED         SuscriptionStatus = "EXPIRED"
-	INVALID_PAYMENT SuscriptionStatus = "INVALID_PAYMENT"
+	ACTIVE          SubscriptionStatus = "ACTIVE"
+	CANCELLED       SubscriptionStatus = "CANCELLED"
+	EXPIRED         SubscriptionStatus = "EXPIRED"
+	INVALID_PAYMENT SubscriptionStatus = "INVALID_PAYMENT"
 )
 
 var (
@@ -35,25 +35,25 @@ func (s SubscriptionType) IsValid() bool {
 }
 
 type Subscription struct {
-	ID               uuid.UUID         `gorm:"type:char(36);primaryKey"`
-	UserID           uuid.UUID         `json:"user_id" gorm:"type:char(36);not null"`
-	PlanName         string            `json:"plan_name" gorm:"type:varchar(100);not null"`
-	StartDate        time.Time         `json:"start_date" gorm:"not null"`
-	EndDate          time.Time         `json:"end_date" gorm:"not null"`
-	Status           SuscriptionStatus `json:"status" gorm:"default:active;not null"`
-	SubscriptionType SubscriptionType  `json:"type" gorm:"default:'ACTIVE';not null"`
-	PaymentID        uuid.UUID         `json:"payment_id" gorm:"type:char(36);not null"`
-	ElapsedTime      int64             `gorm:"-" json:"elapsed_time"`
-	CreatedAt        time.Time         `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt        time.Time         `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt        gorm.DeletedAt    `json:"deleted_at"`
+	ID               uuid.UUID          `gorm:"type:char(36);primaryKey"`
+	UserID           uuid.UUID          `json:"user_id" gorm:"type:char(36);not null"`
+	PlanName         string             `json:"plan_name" gorm:"type:varchar(100);not null"`
+	StartDate        time.Time          `json:"start_date" gorm:"not null"`
+	EndDate          time.Time          `json:"end_date" gorm:"not null"`
+	Status           SubscriptionStatus `json:"status" gorm:"default:active;not null"`
+	SubscriptionType SubscriptionType   `json:"type" gorm:"default:'ACTIVE';not null"`
+	PaymentID        uuid.UUID          `json:"payment_id" gorm:"type:char(36);not null"`
+	ElapsedTime      int64              `gorm:"-" json:"elapsed_time"`
+	CreatedAt        time.Time          `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt        time.Time          `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt        gorm.DeletedAt     `json:"deleted_at"`
 }
 
 func NewSubscription(
 	userID uuid.UUID,
 	planName string,
 	paymentID uuid.UUID,
-	status SuscriptionStatus,
+	status SubscriptionStatus,
 	subscriptiontype SubscriptionType) *Subscription {
 	now := time.Now()
 
@@ -73,16 +73,16 @@ func NewSubscription(
 	return suscription
 }
 
-func (s *Subscription) GetID() uuid.UUID             { return s.ID }
-func (s *Subscription) GetUserID() uuid.UUID         { return s.UserID }
-func (s *Subscription) GetPlanName() string          { return s.PlanName }
-func (s *Subscription) GetStartDate() time.Time      { return s.StartDate }
-func (s *Subscription) GetEndDate() time.Time        { return s.EndDate }
-func (s *Subscription) GetStatus() SuscriptionStatus { return s.Status }
-func (s *Subscription) GetPaymentID() uuid.UUID      { return s.PaymentID }
-func (s *Subscription) GetType() SubscriptionType    { return s.SubscriptionType }
-func (s *Subscription) GetCreatedAt() time.Time      { return s.CreatedAt }
-func (s *Subscription) GetUpdatedAt() time.Time      { return s.UpdatedAt }
+func (s *Subscription) GetID() uuid.UUID              { return s.ID }
+func (s *Subscription) GetUserID() uuid.UUID          { return s.UserID }
+func (s *Subscription) GetPlanName() string           { return s.PlanName }
+func (s *Subscription) GetStartDate() time.Time       { return s.StartDate }
+func (s *Subscription) GetEndDate() time.Time         { return s.EndDate }
+func (s *Subscription) GetStatus() SubscriptionStatus { return s.Status }
+func (s *Subscription) GetPaymentID() uuid.UUID       { return s.PaymentID }
+func (s *Subscription) GetType() SubscriptionType     { return s.SubscriptionType }
+func (s *Subscription) GetCreatedAt() time.Time       { return s.CreatedAt }
+func (s *Subscription) GetUpdatedAt() time.Time       { return s.UpdatedAt }
 
 func (s *Subscription) BeforeCreate(tx *gorm.DB) (err error) {
 	if s.ID == uuid.Nil {

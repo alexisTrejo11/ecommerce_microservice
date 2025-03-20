@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	suscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/model"
-	su_repository "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/repository"
+	subscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/model"
+	su_repository "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/repository"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/dtos"
 	mapper "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/mappers"
 	"github.com/google/uuid"
@@ -17,7 +17,7 @@ import (
 type SubscriptionService interface {
 	CreateSubscription(ctx context.Context, subscriptionDTO dtos.SubscriptionInsertDTO) (*dtos.SubscriptionDTO, error)
 	GetSubscriptionByUser(ctx context.Context, userID uuid.UUID) (*dtos.SubscriptionDTO, error)
-	UpdateSubscriptionType(ctx context.Context, subscriptionID uuid.UUID, subType suscription.SubscriptionType) error
+	UpdateSubscriptionType(ctx context.Context, subscriptionID uuid.UUID, subType subscription.SubscriptionType) error
 	CancelSubscription(ctx context.Context, userID, subscriptionID uuid.UUID) error
 	DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error
 	StartSubscriptionChecker(interval time.Duration)
@@ -32,17 +32,19 @@ func NewSubscriptionService(repo su_repository.SubscriptionRepository) Subscript
 }
 
 func (s *SubscriptionServiceImpl) CreateSubscription(ctx context.Context, subscriptionDTO dtos.SubscriptionInsertDTO) (*dtos.SubscriptionDTO, error) {
-	subscription := mapper.ToSubscription(subscriptionDTO)
-
 	if err := s.validateCreation(ctx, subscriptionDTO); err != nil {
 		return nil, err
 	}
 
+	subscription := mapper.ToSubscription(subscriptionDTO)
 	if err := s.repo.Save(ctx, &subscription); err != nil {
+		fmt.Println("Hola")
 		return nil, err
 	}
 
+	fmt.Println("Hol2")
 	createdDTO := mapper.ToSubscriptionDTO(subscription)
+	fmt.Println(createdDTO.ID)
 	return &createdDTO, nil
 }
 
@@ -56,10 +58,10 @@ func (s *SubscriptionServiceImpl) GetSubscriptionByUser(ctx context.Context, use
 	return &subscriptionDTO, nil
 }
 
-func (s *SubscriptionServiceImpl) UpdateSubscriptionType(ctx context.Context, subscriptionID uuid.UUID, subType suscription.SubscriptionType) error {
+func (s *SubscriptionServiceImpl) UpdateSubscriptionType(ctx context.Context, subscriptionID uuid.UUID, subType subscription.SubscriptionType) error {
 	subscription, err := s.repo.GetByID(ctx, subscriptionID)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	subscription.SetType(&subType)
@@ -96,19 +98,21 @@ func (s *SubscriptionServiceImpl) validateCreation(ctx context.Context, dto dtos
 		return err
 	}
 
-	if dto.Type == suscription.FREE_TRIAL {
-		if s.isUserAlreadyUseHisFreeTrial() {
-			return errors.New("use ralready claim his free trial")
-		}
+	if dto.Type != subscription.FREE_TRIAL {
+		return nil
+	}
+
+	if s.isUserAlreadyUseHisFreeTrial() {
+		return errors.New("user already claimed their free trial")
 	}
 
 	return nil
 }
 
 func (s *SubscriptionServiceImpl) validateNotSubscriptionConflict(ctx context.Context, userID uuid.UUID) error {
-	suscription, err := s.repo.GetValidByUserID(ctx, userID)
-	if err == nil && suscription != nil {
-		return errors.New("this user already has an active suscriptions")
+	subscription, err := s.repo.GetValidByUserID(ctx, userID)
+	if err == nil && subscription != nil {
+		return errors.New("this user already has an active subscriptions")
 	}
 
 	return nil
@@ -116,6 +120,11 @@ func (s *SubscriptionServiceImpl) validateNotSubscriptionConflict(ctx context.Co
 
 // Implement
 func (s *SubscriptionServiceImpl) isUserAlreadyUseHisFreeTrial() bool {
+	if s.repo == nil {
+		log.Println("Repository is nil in isUserAlreadyUseHisFreeTrial")
+		return false
+	}
+
 	return true
 }
 

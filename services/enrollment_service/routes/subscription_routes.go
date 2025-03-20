@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/controller"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/subscription/controller"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,6 +12,6 @@ func SubscriptionRoutes(app *fiber.App, controller controller.SubscriptionContro
 	path.Patch("/cancel", controller.CancelMySubscription)
 
 	path.Post("", controller.CreateSubscription)
-	path.Patch(":user_id/type/:sub_type", controller.UpdateSubscriptionType)
+	path.Patch(":user_id/type/:sub_type", controller.ChangeMySubscriptionType)
 	path.Delete("/:subscription_id", controller.DeleteSubscription)
 }
