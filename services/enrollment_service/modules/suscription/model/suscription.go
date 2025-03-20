@@ -1,6 +1,7 @@
 package suscription
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -125,9 +126,15 @@ func (s *Subscription) GetElapsedTimeInDays() int {
 	return int(elapsed.Hours() / 24)
 }
 
-func (s *Subscription) Cancel() {
+func (s *Subscription) Cancel() error {
+	if s.Status != ACTIVE {
+		return errors.New("only active subscriptions can't be cancelled")
+	}
+
 	s.Status = CANCELLED
 	s.UpdatedAt = time.Now()
+
+	return nil
 }
 
 func calculatePeriodDates(subscrptiontype SubscriptionType) (time.Time, time.Time) {

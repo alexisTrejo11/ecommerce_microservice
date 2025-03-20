@@ -2,7 +2,10 @@ package su_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"time"
 
 	suscription "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/model"
 	su_repository "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/suscription/repository"
@@ -17,6 +20,7 @@ type SubscriptionService interface {
 	UpdateSubscriptionType(ctx context.Context, subscriptionID uuid.UUID, subType suscription.SubscriptionType) error
 	CancelSubscription(ctx context.Context, userID, subscriptionID uuid.UUID) error
 	DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error
+	StartSubscriptionChecker(interval time.Duration)
 }
 
 type SubscriptionServiceImpl struct {
@@ -29,6 +33,10 @@ func NewSubscriptionService(repo su_repository.SubscriptionRepository) Subscript
 
 func (s *SubscriptionServiceImpl) CreateSubscription(ctx context.Context, subscriptionDTO dtos.SubscriptionInsertDTO) (*dtos.SubscriptionDTO, error) {
 	subscription := mapper.ToSubscription(subscriptionDTO)
+
+	if err := s.validateCreation(ctx, subscriptionDTO); err != nil {
+		return nil, err
+	}
 
 	if err := s.repo.Save(ctx, &subscription); err != nil {
 		return nil, err
@@ -68,7 +76,9 @@ func (s *SubscriptionServiceImpl) CancelSubscription(ctx context.Context, userID
 		return err
 	}
 
-	subscription.Cancel()
+	if err := subscription.Cancel(); err != nil {
+		return err
+	}
 
 	if err := s.repo.Save(ctx, subscription); err != nil {
 		return err
@@ -78,11 +88,46 @@ func (s *SubscriptionServiceImpl) CancelSubscription(ctx context.Context, userID
 }
 
 func (s *SubscriptionServiceImpl) DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error {
-	_, err := s.repo.GetByID(ctx, subscriptionID)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
+	return s.repo.SoftDelete(ctx, subscriptionID)
+}
+
+func (s *SubscriptionServiceImpl) validateCreation(ctx context.Context, dto dtos.SubscriptionInsertDTO) error {
+	if err := s.validateNotSubscriptionConflict(ctx, dto.UserID); err != nil {
 		return err
 	}
 
-	return s.repo.Delete(ctx, subscriptionID)
+	if dto.Type == suscription.FREE_TRIAL {
+		if s.isUserAlreadyUseHisFreeTrial() {
+			return errors.New("use ralready claim his free trial")
+		}
+	}
+
+	return nil
+}
+
+func (s *SubscriptionServiceImpl) validateNotSubscriptionConflict(ctx context.Context, userID uuid.UUID) error {
+	suscription, err := s.repo.GetValidByUserID(ctx, userID)
+	if err == nil && suscription != nil {
+		return errors.New("this user already has an active suscriptions")
+	}
+
+	return nil
+}
+
+// Implement
+func (s *SubscriptionServiceImpl) isUserAlreadyUseHisFreeTrial() bool {
+	return true
+}
+
+func (s *SubscriptionServiceImpl) StartSubscriptionChecker(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		fmt.Println("Checking for subscriptions to expire...")
+		ctx := context.Background()
+		if err := s.repo.ExpireSubscriptions(ctx); err != nil {
+			log.Printf("Error while expiring subscriptions: %v\n", err)
+		}
+	}
 }

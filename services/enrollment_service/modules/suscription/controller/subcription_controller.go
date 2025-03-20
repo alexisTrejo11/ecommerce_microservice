@@ -58,7 +58,7 @@ func (sc *SubscriptionController) UpdateSubscriptionType(c *fiber.Ctx) error {
 
 	err = sc.service.UpdateSubscriptionType(context.Background(), subscriptionID, subType)
 	if err != nil {
-		response.BadRequest(c, err.Error(), "invalid_input")
+		return response.BadRequest(c, err.Error(), "invalid_input")
 	}
 
 	return response.OK(c, "Subscription Successfully Deleted.", nil)
@@ -68,17 +68,16 @@ func (sc *SubscriptionController) CreateSubscription(c *fiber.Ctx) error {
 	var insertDTO dtos.SubscriptionInsertDTO
 
 	if err := c.BodyParser(&insertDTO); err != nil {
-		response.BadRequest(c, err.Error(), "invalid_request_body")
+		return response.BadRequest(c, err.Error(), "invalid_request_body")
 	}
 
-	// Fix
 	if err := sc.validator.Struct(&insertDTO); err != nil {
-		response.BadRequest(c, err.Error(), "invalid_request_data")
+		return response.BadRequest(c, err.Error(), "invalid_request_data")
 	}
 
 	subscription, err := sc.service.CreateSubscription(context.Background(), insertDTO)
 	if err != nil {
-		response.BadRequest(c, err.Error(), "invalid_input")
+		return response.BadRequest(c, err.Error(), "invalid_input")
 	}
 
 	return response.Created(c, "Subscription Successfully Created", subscription)
@@ -93,7 +92,7 @@ func (sc *SubscriptionController) GetMySubscription(c *fiber.Ctx) error {
 
 	subscription, err := sc.service.GetSubscriptionByUser(context.Background(), userID)
 	if err != nil {
-		response.BadRequest(c, err.Error(), "invalid_input")
+		return response.BadRequest(c, err.Error(), "invalid_input")
 	}
 
 	return response.Created(c, "Subscription Successfully Created", subscription)

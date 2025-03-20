@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/config"
 	certificateController "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/controller"
@@ -62,6 +63,9 @@ func main() {
 	routes.ProgressRoutes(app, *progressController)
 	routes.EnrollmentsRoutes(app, *enrollmentCommandController, *enrollmentQueryController)
 	routes.SubscriptionRoutes(app, *subscriptionController)
+
+	// Checker to Expire Notification
+	go subscriptionSeervice.StartSubscriptionChecker(1 * time.Minute)
 
 	// Run Server
 	app.Get("/home", func(c *fiber.Ctx) error {
