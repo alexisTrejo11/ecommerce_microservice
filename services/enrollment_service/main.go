@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/config"
+	_ "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/docs"
 	certificateController "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/controller"
 	certificateRepo "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/repository"
 	certificateService "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/service"
@@ -23,6 +24,7 @@ import (
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/rate_limiter"
+	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -46,6 +48,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't Start Mongo Collection %v", err)
 	}
+
+	// Swagger
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Log
 	logging.InitLogger()

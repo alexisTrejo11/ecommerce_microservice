@@ -11,11 +11,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// EnrollmentQueryController handles operations related to enrollment queries.
 type EnrollmentQueryController struct {
 	entollmentService services.EnrollmentService
 	jwtManager        jwt.JWTManager
 }
 
+// NewEnrollmentQueryController creates a new instance of the controller.
 func NewEnrollmentQueryController(entollmentService services.EnrollmentService, jwtManager jwt.JWTManager) *EnrollmentQueryController {
 	return &EnrollmentQueryController{
 		entollmentService: entollmentService,
@@ -23,6 +25,15 @@ func NewEnrollmentQueryController(entollmentService services.EnrollmentService, 
 	}
 }
 
+// @Summary Get My Enrollments
+// @Description Retrieves all enrollments of the authenticated user.
+// @Tags Enrollments
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object}  response.ApiResponse "Enrollments retrieved successfully"
+// @Failure 401 {object}  response.ApiResponse "Unauthorized"
+// @Router /enrollments/me [get]
 func (ec *EnrollmentQueryController) GetMyEnrollments(c *fiber.Ctx) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -43,6 +54,16 @@ func (ec *EnrollmentQueryController) GetMyEnrollments(c *fiber.Ctx) error {
 	return response.OK(c, MsgUserEnrollmentRetrieved, enrollment)
 }
 
+// @Summary Get Enrollment by ID
+// @Description Retrieves a specific enrollment using its ID.
+// @Tags Enrollments
+// @Accept json
+// @Produce json
+// @Param enrollment_id path string true "Enrollment ID"
+// @Success 200 {object}  response.ApiResponse "Enrollment retrieved successfully"
+// @Failure 400 {object}  response.ApiResponse "Invalid enrollment ID"
+// @Failure 404 {object}  response.ApiResponse "Enrollment not found"
+// @Router  /v1/api/enrollments/{enrollment_id} [get]
 func (ec *EnrollmentQueryController) GetEnrollmentByID(c *fiber.Ctx) error {
 	enrollmentID, err := response.GetUUIDParam(c, "enrollment_id", KeyGetEnrollmentByID)
 	if err != nil {
@@ -63,6 +84,17 @@ func (ec *EnrollmentQueryController) GetEnrollmentByID(c *fiber.Ctx) error {
 	return response.OK(c, MsgEnrollmentRetrieved, enrollment)
 }
 
+// @Summary Get Enrollment by User and Course
+// @Description Retrieves a specific enrollment using the user ID and course ID.
+// @Tags Enrollments
+// @Accept json
+// @Produce json
+// @Param user_id path string true "User ID"
+// @Param course_id path string true "Course ID"
+// @Success 200 {object}  response.ApiResponse "Enrollment retrieved successfully"
+// @Failure 400 {object}  response.ApiResponse "Invalid user or course ID"
+// @Failure 404 {object}  response.ApiResponse "Enrollment not found"
+// @Router /v1/api/enrollments/user/{user_id}/course/{course_id} [get]
 func (ec *EnrollmentQueryController) GetEnrollmentByUserAndCourse(c *fiber.Ctx) error {
 	logging.LogIncomingRequest(c, KeyGetEnrollmentByUserAndCourse)
 
@@ -89,6 +121,16 @@ func (ec *EnrollmentQueryController) GetEnrollmentByUserAndCourse(c *fiber.Ctx) 
 	return response.OK(c, MsgEnrollmentsRetrieved, enrollment)
 }
 
+// @Summary Get Enrollments for a Course
+// @Description Retrieves all enrollments for a specific course.
+// @Tags Enrollments
+// @Accept json
+// @Produce json
+// @Param course_id path string true "Course ID"
+// @Success 200 {object}  response.ApiResponse "Enrollments retrieved successfully"
+// @Failure 400 {object}  response.ApiResponse "Invalid course ID"
+// @Failure 404 {object}  response.ApiResponse "No enrollments found for this course"
+// @Router /v1/api/courses/{course_id}/enrollments [get]
 func (ec *EnrollmentQueryController) GetCourseEnrollments(c *fiber.Ctx) error {
 	logging.LogIncomingRequest(c, KeyGetCourseEnrollments)
 

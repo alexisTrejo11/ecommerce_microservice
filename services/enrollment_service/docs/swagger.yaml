@@ -1,0 +1,645 @@
+definitions:
+  dtos.CertificateDTO:
+    properties:
+      certificate_url:
+        description: |-
+          The URL where the certificate can be accessed.
+          Example: https://example.com/certificates/12345
+        type: string
+      enrollment_id:
+        description: |-
+          The ID of the enrollment associated with the certificate.
+          Example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      expires_at:
+        description: |-
+          The date and time when the certificate expires (optional).
+          Format: date-time
+          Example: 2024-10-01T12:34:56
+        type: string
+      id:
+        description: |-
+          The unique identifier of the certificate.
+          Example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      issued_at:
+        description: |-
+          The date and time when the certificate was issued.
+          Format: date-time
+          Example: 2023-10-01T12:34:56
+        type: string
+    type: object
+  dtos.SubscriptionInsertDTO:
+    properties:
+      payment_id:
+        description: |-
+          The ID of the payment associated with the subscription.
+          Required: true
+          Example: 550e8400-e29b-41d4-a716-446655440002
+        type: string
+      plan_name:
+        description: |-
+          The name of the subscription plan.
+          Required: true
+          Minimum length: 3
+          Maximum length: 50
+          Example: Premium Monthly
+        maxLength: 50
+        minLength: 3
+        type: string
+      status:
+        description: |-
+          The status of the subscription.
+          Required: true
+          Enum: active, inactive, cancelled
+          Example: active
+        type: string
+      type:
+        description: |-
+          The type of the subscription.
+          Required: true
+          Enum: monthly, yearly
+          Example: monthly
+        type: string
+      user_id:
+        description: |-
+          The ID of the user associated with the subscription.
+          Required: true
+          Example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+    required:
+    - payment_id
+    - plan_name
+    - status
+    - type
+    - user_id
+    type: object
+  response.ApiResponse:
+    properties:
+      code:
+        type: integer
+      correlationId:
+        type: string
+      data: {}
+      error_code: {}
+      message: {}
+      page:
+        type: integer
+      perPage:
+        type: integer
+      success:
+        type: boolean
+      timestamp:
+        type: string
+      totalCount:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /enrollments/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all enrollments of the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enrollments retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get My Enrollments
+      tags:
+      - Enrollments
+  /progress/lesson/{lesson_id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Marks a specific lesson as complete for the authenticated user.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: lesson_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lesson marked as complete successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid lesson ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Mark Lesson as Complete
+      tags:
+      - Progress
+  /progress/lesson/{lesson_id}/incomplete:
+    post:
+      consumes:
+      - application/json
+      description: Marks a specific lesson as incomplete for the authenticated user.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: lesson_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lesson marked as incomplete successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid lesson ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Mark Lesson as Incomplete
+      tags:
+      - Progress
+  /progress/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the progress of all lessons for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course progress retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get My Course Progress
+      tags:
+      - Progress
+  /v1/api/certificates/{enrollment_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a certificate associated with a specific enrollment ID
+      parameters:
+      - description: Enrollment ID
+        in: path
+        name: enrollment_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Certificate successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.CertificateDTO'
+              type: object
+        "400":
+          description: Invalid enrollment ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Certificate not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get certificate by enrollment
+      tags:
+      - Certificates
+  /v1/api/certificates/my:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all certificates associated with the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Certificates successfully retrieved
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dtos.CertificateDTO'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: No certificates found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user's certificates
+      tags:
+      - Certificates
+  /v1/api/courses/{course_id}/enrollments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all enrollments for a specific course.
+      parameters:
+      - description: Course ID
+        in: path
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enrollments retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid course ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: No enrollments found for this course
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Enrollments for a Course
+      tags:
+      - Enrollments
+  /v1/api/enrollments/{enrollent_id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Complete a course and generate certificate for the enrollment
+      parameters:
+      - description: Enrollment ID
+        in: path
+        name: enrollent_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Course completed successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.ApiResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/dtos.CertificateDTO'
+              type: object
+        "400":
+          description: Invalid enrollment ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Enrollment not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Mark course as completed
+      tags:
+      - Enrollment Management
+  /v1/api/enrollments/{enrollment_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific enrollment using its ID.
+      parameters:
+      - description: Enrollment ID
+        in: path
+        name: enrollment_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enrollment retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid enrollment ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Enrollment not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Enrollment by ID
+      tags:
+      - Enrollments
+  /v1/api/enrollments/user/{user_id}/course/{course_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a specific enrollment using the user ID and course ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Course ID
+        in: path
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enrollment retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid user or course ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Enrollment not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Get Enrollment by User and Course
+      tags:
+      - Enrollments
+  /v1/api/subscriptions:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new subscription for a user.
+      parameters:
+      - description: Subscription details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.SubscriptionInsertDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Subscription created successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create Subscription
+      tags:
+      - Subscriptions
+  /v1/api/subscriptions/{subscription_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a subscription by its ID.
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: subscription_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription deleted successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid subscription ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Delete Subscription
+      tags:
+      - Subscriptions
+  /v1/api/subscriptions/{user_id}/change/{sub_type}:
+    post:
+      consumes:
+      - application/json
+      description: Changes the subscription type for the authenticated user.
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Subscription Type
+        in: path
+        name: sub_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription type updated successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid subscription type or user ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Change My Subscription Type
+      tags:
+      - Subscriptions
+  /v1/api/subscriptions/cancel/{lesson_id}:
+    post:
+      consumes:
+      - application/json
+      description: Cancels the subscription for the authenticated user.
+      parameters:
+      - description: Lesson ID
+        in: path
+        name: lesson_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription cancelled successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid parameter
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Cancel My Subscription
+      tags:
+      - Subscriptions
+  /v1/api/subscriptions/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the subscription details for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription retrieved successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get My Subscription
+      tags:
+      - Subscriptions
+  /v1/api/users/{user_id}/courses/{course_id}/enroll:
+    post:
+      consumes:
+      - application/json
+      description: Create a new enrollment and track record for a user-course combination
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Course ID
+        in: path
+        name: course_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Enrollment created successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid user/course ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "409":
+          description: User already enrolled
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Enroll user in course
+      tags:
+      - Enrollment Management
+  /v1/api/users/{user_id}/enrollments/{enrollent_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Cancel an existing enrollment for a user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Enrollment ID
+        in: path
+        name: enrollent_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enrollment cancelled successfully
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "400":
+          description: Invalid user/enrollment ID
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "404":
+          description: Enrollment not found
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: Cancel enrollment
+      tags:
+      - Enrollment Management
+swagger: "2.0"
