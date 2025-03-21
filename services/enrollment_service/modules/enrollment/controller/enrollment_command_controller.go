@@ -3,86 +3,97 @@ package controller
 import (
 	"context"
 
-	services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/service"
+	c_services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/service"
+	e_services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/service"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/response"
 	"github.com/gofiber/fiber/v2"
 )
 
 type EnrollmentComandController struct {
-	entollmentService services.EnrollmentService
+	enrollmentService  e_services.EnrollmentService
+	certifcate_service c_services.CertificateService
 }
 
-func NewEnrollmentComandController(entollmentService services.EnrollmentService) *EnrollmentComandController {
+func NewEnrollmentComandController(enrollmentService e_services.EnrollmentService, certifcate_service c_services.CertificateService) *EnrollmentComandController {
 	return &EnrollmentComandController{
-		entollmentService: entollmentService,
+		enrollmentService:  enrollmentService,
+		certifcate_service: certifcate_service,
 	}
-}
-
-func (ec *EnrollmentComandController) EnrollUserInCourse(c *fiber.Ctx) error {
-	logging.LogIncomingRequest(c, "enrroll_user_in_course")
-
-	userID, err := response.GetUUIDParam(c, "user_id")
-	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
-	}
-
-	courseID, err := response.GetUUIDParam(c, "course_id")
-	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_course_id")
-	}
-
-	if _, err := ec.entollmentService.EnrollUserInCourse(context.Background(), userID, courseID); err != nil {
-		return response.HandleApplicationError(c, err, "enrroll_user_in_course", userID.String())
-	}
-
-	logging.LogSuccess("enrroll_user_in_course", "User Successfully Enrolled", map[string]interface{}{
-		"use_id": userID,
-	})
-
-	return response.Created(c, "User Successfully Enrolled", nil)
 }
 
 // Validate Course is completed
-func (ec *EnrollmentComandController) CompleteCourse(c *fiber.Ctx) error {
-	logging.LogIncomingRequest(c, "complete_course")
+func (ec *EnrollmentComandController) CompleteMyCourse(c *fiber.Ctx) error {
+	logging.LogIncomingRequest(c, KeyCompleteCourse)
 
-	enrollentID, err := response.GetUUIDParam(c, "enrollent_id")
+	enrollentID, err := response.GetUUIDParam(c, "enrollent_id", KeyCompleteCourse)
 	if err != nil {
-		return response.HandleApplicationError(c, err, "enrroll_user_in_course", enrollentID.String())
+		return response.HandleApplicationError(c, err, KeyCompleteCourse, enrollentID.String())
 	}
 
-	// Auth
-	if err := ec.entollmentService.MarkEnrollmentComplete(context.Background(), enrollentID); err != nil {
-		return response.HandleApplicationError(c, err, "complete_course", enrollentID.String())
+	if err := ec.enrollmentService.MarkEnrollmentComplete(context.Background(), enrollentID); err != nil {
+		return response.HandleApplicationError(c, err, KeyCompleteCourse, enrollentID.String())
 	}
 
-	// Generate Certifcate
+	certificate, err := ec.certifcate_service.GenerateCertificate(context.Background(), enrollentID)
+	if err != nil {
+		return response.HandleApplicationError(c, err, KeyCompleteCourse, enrollentID.String())
+	}
 
-	logging.LogSuccess("complete_course", "Course Succesfully Completed", map[string]interface{}{
+	logging.LogSuccess(KeyCompleteCourse, MsgCourseCompleted, map[string]interface{}{
 		"enrollent_id": enrollentID,
 	})
 
-	return response.OK(c, "Course Succesfully Completed", nil)
+	return response.OK(c, MsgCourseCompleted, certificate)
 }
 
-// Valdiate Cancealibiltys
-func (ec *EnrollmentComandController) CancellEnrollment(c *fiber.Ctx) error {
-	logging.LogIncomingRequest(c, "cancell_enrollment")
+func (ec *EnrollmentComandController) CancellMyEnrollment(c *fiber.Ctx) error {
+	logging.LogIncomingRequest(c, KeyCancelEnrollment)
 
-	enrollentID, err := response.GetUUIDParam(c, "enrollent_id")
+	enrollentID, err := response.GetUUIDParam(c, "enrollent_id", KeyCancelEnrollment)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_user_id")
+		return response.BadRequest(c, err.Error(), MsgInvalidEnrollmentID)
 	}
 
-	// Auth
-	if err := ec.entollmentService.CancelEnrollment(context.Background(), enrollentID); err != nil {
-		return response.HandleApplicationError(c, err, "cancell_enrollment", enrollentID.String())
+	userID, err := response.GetUUIDParam(c, "user_id", KeyCancelEnrollment)
+	if err != nil {
+		logging.LogError(KeyCancelEnrollment, "Invalid enrollment ID", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return response.BadRequest(c, err.Error(), MsgInvalidUserID)
 	}
 
-	logging.LogSuccess("cancell_enrollment", "Enrollment Succesfully Cancelled", map[string]interface{}{
+	if err := ec.enrollmentService.CancelEnrollment(context.Background(), userID, enrollentID); err != nil {
+		return response.HandleApplicationError(c, err, KeyCancelEnrollment, enrollentID.String())
+	}
+
+	logging.LogSuccess(KeyCancelEnrollment, MsgEnrollmentCancelled, map[string]interface{}{
 		"enrollent_id": enrollentID,
 	})
 
-	return response.OK(c, "Enrollment Succesfully Cancelled", nil)
+	return response.OK(c, MsgEnrollmentCancelled, nil)
+}
+
+func (ec *EnrollmentComandController) EnrollUserInCourse(c *fiber.Ctx) error {
+	logging.LogIncomingRequest(c, KeyEnrollUserInCourse)
+
+	userID, err := response.GetUUIDParam(c, "user_id", KeyEnrollUserInCourse)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), MsgInvalidUserID)
+	}
+
+	courseID, err := response.GetUUIDParam(c, "course_id", KeyEnrollUserInCourse)
+	if err != nil {
+		return response.BadRequest(c, err.Error(), MsgInvalidCourseID)
+	}
+
+	if _, err := ec.enrollmentService.EnrollUserInCourse(context.Background(), userID, courseID); err != nil {
+		return response.HandleApplicationError(c, err, KeyEnrollUserInCourse, userID.String())
+	}
+
+	logging.LogSuccess(KeyEnrollUserInCourse, MsgUserEnrolled, map[string]interface{}{
+		"user_id": userID,
+	})
+
+	return response.Created(c, MsgUserEnrolled, nil)
 }

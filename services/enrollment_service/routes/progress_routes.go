@@ -10,7 +10,7 @@ func ProgressRoutes(app *fiber.App, controller controller.ProgressController) {
 
 	path.Get("/users/my", controller.GetMyCourseProgress)
 	// Ad by Id
-	path.Put("/:lesson_id/complete", controller.MarkLessonComplete)
-	path.Put("/:lesson_id/uncomplete", controller.MarkLessonIncomplete)
+	path.Put("/:lesson_id/complete", controller.MarkMyLessonComplete)
+	path.Put("/:lesson_id/uncomplete", controller.MarkMyLessonIncomplete)
 
 }

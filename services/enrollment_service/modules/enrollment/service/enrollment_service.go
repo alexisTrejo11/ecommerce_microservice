@@ -14,7 +14,7 @@ type EnrollmentService interface {
 	GetCourseEnrollments(ctx context.Context, courseID uuid.UUID, page, limit int) ([]dtos.EnrollmentDTO, int64, error)
 
 	EnrollUserInCourse(ctx context.Context, userID, courseID uuid.UUID) (*dtos.EnrollmentDTO, error)
-	CancelEnrollment(ctx context.Context, enrollmentID uuid.UUID) error
+	CancelEnrollment(ctx context.Context, userID, enrollmentID uuid.UUID) error
 	MarkEnrollmentComplete(ctx context.Context, enrollmentID uuid.UUID) error
 	IsUserEnrolledInCourse(ctx context.Context, userID, courseID uuid.UUID) bool
 }

@@ -23,41 +23,41 @@ func NewCertificateController(service services.CertificateService, jwtManager jw
 }
 
 func (cc *CertifcateController) GetMyCertificates(c *fiber.Ctx) error {
-	logging.LogIncomingRequest(c, "get_my_certificates")
+	logging.LogIncomingRequest(c, KeyGetMyCertificates)
 
 	userID, err := cc.jwtManager.GetUserIDFromToken(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_enrollment_id")
+		return response.BadRequest(c, err.Error(), MsgInvalidEnrollmentID)
 	}
 
 	certificates, err := cc.service.GetCertificateByUserID(context.Background(), userID)
 	if err != nil {
-		return response.HandleApplicationError(c, err, "get_my_certificates", userID.String())
+		return response.HandleApplicationError(c, err, KeyGetMyCertificates, userID.String())
 	}
 
-	logging.LogSuccess("get_my_certificates", "User Certificate Succesfully Retrieved", map[string]interface{}{
+	logging.LogSuccess(KeyGetMyCertificates, MsgUserCertificateRetrieved, map[string]interface{}{
 		"user_id": userID,
 	})
 
-	return response.OK(c, "User Certificate Succesfully Retrieved", certificates)
+	return response.OK(c, MsgUserCertificateRetrieved, certificates)
 }
 
 func (cc *CertifcateController) GetCertificateByEnrollment(c *fiber.Ctx) error {
-	logging.LogIncomingRequest(c, "get_certificate_by_enrollment")
+	logging.LogIncomingRequest(c, KeyGetCertificateByEnrollment)
 
-	enrollmentID, err := response.GetUUIDParam(c, "enrollment_id")
+	enrollmentID, err := response.GetUUIDParam(c, "enrollment_id", KeyGetCertificateByEnrollment)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), "invalid_enrollment_id")
+		return response.BadRequest(c, err.Error(), MsgInvalidEnrollmentID)
 	}
 
 	certificate, err := cc.service.GetCertificateByEnrollment(context.Background(), enrollmentID)
 	if err != nil {
-		return response.HandleApplicationError(c, err, "get_certificate_by_enrollment", enrollmentID.String())
+		return response.HandleApplicationError(c, err, KeyGetCertificateByEnrollment, enrollmentID.String())
 	}
 
-	logging.LogSuccess("get_certificate_by_enrollment", "User Certificate Succesfully Retrieved", map[string]interface{}{
+	logging.LogSuccess(KeyGetCertificateByEnrollment, MsgCertificateRetrieved, map[string]interface{}{
 		"enrollment_id": enrollmentID,
 	})
 
-	return response.OK(c, "Certificate Succesfully Retrieved", certificate)
+	return response.OK(c, MsgCertificateRetrieved, certificate)
 }

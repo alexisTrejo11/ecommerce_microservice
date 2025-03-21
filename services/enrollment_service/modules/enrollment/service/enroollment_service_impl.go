@@ -66,8 +66,18 @@ func (r *EnrollmentServiceImpl) EnrollUserInCourse(ctx context.Context, userID, 
 	return &enrollmentDTO, nil
 }
 
-func (r *EnrollmentServiceImpl) CancelEnrollment(ctx context.Context, enrollmentID uuid.UUID) error {
-	if err := r.repository.Delete(ctx, enrollmentID); err != nil {
+// Request Refund
+func (r *EnrollmentServiceImpl) CancelEnrollment(ctx context.Context, userID, enrollmentID uuid.UUID) error {
+	enrollment, err := r.repository.GetByID(ctx, enrollmentID)
+	if err != nil {
+		return err
+	}
+
+	if err := enrollment.Cancel(); err != nil {
+		return err
+	}
+
+	if err := r.repository.Update(ctx, enrollment); err != nil {
 		return err
 	}
 
@@ -80,7 +90,9 @@ func (r *EnrollmentServiceImpl) MarkEnrollmentComplete(ctx context.Context, enro
 		return err
 	}
 
-	existingEnrollment.MarkAsCompleted()
+	if err := existingEnrollment.SetCompletionStatus(enrollment.FINISHED); err != nil {
+		return err
+	}
 
 	if err := r.repository.Update(ctx, existingEnrollment); err != nil {
 		return err
@@ -89,7 +101,6 @@ func (r *EnrollmentServiceImpl) MarkEnrollmentComplete(ctx context.Context, enro
 	return nil
 }
 
-// Error is Not found
 func (r *EnrollmentServiceImpl) IsUserEnrolledInCourse(ctx context.Context, userID, courseID uuid.UUID) bool {
 	enrollment, err := r.repository.GetByUserAndCourse(ctx, userID, courseID)
 	return enrollment == nil && err != nil

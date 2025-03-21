@@ -69,7 +69,7 @@ func main() {
 
 	// Controller
 	certificationController := certificateController.NewCertificateController(certificateService, *jwtManager)
-	enrollmentCommandController := enrollmentController.NewEnrollmentComandController(enrollmentService)
+	enrollmentCommandController := enrollmentController.NewEnrollmentComandController(enrollmentService, certificateService)
 	enrollmentQueryController := enrollmentController.NewEnrollmentQueryController(enrollmentService, *jwtManager)
 	progressController := progressController.NewProgressController(progressService, *jwtManager)
 	subscriptionController := controller.NewSubscriptionController(subscriptionService, *jwtManager)
