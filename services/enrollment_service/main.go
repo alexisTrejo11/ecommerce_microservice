@@ -58,18 +58,18 @@ func main() {
 	certificateRepository := certificateRepo.NewCertificateRepository(db)
 	enrollmentRepository := enrollmentRepo.NewEnrollmentRepository(db)
 	progressRepository := progressRepo.NewProgressRepository(db)
-	progressRepo.NewMongoDBCourseRepository(mongoClient, mongoDBName, *mongoCollections)
+	courseRepository := progressRepo.NewMongoDBCourseRepository(mongoClient, mongoDBName, *mongoCollections)
 	subRepos := su_repository.NewSubscriptionRepository(db)
 
 	// Service
 	certificateService := certificateService.NewCertificateService(certificateRepository, enrollmentRepository)
 	enrollmentService := enrollmentService.NewEnrollmentService(enrollmentRepository)
-	progressService := progressService.NewProgressService(progressRepository)
+	progressService := progressService.NewProgressService(progressRepository, enrollmentRepository, courseRepository)
 	subscriptionService := su_service.NewSubscriptionService(subRepos)
 
 	// Controller
 	certificationController := certificateController.NewCertificateController(certificateService, *jwtManager)
-	enrollmentCommandController := enrollmentController.NewEnrollmentComandController(enrollmentService, certificateService)
+	enrollmentCommandController := enrollmentController.NewEnrollmentComandController(enrollmentService, certificateService, progressService)
 	enrollmentQueryController := enrollmentController.NewEnrollmentQueryController(enrollmentService, *jwtManager)
 	progressController := progressController.NewProgressController(progressService, *jwtManager)
 	subscriptionController := controller.NewSubscriptionController(subscriptionService, *jwtManager)

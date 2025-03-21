@@ -3,7 +3,10 @@ package services
 import (
 	"context"
 	"math"
+	"time"
 
+	enrollmentRep "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/repository"
+	progress "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/model"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/repository"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/dtos"
 	mapper "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/mappers"
@@ -11,12 +14,20 @@ import (
 )
 
 type ProgressServiceImpl struct {
-	repository repository.ProgressRepository
+	repository           repository.ProgressRepository
+	courseRepository     repository.CourseRepository
+	enrollmentRepository enrollmentRep.EnrollmentRepository
 }
 
-func NewProgressService(repository repository.ProgressRepository) ProgressService {
+func NewProgressService(
+	repository repository.ProgressRepository,
+	enrollmentRepository enrollmentRep.EnrollmentRepository,
+	courseRepository repository.CourseRepository,
+) ProgressService {
 	return &ProgressServiceImpl{
-		repository: repository,
+		repository:           repository,
+		enrollmentRepository: enrollmentRepository,
+		courseRepository:     courseRepository,
 	}
 }
 
@@ -91,4 +102,37 @@ func (s *ProgressServiceImpl) IsLessonCompleted(ctx context.Context, enrollmentI
 	}
 
 	return nil, lessonProgress.IsCompleted
+}
+
+func (s *ProgressServiceImpl) CreateCourseTrackRecord(ctx context.Context, enrollmentID uuid.UUID) error {
+	enrrollment, err := s.enrollmentRepository.GetByID(ctx, enrollmentID)
+	if err != nil {
+		return err
+	}
+
+	course, err := s.courseRepository.FindByID(ctx, enrrollment.CourseID)
+	if err != nil {
+		return err
+	}
+
+	lessons := course.Lessons()
+
+	lessonsToComplete := make([]progress.CompletedLesson, len(lessons))
+	for i, lesson := range lessons {
+		lessonToComplete := &progress.CompletedLesson{
+			ID:           uuid.New(),
+			EnrollmentID: enrollmentID,
+			LessonID:     lesson.ID,
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
+		}
+
+		lessonsToComplete[i] = *lessonToComplete
+	}
+
+	if err := s.repository.BulkCreate(ctx, &lessonsToComplete); err != nil {
+		return err
+	}
+
+	return nil
 }

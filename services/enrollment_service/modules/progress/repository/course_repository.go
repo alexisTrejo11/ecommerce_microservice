@@ -68,8 +68,7 @@ type MongoDBCourseRepository struct {
 	collections config.ProgressCollections
 }
 
-func NewMongoDBCourseRepository(client *mongo.Client, dbName string, collections config.ProgressCollections) (*MongoDBCourseRepository, error) {
-
+func NewMongoDBCourseRepository(client *mongo.Client, dbName string, collections config.ProgressCollections) *MongoDBCourseRepository {
 	return &MongoDBCourseRepository{
 		client: client,
 		dbName: dbName,
@@ -78,7 +77,7 @@ func NewMongoDBCourseRepository(client *mongo.Client, dbName string, collections
 			ModulesColl: collections.ModulesColl,
 			LessonsColl: collections.LessonsColl,
 		},
-	}, nil
+	}
 }
 
 func (r *MongoDBCourseRepository) toCourseDocument(course *progress.Course) CourseDocument {

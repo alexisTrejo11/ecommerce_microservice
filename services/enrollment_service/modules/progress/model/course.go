@@ -45,6 +45,16 @@ func (c *Course) ThumbnailURL() string     { return c.thumbnailURL }
 func (c *Course) Language() string         { return c.language }
 func (c *Course) Modules() []Module        { return c.modules }
 
+func (c *Course) Lessons() []Lesson {
+	var lessons []Lesson
+
+	for _, module := range c.modules {
+		lessons = append(lessons, module.Lessons...)
+	}
+
+	return lessons
+}
+
 func NewCourse(
 	name string,
 	description string,

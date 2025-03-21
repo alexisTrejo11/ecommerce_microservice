@@ -8,6 +8,7 @@ import (
 )
 
 type ProgressService interface {
+	CreateCourseTrackRecord(ctx context.Context, enrollmentID uuid.UUID) error
 	MarkLessonComplete(ctx context.Context, enrollmentID, lessonID uuid.UUID) error
 	MarkLessonIncomplete(ctx context.Context, enrollmentID, lessonID uuid.UUID) error
 	GetCourseProgress(ctx context.Context, enrollmentID uuid.UUID) ([]dtos.CompletedLessonDTO, error)

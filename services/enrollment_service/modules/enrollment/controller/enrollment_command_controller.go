@@ -5,6 +5,7 @@ import (
 
 	c_services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/service"
 	e_services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/service"
+	services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/progress/service"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/response"
 	"github.com/gofiber/fiber/v2"
@@ -12,13 +13,15 @@ import (
 
 type EnrollmentComandController struct {
 	enrollmentService  e_services.EnrollmentService
+	progressService    services.ProgressService
 	certifcate_service c_services.CertificateService
 }
 
-func NewEnrollmentComandController(enrollmentService e_services.EnrollmentService, certifcate_service c_services.CertificateService) *EnrollmentComandController {
+func NewEnrollmentComandController(enrollmentService e_services.EnrollmentService, certifcate_service c_services.CertificateService, progressService services.ProgressService) *EnrollmentComandController {
 	return &EnrollmentComandController{
 		enrollmentService:  enrollmentService,
 		certifcate_service: certifcate_service,
+		progressService:    progressService,
 	}
 }
 
@@ -87,7 +90,13 @@ func (ec *EnrollmentComandController) EnrollUserInCourse(c *fiber.Ctx) error {
 		return response.BadRequest(c, err.Error(), MsgInvalidCourseID)
 	}
 
-	if _, err := ec.enrollmentService.EnrollUserInCourse(context.Background(), userID, courseID); err != nil {
+	enrollment, err := ec.enrollmentService.EnrollUserInCourse(context.Background(), userID, courseID)
+	if err != nil {
+		return response.HandleApplicationError(c, err, KeyEnrollUserInCourse, userID.String())
+	}
+
+	err = ec.progressService.CreateCourseTrackRecord(context.TODO(), enrollment.ID)
+	if err != nil {
 		return response.HandleApplicationError(c, err, KeyEnrollUserInCourse, userID.String())
 	}
 

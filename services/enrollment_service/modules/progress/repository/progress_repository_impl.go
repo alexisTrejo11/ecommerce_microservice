@@ -25,6 +25,22 @@ func (r *ProgressRepositoryImpl) Save(ctx context.Context, completedLesson *prog
 	return nil
 }
 
+func (r *ProgressRepositoryImpl) BulkCreate(ctx context.Context, completedLessons *[]progress.CompletedLesson) error {
+	tx := r.db.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Create(&completedLessons).Error; err != nil {
+		tx.Rollback()
+		return appErr.ErrDB
+	}
+
+	return tx.Commit().Error
+}
+
 func (r *ProgressRepositoryImpl) GetByEnrollmentAndLesson(ctx context.Context, enrollmentID, lessonID uuid.UUID) (*progress.CompletedLesson, error) {
 	var completeLesson progress.CompletedLesson
 	if err := r.db.WithContext(ctx).Where("enrollment_id = ? AND lesson_id = ?", enrollmentID, lessonID).First(&completeLesson).Error; err != nil {
