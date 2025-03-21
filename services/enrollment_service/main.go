@@ -22,6 +22,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
+	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/rate_limiter"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -34,6 +35,7 @@ func main() {
 
 	// Config
 	db := config.GORMConfig()
+	config.InitRedis()
 
 	mongoDBName := os.Getenv("MONGO_DB_NAME")
 	if mongoDBName == "" {
@@ -47,6 +49,10 @@ func main() {
 
 	// Log
 	logging.InitLogger()
+
+	// Rate Limiter
+	rateLimiter := ratelimiter.NewRateLimiter(config.RedisClient, 50, 1*time.Minute)
+	app.Use(rateLimiter.Limit)
 
 	// JWT
 	jwtManager, err := jwt.NewJWTManager()

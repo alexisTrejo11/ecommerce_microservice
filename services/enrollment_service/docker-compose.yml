@@ -13,11 +13,11 @@ services:
       - REDIS_PORT=${REDIS_PORT}
     depends_on:
       my-sql:
-        condition: service_healthy
+        condition: service_started
       mongoDB:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     networks:
       - go-network
     ports:
