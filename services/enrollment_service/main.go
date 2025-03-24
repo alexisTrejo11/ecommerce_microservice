@@ -93,11 +93,11 @@ func main() {
 	subscriptionService := su_service.NewSubscriptionService(subRepos)
 
 	// Controller
-	certificationController := certificateController.NewCertificateController(certificateService, *jwtManager)
+	certificationController := certificateController.NewCertificateController(certificateService, jwtManager)
 	enrollmentCommandController := enrollmentController.NewEnrollmentComandController(enrollmentService, certificateService, progressService)
-	enrollmentQueryController := enrollmentController.NewEnrollmentQueryController(enrollmentService, *jwtManager)
-	progressController := progressController.NewProgressController(progressService, *jwtManager)
-	subscriptionController := controller.NewSubscriptionController(subscriptionService, *jwtManager)
+	enrollmentQueryController := enrollmentController.NewEnrollmentQueryController(enrollmentService, jwtManager)
+	progressController := progressController.NewProgressController(progressService, jwtManager)
+	subscriptionController := controller.NewSubscriptionController(subscriptionService, jwtManager)
 
 	// Receiver
 	courseReceiver := rabbitmq.NewCourseQueueReceiver(client, "course_queue", time.Second*5, courseRepository)
@@ -116,7 +116,7 @@ func main() {
 	routes.EnrollmentsRoutes(app, *enrollmentCommandController, *enrollmentQueryController)
 
 	// Auth Routes
-	app.Use(middleware.JWTAuthMiddleware(*jwtManager))
+	app.Use(middleware.JWTAuthMiddleware(jwtManager))
 	routes.UserSubscriptionRoutes(app, *subscriptionController)
 	routes.UserEnrollmentsRoutes(app, *enrollmentCommandController, *enrollmentQueryController)
 	routes.ProgressRoutes(app, *progressController)

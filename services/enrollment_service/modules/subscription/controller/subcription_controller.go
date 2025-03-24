@@ -17,12 +17,12 @@ import (
 // SubscriptionController handles operations related to subscriptions.
 type SubscriptionController struct {
 	service    su_service.SubscriptionService
-	jwtManager jwt.JWTManager
+	jwtManager jwt.TokenManager
 	validator  *validator.Validate
 }
 
 // NewSubscriptionController creates a new instance of the SubscriptionController.
-func NewSubscriptionController(service su_service.SubscriptionService, jwtManager jwt.JWTManager) *SubscriptionController {
+func NewSubscriptionController(service su_service.SubscriptionService, jwtManager jwt.TokenManager) *SubscriptionController {
 	return &SubscriptionController{
 		service:    service,
 		jwtManager: jwtManager,
@@ -165,7 +165,7 @@ func (sc *SubscriptionController) GetMySubscription(c *fiber.Ctx) error {
 		"subscription_id": subscription.ID,
 	})
 
-	return response.Created(c, MsgSubscriptionRetrieved, subscription)
+	return response.OK(c, MsgSubscriptionRetrieved, subscription)
 }
 
 // @Summary Cancel My Subscription

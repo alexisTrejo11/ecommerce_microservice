@@ -6,12 +6,12 @@ import (
 )
 
 func CerticationRoutes(app *fiber.App, controller controller.CertifcateController) {
-	path := app.Group("/v1/api/certifications")
+	path := app.Group("/v1/api/certificates")
 	path.Get("/:enrollment_id", controller.GetCertificateByEnrollment)
 }
 
 func UserCerticationRoutes(app *fiber.App, controller controller.CertifcateController) {
-	path := app.Group("/v1/api/certifications")
+	path := app.Group("/v1/api/certificates")
 
 	path.Get("users/my", controller.GetMyCertificates)
 }

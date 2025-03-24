@@ -6,6 +6,7 @@ import (
 	services "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/certificate/service"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
+	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/response"
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,11 +14,11 @@ import (
 // CertifcateController handles certificate-related HTTP requests
 type CertifcateController struct {
 	service    services.CertificateService
-	jwtManager jwt.JWTManager
+	jwtManager jwt.TokenManager
 }
 
 // NewCertificateController creates a new CertifcateController instance
-func NewCertificateController(service services.CertificateService, jwtManager jwt.JWTManager) *CertifcateController {
+func NewCertificateController(service services.CertificateService, jwtManager jwt.TokenManager) *CertifcateController {
 	return &CertifcateController{
 		service:    service,
 		jwtManager: jwtManager,
@@ -38,9 +39,9 @@ func NewCertificateController(service services.CertificateService, jwtManager jw
 func (cc *CertifcateController) GetMyCertificates(c *fiber.Ctx) error {
 	logging.LogIncomingRequest(c, KeyGetMyCertificates)
 
-	userID, err := cc.jwtManager.GetUserIDFromToken(c)
+	userID, err := middleware.GetUserID(c)
 	if err != nil {
-		return response.BadRequest(c, err.Error(), MsgInvalidEnrollmentID)
+		return response.Unauthorized(c, err.Error(), "get_my_certificates")
 	}
 
 	certificates, err := cc.service.GetCertificateByUserID(context.Background(), userID)

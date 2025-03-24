@@ -14,11 +14,11 @@ import (
 // ProgressController handles operations related to course progress.
 type ProgressController struct {
 	service    services.ProgressService
-	jwtManager jwt.JWTManager
+	jwtManager jwt.TokenManager
 }
 
 // NewProgressController creates a new instance of the ProgressController.
-func NewProgressController(service services.ProgressService, jwtManager jwt.JWTManager) *ProgressController {
+func NewProgressController(service services.ProgressService, jwtManager jwt.TokenManager) *ProgressController {
 	return &ProgressController{
 		service:    service,
 		jwtManager: jwtManager,

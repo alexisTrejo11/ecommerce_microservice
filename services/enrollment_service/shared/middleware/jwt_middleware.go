@@ -11,14 +11,26 @@ import (
 
 const UserIDKey = "userId"
 
-func JWTAuthMiddleware(jwtManager jwt.JWTManager) fiber.Handler {
+func JWTAuthMiddleware(jwtManager jwt.TokenManager) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		authHeader := c.Get("Authorization")
+		log.Info().
+			Str("action", "jwt_authentication").
+			Str("status", "debug").
+			Str("authorization_header", authHeader).
+			Msg("Authorization header received")
+
+		if authHeader == "" {
+			logging.LogError("jwt_authentication", "Missing Authorization header", nil)
+			return response.Unauthorized(c, "missing_authorization_header", "User not authenticated")
+		}
+
 		userID, err := jwtManager.GetUserIDFromToken(c)
 		if err != nil {
 			logging.LogError("jwt_authentication", "Invalid JWT token", map[string]interface{}{
 				"error": err.Error(),
 			})
-			return response.BadRequest(c, err.Error(), "invalid_user_id")
+			return response.Unauthorized(c, err.Error(), "invalid_token")
 		}
 
 		c.Locals(UserIDKey, userID)

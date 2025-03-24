@@ -13,11 +13,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type TokenManager interface {
+	VerifyToken(tokenString string) (*tokens.Claims, error)
+	ExtractAndValidateToken(c *fiber.Ctx) (*tokens.Claims, error)
+	GetTokenExpirationDate(tokenString string) (time.Time, error)
+	GetUserIDFromToken(c *fiber.Ctx) (uuid.UUID, error)
+}
+
 type JWTManager struct {
 	config tokens.Config
 }
 
-func NewJWTManager() (*JWTManager, error) {
+func NewJWTManager() (TokenManager, error) {
 	secret := os.Getenv("JWT_SECRET_KEY")
 	if secret == "" {
 		return nil, errors.New("JWT_SECRET_KEY is not defined in the environment variables")

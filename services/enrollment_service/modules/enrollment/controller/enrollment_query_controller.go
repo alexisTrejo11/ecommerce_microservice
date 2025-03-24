@@ -14,11 +14,11 @@ import (
 // EnrollmentQueryController handles operations related to enrollment queries.
 type EnrollmentQueryController struct {
 	entollmentService services.EnrollmentService
-	jwtManager        jwt.JWTManager
+	jwtManager        jwt.TokenManager
 }
 
 // NewEnrollmentQueryController creates a new instance of the controller.
-func NewEnrollmentQueryController(entollmentService services.EnrollmentService, jwtManager jwt.JWTManager) *EnrollmentQueryController {
+func NewEnrollmentQueryController(entollmentService services.EnrollmentService, jwtManager jwt.TokenManager) *EnrollmentQueryController {
 	return &EnrollmentQueryController{
 		entollmentService: entollmentService,
 		jwtManager:        jwtManager,
