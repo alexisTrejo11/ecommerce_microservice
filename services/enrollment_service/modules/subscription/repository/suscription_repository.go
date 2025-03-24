@@ -71,18 +71,27 @@ func (r *SubscriptionRepositoryImpl) Save(ctx context.Context, subscription *sub
 	return r.db.WithContext(ctx).Save(subscription).Error
 }
 
+// Test Issues
 func (r *SubscriptionRepositoryImpl) SoftDelete(ctx context.Context, subscriptionID uuid.UUID) error {
+	tx := r.db.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	var subscription subscription.Subscription
-
-	if err := r.db.WithContext(ctx).Where("id = ?", subscriptionID).First(&subscription).Error; err != nil {
+	if err := tx.Where("id = ?", subscriptionID).First(&subscription).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	if err := r.db.WithContext(ctx).Delete(&subscription).Error; err != nil {
+	if err := tx.Delete(&subscription).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	return nil
+	return tx.Commit().Error
 }
 
 func (r *SubscriptionRepositoryImpl) ExpireSubscriptions(ctx context.Context) error {

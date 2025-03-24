@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	enrollment "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/modules/enrollment/model"
 	appErr "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/error"
@@ -29,15 +28,13 @@ func (r *EnrollmentRepositoryImpl) Create(ctx context.Context, enrollment *enrol
 
 func (r *EnrollmentRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*enrollment.Enrollment, error) {
 	var enrollment enrollment.Enrollment
+
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&enrollment).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-
 			return nil, appErr.ErrNotFoundDB
 		}
 		return nil, appErr.ErrDB
 	}
-
-	fmt.Println(enrollment)
 
 	return &enrollment, nil
 }
@@ -68,14 +65,12 @@ func (r *EnrollmentRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) err
 
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&enrollment).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-
 			return appErr.ErrNotFoundDB
 		}
 		return appErr.ErrDB
 	}
 
-	err := r.db.WithContext(ctx).Delete(&enrollment).Error
-	if err != nil {
+	if err := r.db.WithContext(ctx).Delete(&enrollment).Error; err != nil {
 		return appErr.ErrDB
 	}
 

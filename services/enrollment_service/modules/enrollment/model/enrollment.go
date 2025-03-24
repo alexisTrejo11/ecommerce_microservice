@@ -65,7 +65,7 @@ func (e *Enrollment) SetCompletionStatus(status CompletionStatus) error {
 	}
 
 	switch status {
-	case STARTING, ON_GOING, ON_HOLD:
+	case STARTING, ON_GOING, ON_HOLD, CANCELLED:
 		e.CompletionStatus = status
 	default:
 		return fmt.Errorf("invalid completion status")
