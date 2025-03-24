@@ -13,6 +13,7 @@ import (
 type LessonDocument struct {
 	ID          string    `bson:"_id"`
 	ModuleID    string    `bson:"module_id"`
+	CourseID    string    `bson:"course_id"`
 	Title       string    `bson:"title"`
 	Content     string    `bson:"content"`
 	Duration    uint      `bson:"duration_minutes"`
@@ -54,12 +55,15 @@ type CourseRepository interface {
 	FindByLevel(ctx context.Context, level progress.CourseLevel) ([]*progress.Course, error)
 	Update(ctx context.Context, course *progress.Course) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	AddModule(ctx context.Context, courseID uuid.UUID, module progress.Module) error
+	AddModule(ctx context.Context, courseID uuid.UUID, module ModuleDocument) error
 	UpdateModule(ctx context.Context, module progress.Module) error
 	DeleteModule(ctx context.Context, moduleID uuid.UUID) error
-	AddLesson(ctx context.Context, moduleID uuid.UUID, lesson progress.Lesson) error
+	AddLesson(ctx context.Context, moduleID uuid.UUID, lesson LessonDocument) error
 	UpdateLesson(ctx context.Context, lesson progress.Lesson) error
 	DeleteLesson(ctx context.Context, lessonID uuid.UUID) error
+
+	ToCourseEntity(doc CourseDocument) (*progress.Course, error)
+	ToCourseDocument(course *progress.Course) CourseDocument
 }
 
 type MongoDBCourseRepository struct {
@@ -80,7 +84,7 @@ func NewMongoDBCourseRepository(client *mongo.Client, dbName string, collections
 	}
 }
 
-func (r *MongoDBCourseRepository) toCourseDocument(course *progress.Course) CourseDocument {
+func (r *MongoDBCourseRepository) ToCourseDocument(course *progress.Course) CourseDocument {
 	modules := make([]ModuleDocument, len(course.Modules()))
 	for i, m := range course.Modules() {
 		lessons := make([]LessonDocument, len(m.Lessons))
@@ -123,7 +127,7 @@ func (r *MongoDBCourseRepository) toCourseDocument(course *progress.Course) Cour
 	}
 }
 
-func (r *MongoDBCourseRepository) toCourseEntity(doc CourseDocument) (*progress.Course, error) {
+func (r *MongoDBCourseRepository) ToCourseEntity(doc CourseDocument) (*progress.Course, error) {
 	_, err := uuid.Parse(doc.ID)
 	if err != nil {
 		return nil, err

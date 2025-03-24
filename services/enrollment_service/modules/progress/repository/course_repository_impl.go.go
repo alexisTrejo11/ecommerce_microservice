@@ -13,7 +13,7 @@ import (
 )
 
 func (r *MongoDBCourseRepository) Save(ctx context.Context, course *progress.Course) error {
-	doc := r.toCourseDocument(course)
+	doc := r.ToCourseDocument(course)
 
 	filter := bson.M{"_id": doc.ID}
 	opts := options.Replace().SetUpsert(true)
@@ -33,7 +33,7 @@ func (r *MongoDBCourseRepository) FindByID(ctx context.Context, id uuid.UUID) (*
 		return nil, err
 	}
 
-	return r.toCourseEntity(doc)
+	return r.ToCourseEntity(doc)
 }
 
 func (r *MongoDBCourseRepository) FindAll(ctx context.Context, limit, offset int64) ([]*progress.Course, int64, error) {
@@ -61,7 +61,7 @@ func (r *MongoDBCourseRepository) FindAll(ctx context.Context, limit, offset int
 
 	courses := make([]*progress.Course, len(documents))
 	for i, doc := range documents {
-		course, err := r.toCourseEntity(doc)
+		course, err := r.ToCourseEntity(doc)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -87,7 +87,7 @@ func (r *MongoDBCourseRepository) FindByInstructor(ctx context.Context, instruct
 
 	courses := make([]*progress.Course, len(documents))
 	for i, doc := range documents {
-		course, err := r.toCourseEntity(doc)
+		course, err := r.ToCourseEntity(doc)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func (r *MongoDBCourseRepository) FindByCategory(ctx context.Context, category p
 
 	courses := make([]*progress.Course, len(documents))
 	for i, doc := range documents {
-		course, err := r.toCourseEntity(doc)
+		course, err := r.ToCourseEntity(doc)
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +139,7 @@ func (r *MongoDBCourseRepository) FindByLevel(ctx context.Context, level progres
 
 	courses := make([]*progress.Course, len(documents))
 	for i, doc := range documents {
-		course, err := r.toCourseEntity(doc)
+		course, err := r.ToCourseEntity(doc)
 		if err != nil {
 			return nil, err
 		}
@@ -150,7 +150,7 @@ func (r *MongoDBCourseRepository) FindByLevel(ctx context.Context, level progres
 }
 
 func (r *MongoDBCourseRepository) Update(ctx context.Context, course *progress.Course) error {
-	doc := r.toCourseDocument(course)
+	doc := r.ToCourseDocument(course)
 	doc.UpdatedAt = time.Now()
 
 	filter := bson.M{"_id": doc.ID}
@@ -172,23 +172,14 @@ func (r *MongoDBCourseRepository) Delete(ctx context.Context, id uuid.UUID) erro
 	return err
 }
 
-func (r *MongoDBCourseRepository) AddModule(ctx context.Context, courseID uuid.UUID, module progress.Module) error {
-	moduleDoc := ModuleDocument{
-		ID:          module.ID.String(),
-		CourseID:    courseID.String(),
-		Title:       module.Title,
-		OrderNumber: module.OrderNumber,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-
-	_, err := r.collections.ModulesColl.InsertOne(ctx, moduleDoc)
+func (r *MongoDBCourseRepository) AddModule(ctx context.Context, courseID uuid.UUID, module ModuleDocument) error {
+	_, err := r.collections.ModulesColl.InsertOne(ctx, module)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{"_id": courseID.String()}
-	update := bson.M{"$push": bson.M{"modules": moduleDoc}}
+	update := bson.M{"$push": bson.M{"modules": module}}
 
 	_, err = r.collections.CoursesColl.UpdateOne(ctx, filter, update)
 	return err
@@ -234,26 +225,14 @@ func (r *MongoDBCourseRepository) DeleteModule(ctx context.Context, moduleID uui
 	return err
 }
 
-func (r *MongoDBCourseRepository) AddLesson(ctx context.Context, moduleID uuid.UUID, lesson progress.Lesson) error {
-	lessonDoc := LessonDocument{
-		ID:          lesson.ID.String(),
-		ModuleID:    moduleID.String(),
-		Title:       lesson.Title,
-		Content:     lesson.Content,
-		Duration:    lesson.Duration,
-		OrderNumber: lesson.OrderNumber,
-		ContentType: lesson.ContentType,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-
-	_, err := r.collections.LessonsColl.InsertOne(ctx, lessonDoc)
+func (r *MongoDBCourseRepository) AddLesson(ctx context.Context, moduleID uuid.UUID, lesson LessonDocument) error {
+	_, err := r.collections.LessonsColl.InsertOne(ctx, lesson)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{"_id": moduleID.String()}
-	update := bson.M{"$push": bson.M{"lessons": lessonDoc}}
+	update := bson.M{"$push": bson.M{"lessons": lesson}}
 
 	_, err = r.collections.ModulesColl.UpdateOne(ctx, filter, update)
 	return err

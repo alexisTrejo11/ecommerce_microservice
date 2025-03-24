@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/routes"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/jwt"
 	logging "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/logger"
+	rabbitmq "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/messaging"
 	"github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/middleware"
 	ratelimiter "github.com/alexisTrejo11/ecommerce_microservice/enrollment-service/shared/rate_limiter"
 	swagger "github.com/arsmn/fiber-swagger/v2"
@@ -39,6 +41,7 @@ func main() {
 	db := config.GORMConfig()
 	config.InitRedis()
 
+	// Mongo
 	mongoDBName := os.Getenv("MONGO_DB_NAME")
 	if mongoDBName == "" {
 		mongoDBName = "ENROLLMENT_DB"
@@ -65,6 +68,17 @@ func main() {
 		log.Fatalf("Can't Start Auth Manager %v", err)
 	}
 
+	// RabbitMQ
+	rabbitConn, err := config.ConnectRabbitMQ()
+	if err != nil {
+		log.Fatalf("Can't Connect to rabbitMQ: %v", err)
+	}
+
+	client, err := config.NewRabbitMQClient(rabbitConn)
+	if err != nil {
+		log.Fatalf("Can't setup rabbitMQ: %v", err)
+	}
+
 	// Repository
 	certificateRepository := certificateRepo.NewCertificateRepository(db)
 	enrollmentRepository := enrollmentRepo.NewEnrollmentRepository(db)
@@ -84,6 +98,15 @@ func main() {
 	enrollmentQueryController := enrollmentController.NewEnrollmentQueryController(enrollmentService, *jwtManager)
 	progressController := progressController.NewProgressController(progressService, *jwtManager)
 	subscriptionController := controller.NewSubscriptionController(subscriptionService, *jwtManager)
+
+	// Receiver
+	courseReceiver := rabbitmq.NewCourseQueueReceiver(client, "course_queue", time.Second*5, courseRepository)
+	moduleReceiver := rabbitmq.NewModuleQueueReceiver(client, "module_queue", 5, courseRepository)
+	lessonReceiver := rabbitmq.NewLessonQueueReceiver(client, "lesson_queue", 5, courseRepository)
+
+	go courseReceiver.ReceiveCourse(context.Background())
+	go moduleReceiver.ReceiveModule(context.Background())
+	go lessonReceiver.ReceiveLesson(context.Background())
 
 	// routes
 	// Public Routes
